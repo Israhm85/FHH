@@ -221,13 +221,13 @@
   }
 }
 
-@page {
-  size: landscape;
-  margin: 4mm;
-}
-
 /* ── Print media — shared ────────────────────────────────────────── */
 @media print {
+  @page {
+    size: landscape;
+    margin: 4mm;
+  }
+
   .client-selector {
     display: none !important;
   }
