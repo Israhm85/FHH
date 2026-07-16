@@ -1,17 +1,18 @@
+<script>
 /**
- * app.js — East Coast Placard Generator
+ * PlacardApp.html — East Coast Placard Generator (Google Apps Script)
  *
  * Workflow:
  *  1. Populate the product <select> from the PRODUCTS catalog.
  *  2. On form submit, validate inputs, calculate pallet count,
  *     and render one .placard card per pallet inside #printArea.
  *  3. The Print button triggers window.print() so only placards
- *     are shown (form is hidden via @media print in styles.css).
+ *     are shown (form is hidden via @media print in PlacardStyles.html).
  */
 
 // ── Product catalog ───────────────────────────────────────────────
-const PRODUCTS = [
-  { name: "SHELLED EDAMAME 9OZ",          casesPerPallet: 160 },
+var PRODUCTS = [
+  { name: "SHELLED EDAMAME 9OZ",           casesPerPallet: 160 },
   { name: "STUFFED PEPPERS WITH BEEF 15OZ", casesPerPallet: 143 },
   { name: "KUNG PAO BRUSSEL SPROUTS 14OZ",  casesPerPallet: 143 },
   { name: "GARLIC ASIAGO DIP 10 OZ",        casesPerPallet: 143 },
@@ -20,15 +21,15 @@ const PRODUCTS = [
 ];
 
 // ── DOM references ────────────────────────────────────────────────
-const form         = document.getElementById("placardForm");
-const productSelect = document.getElementById("productSelect");
-const printArea    = document.getElementById("printArea");
-const btnPrint     = document.getElementById("btnPrint");
+var form          = document.getElementById("placardForm");
+var productSelect = document.getElementById("productSelect");
+var printArea     = document.getElementById("printArea");
+var btnPrint      = document.getElementById("btnPrint");
 
 // ── Populate product <select> ─────────────────────────────────────
 PRODUCTS.forEach(function (product, index) {
-  const option = document.createElement("option");
-  option.value = index;           // store array index as value
+  var option = document.createElement("option");
+  option.value = index;          // store array index as value
   option.textContent = product.name;
   productSelect.appendChild(option);
 });
@@ -42,7 +43,7 @@ PRODUCTS.forEach(function (product, index) {
  * @returns {boolean}
  */
 function setValidity(fieldId, isValid) {
-  const el = document.getElementById(fieldId);
+  var el = document.getElementById(fieldId);
   if (isValid) {
     el.classList.remove("invalid");
   } else {
@@ -56,19 +57,19 @@ function setValidity(fieldId, isValid) {
  * @returns {boolean} true if every field is valid.
  */
 function validateForm() {
-  const poNumber    = document.getElementById("poNumber").value.trim();
-  const destination = document.getElementById("destination").value.trim();
-  const shippingDate = document.getElementById("shippingDate").value;
-  const productCode = document.getElementById("productCode").value.trim();
-  const totalCasesRaw = document.getElementById("totalCases").value;
-  const totalCases  = Number(totalCasesRaw);
+  var poNumber      = document.getElementById("poNumber").value.trim();
+  var destination   = document.getElementById("destination").value.trim();
+  var shippingDate  = document.getElementById("shippingDate").value;
+  var productCode   = document.getElementById("productCode").value.trim();
+  var totalCasesRaw = document.getElementById("totalCases").value;
+  var totalCases    = Number(totalCasesRaw);
 
-  const v1 = setValidity("poNumber",    poNumber !== "");
-  const v2 = setValidity("destination", destination !== "");
-  const v3 = setValidity("shippingDate", shippingDate !== "");
-  const v4 = setValidity("productCode", productCode !== "");
+  var v1 = setValidity("poNumber",     poNumber !== "");
+  var v2 = setValidity("destination",  destination !== "");
+  var v3 = setValidity("shippingDate", shippingDate !== "");
+  var v4 = setValidity("productCode",  productCode !== "");
   // totalCases must be a positive whole number
-  const v5 = setValidity(
+  var v5 = setValidity(
     "totalCases",
     totalCasesRaw !== "" && Number.isInteger(totalCases) && totalCases >= 1
   );
@@ -92,14 +93,14 @@ function validateForm() {
  * @returns {HTMLElement}
  */
 function buildPlacard(data) {
-  const article = document.createElement("article");
+  var article = document.createElement("article");
   article.className = "placard";
 
   // Format shipping date for display (YYYY-MM-DD → MM/DD/YYYY).
   // Append T00:00:00 so the Date is treated as local midnight instead of
   // UTC midnight — prevents an off-by-one day in timezones behind UTC.
-  const dateObj = new Date(data.shippingDate + "T00:00:00");
-  const displayDate = isNaN(dateObj.getTime())
+  var dateObj = new Date(data.shippingDate + "T00:00:00");
+  var displayDate = isNaN(dateObj.getTime())
     ? data.shippingDate
     : dateObj.toLocaleDateString("en-US");
 
@@ -172,13 +173,13 @@ form.addEventListener("submit", function (event) {
     return;                  // stop if any field is invalid
   }
 
-  const poNumber     = document.getElementById("poNumber").value.trim();
-  const destination  = document.getElementById("destination").value.trim();
-  const shippingDate = document.getElementById("shippingDate").value;
-  const productCode  = document.getElementById("productCode").value.trim();
-  const totalCases   = Number(document.getElementById("totalCases").value);
-  const productIndex = Number(productSelect.value);
-  const product      = PRODUCTS[productIndex];
+  var poNumber     = document.getElementById("poNumber").value.trim();
+  var destination  = document.getElementById("destination").value.trim();
+  var shippingDate = document.getElementById("shippingDate").value;
+  var productCode  = document.getElementById("productCode").value.trim();
+  var totalCases   = Number(document.getElementById("totalCases").value);
+  var productIndex = Number(productSelect.value);
+  var product      = PRODUCTS[productIndex];
 
   // Guard against an unexpected out-of-range index (should not happen with
   // a controlled <select>, but defensive programming prevents a runtime error).
@@ -189,21 +190,21 @@ form.addEventListener("submit", function (event) {
   }
 
   // Calculate total pallets (ceiling division)
-  const totalPallets = Math.ceil(totalCases / product.casesPerPallet);
+  var totalPallets = Math.ceil(totalCases / product.casesPerPallet);
 
   // Clear previous placards
   printArea.innerHTML = "";
 
   // Generate one placard per pallet
-  for (let palletNumber = 1; palletNumber <= totalPallets; palletNumber++) {
-    const placard = buildPlacard({
-      palletNumber,
-      totalPallets,
-      poNumber,
-      destination,
-      shippingDate,
-      productCode,
-      product
+  for (var palletNumber = 1; palletNumber <= totalPallets; palletNumber++) {
+    var placard = buildPlacard({
+      palletNumber:  palletNumber,
+      totalPallets:  totalPallets,
+      poNumber:      poNumber,
+      destination:   destination,
+      shippingDate:  shippingDate,
+      productCode:   productCode,
+      product:       product
     });
     printArea.appendChild(placard);
   }
@@ -218,3 +219,4 @@ form.addEventListener("submit", function (event) {
 btnPrint.addEventListener("click", function () {
   window.print();
 });
+</script>

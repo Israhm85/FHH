@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <base target="_top">
   <title>FHH – East Coast Placard Generator</title>
-  <link rel="stylesheet" href="styles.css" />
+  <?!=include('PlacardStyles');?>
 </head>
 <body>
   <main class="app">
@@ -57,6 +58,6 @@
     <section id="printArea" aria-live="polite"></section>
   </main>
 
-  <script src="app.js"></script>
+  <?!=include('PlacardApp');?>
 </body>
 </html>
