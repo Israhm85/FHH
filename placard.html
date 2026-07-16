@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FHH – East Coast Placard Generator</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="app">
+    <h1 class="app-title">East Coast Placard Generator</h1>
+
+    <form id="placardForm" class="form-grid" novalidate>
+
+      <div class="field">
+        <label for="poNumber">PO #</label>
+        <input type="text" id="poNumber" placeholder="e.g. 123456" required />
+        <span class="field-error-msg" id="err-poNumber">Required</span>
+      </div>
+
+      <div class="field">
+        <label for="destination">Destination</label>
+        <input type="text" id="destination" value="MINOOKA" required />
+        <span class="field-error-msg" id="err-destination">Required</span>
+      </div>
+
+      <div class="field">
+        <label for="shippingDate">Shipping Date</label>
+        <input type="date" id="shippingDate" required />
+        <span class="field-error-msg" id="err-shippingDate">Required</span>
+      </div>
+
+      <div class="field">
+        <label for="productSelect">Product</label>
+        <select id="productSelect" required></select>
+      </div>
+
+      <div class="field">
+        <label for="productCode">Product Code</label>
+        <input type="text" id="productCode" placeholder="e.g. 04567" required />
+        <span class="field-error-msg" id="err-productCode">Required</span>
+      </div>
+
+      <div class="field">
+        <label for="totalCases">Total CS</label>
+        <input type="number" id="totalCases" min="1" step="1" placeholder="e.g. 310" required />
+        <span class="field-error-msg" id="err-totalCases">Must be a whole number ≥ 1</span>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" id="btnGenerate">Generate Placards</button>
+        <button type="button" id="btnPrint" disabled>Print</button>
+      </div>
+
+    </form>
+
+    <section id="printArea" aria-live="polite"></section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
