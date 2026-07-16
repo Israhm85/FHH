@@ -40,7 +40,7 @@
       <!-- ── Client selector ───────────────────────────────────────── -->
       <div class="client-selector">
         <button class="client-btn active" id="btnEastCoast" type="button">East Coast</button>
-        <button class="client-btn" id="btnChefHaks" type="button">Reporteras</button>
+        <button class="client-btn" id="btnReporteras" type="button">Reporteras</button>
       </div>
 
       <!-- ── East Coast section ────────────────────────────────────── -->
@@ -94,7 +94,7 @@
       </section>
 
       <!-- ── Chef Haks section ──────────────────────────────────────── -->
-      <section id="sectionChefHaks" class="section-panel section-panel--chef" style="display:none">
+      <section id="sectionReporteras" class="section-panel section-panel--reporteras" style="display:none">
         <form id="chPlacardForm" class="form-grid" novalidate>
 
           <div class="field">
@@ -156,35 +156,35 @@
   <script>
   (function () {
     var btnEC = document.getElementById('btnEastCoast');
-    var btnCH = document.getElementById('btnChefHaks');
+    var btnReporteras = document.getElementById('btnReporteras');
     var secEC = document.getElementById('sectionEastCoast');
-    var secCH = document.getElementById('sectionChefHaks');
+    var secReporteras = document.getElementById('sectionReporteras');
     var body = document.body;
     var brandPillText = document.getElementById('brandPillText');
     var appTitle = document.getElementById('appTitle');
     var appSubtitle = document.getElementById('appSubtitle');
 
     function setClientBrand(client) {
-    body.setAttribute('data-client', client);
-    brandPillText.textContent = 'Fresh Healthy Habits';
-    appTitle.textContent = "Creación de ID's";
-    appSubtitle.textContent = 'Para las reporteras de parte del 👷';
+      body.setAttribute('data-client', client);
+      brandPillText.textContent = 'Fresh Healthy Habits';
+      appTitle.textContent = "Creación de ID's";
+      appSubtitle.textContent = 'Para las reporteras de parte del 👷';
     }
 
     btnEC.addEventListener('click', function () {
       secEC.style.display = '';
-      secCH.style.display = 'none';
+      secReporteras.style.display = 'none';
       btnEC.classList.add('active');
-      btnCH.classList.remove('active');
+      btnReporteras.classList.remove('active');
       setClientBrand('east-coast');
     });
 
-    btnCH.addEventListener('click', function () {
+    btnReporteras.addEventListener('click', function () {
       secEC.style.display = 'none';
-      secCH.style.display = '';
-      btnCH.classList.add('active');
+      secReporteras.style.display = '';
+      btnReporteras.classList.add('active');
       btnEC.classList.remove('active');
-      setClientBrand('chef-haks');
+      setClientBrand('reporteras');
     });
 
     setClientBrand('east-coast');
