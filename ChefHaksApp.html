@@ -94,8 +94,8 @@ function buildChefHaksPlacard(data) {
       ? '<div class="ch-item-number">ITEM# ' + escapeHtml(data.product.itemNumber) + '</div>'
       : '') +
 
-    // ── CHEF HAKS + size ──────────────────────────────────────────
-    '<div class="ch-brand-row">CHEF HAKS ' + escapeHtml(data.product.displaySize) + '</div>' +
+    // ── Size ──────────────────────────────────────────────────────
+    '<div class="ch-brand-row">' + escapeHtml(data.product.displaySize) + '</div>' +
 
     // ── Large product name, centered ──────────────────────────────
     '<div class="ch-product-name">' + productNameHtml + '</div>' +

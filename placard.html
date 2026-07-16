@@ -31,16 +31,16 @@
           <span class="hero-garnish__leaf hero-garnish__leaf--alt"></span>
           <span class="hero-garnish__dot"></span>
         </div>
-        <h1 class="app-title" id="appTitle">Ready-to-Eat Placard Studio</h1>
+        <h1 class="app-title" id="appTitle">Creacion de ID's</h1>
         <p class="app-subtitle" id="appSubtitle">
-          Produce-forward placards with a fresher, more branded workflow for every destination.
+          Para las reporteras de parte del 👷
         </p>
       </header>
 
       <!-- ── Client selector ───────────────────────────────────────── -->
       <div class="client-selector">
         <button class="client-btn active" id="btnEastCoast" type="button">East Coast</button>
-        <button class="client-btn" id="btnChefHaks" type="button">Chef Haks</button>
+        <button class="client-btn" id="btnChefHaks" type="button">ID's</button>
       </div>
 
       <!-- ── East Coast section ────────────────────────────────────── -->
@@ -95,11 +95,6 @@
 
       <!-- ── Chef Haks section ──────────────────────────────────────── -->
       <section id="sectionChefHaks" class="section-panel section-panel--chef" style="display:none">
-        <div class="section-intro">
-          <span class="section-kicker">Bold & chef-led</span>
-          <p class="section-copy">A warmer plated-meal identity for Chef Haks, with richer color accents and a stronger prepared-food tone.</p>
-        </div>
-
         <form id="chPlacardForm" class="form-grid" novalidate>
 
           <div class="field">
@@ -172,16 +167,16 @@
     function setClientBrand(client) {
       if (client === 'chef-haks') {
         body.setAttribute('data-client', 'chef-haks');
-        brandPillText.textContent = 'Chef Haks Kitchen Flow';
-        appTitle.textContent = 'Prepared Meals Placard Studio';
-        appSubtitle.textContent = 'Warm, chef-forward branding for ready-to-heat placards with a richer prepared-food personality.';
+        brandPillText.textContent = 'Fresh Healthy Habits';
+        appTitle.textContent = "Creacion de ID's";
+        appSubtitle.textContent = 'Para las reporteras de parte del 👷';
         return;
       }
 
       body.setAttribute('data-client', 'east-coast');
       brandPillText.textContent = 'Fresh Healthy Habits';
-      appTitle.textContent = 'Ready-to-Eat Placard Studio';
-      appSubtitle.textContent = 'Produce-forward placards with a fresher, more branded workflow for every destination.';
+    appTitle.textContent = "Creacion de ID's";
+    appSubtitle.textContent = 'Para las reporteras de parte del 👷';
     }
 
     btnEC.addEventListener('click', function () {
