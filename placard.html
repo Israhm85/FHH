@@ -6,7 +6,7 @@
   <base target="_top">
   <title>FHH – Placard Generator</title>
   <?!=include('PlacardStyles');?>
-  <?!=include('ChefHaksStyles');?>
+  <?!=include('ReporterasStyles');?>
 </head>
 <body data-client="east-coast">
   <div class="page-decor" aria-hidden="true">
@@ -95,17 +95,17 @@
 
       <!-- ── Reporteras section ─────────────────────────────────────── -->
       <section id="sectionReporteras" class="section-panel section-panel--reporteras" style="display:none">
-        <form id="chPlacardForm" class="form-grid" novalidate>
+        <form id="repPlacardForm" class="form-grid" novalidate>
 
           <div class="field">
-            <label for="ch-poNumber">PO #</label>
-            <input type="text" id="ch-poNumber" placeholder="e.g. 9610624190" required />
-            <span class="field-error-msg" id="err-ch-poNumber">Required</span>
+            <label for="rep-poNumber">PO #</label>
+            <input type="text" id="rep-poNumber" placeholder="e.g. 9610624190" required />
+            <span class="field-error-msg" id="err-rep-poNumber">Required</span>
           </div>
 
           <div class="field">
-            <label for="ch-destination">Destination</label>
-            <select id="ch-destination" required>
+            <label for="rep-destination">Destination</label>
+            <select id="rep-destination" required>
               <option value="MIRA LOMA, CA">MIRA LOMA, CA</option>
               <option value="BROOKSHIRE, TX">BROOKSHIRE, TX</option>
               <option value="DALLAS, TX">DALLAS, TX</option>
@@ -123,35 +123,35 @@
               <option value="TRACY, CA">TRACY, CA</option>
               <option value="LOS ANGELES, CA">LOS ANGELES, CA</option>
             </select>
-            <span class="field-error-msg" id="err-ch-destination">Required</span>
+            <span class="field-error-msg" id="err-rep-destination">Required</span>
           </div>
 
           <div class="field">
-            <label for="ch-productSelect">Product</label>
-            <select id="ch-productSelect" required></select>
+            <label for="rep-productSelect">Product</label>
+            <select id="rep-productSelect" required></select>
           </div>
 
           <div class="field">
-            <label for="ch-totalCases">Total CS</label>
-            <input type="number" id="ch-totalCases" min="1" step="1" placeholder="e.g. 100" required />
-            <span class="field-error-msg" id="err-ch-totalCases">Must be a whole number ≥ 1</span>
+            <label for="rep-totalCases">Total CS</label>
+            <input type="number" id="rep-totalCases" min="1" step="1" placeholder="e.g. 100" required />
+            <span class="field-error-msg" id="err-rep-totalCases">Must be a whole number ≥ 1</span>
           </div>
 
           <div class="form-actions">
-            <button type="submit" id="ch-btnGenerate">Generate Placards</button>
-            <button type="button" id="ch-btnPrint" disabled>Print</button>
+            <button type="submit" id="rep-btnGenerate">Generate Placards</button>
+            <button type="button" id="rep-btnPrint" disabled>Print</button>
           </div>
 
         </form>
 
-        <section id="ch-printArea" aria-live="polite"></section>
+        <section id="rep-printArea" aria-live="polite"></section>
 
       </section>
     </section>
   </main>
 
   <?!=include('PlacardApp');?>
-  <?!=include('ChefHaksApp');?>
+  <?!=include('ReporterasApp');?>
 
   <script>
   (function () {

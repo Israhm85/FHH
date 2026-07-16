@@ -57,7 +57,7 @@
 }
 
 /* ── Reporteras print area (screen) ──────────────────────────────── */
-#ch-printArea {
+#rep-printArea {
   margin-top: 28px;
   display: flex;
   flex-direction: column;
@@ -66,7 +66,7 @@
 }
 
 /* ── Reporteras placard card ─────────────────────────────────────── */
-.ch-placard {
+.rep-placard {
   background: linear-gradient(180deg, #fff 0%, #fcfffb 100%);
   border: 1px solid rgba(23, 49, 38, 0.1);
   border-radius: 26px;
@@ -82,7 +82,7 @@
   overflow: hidden;
 }
 
-.ch-placard::before {
+.rep-placard::before {
   content: "";
   position: absolute;
   inset: 0 0 auto;
@@ -90,7 +90,7 @@
   background: linear-gradient(90deg, #b85c38, #f2b543, #cf5a36);
 }
 
-.ch-placard::after {
+.rep-placard::after {
   content: "";
   position: absolute;
   width: 120px;
@@ -103,26 +103,26 @@
 }
 
 /* Unique ID — label + underline */
-.ch-uid-row {
+.rep-uid-row {
   display: flex;
   align-items: flex-end;
   gap: 6px;
   margin-bottom: 8px;
 }
 
-.ch-uid-label {
+.rep-uid-label {
   font-size: 60px;
   white-space: nowrap;
 }
 
-.ch-uid-blank {
+.rep-uid-blank {
   flex: 1;
   border-bottom: 2px solid #000;
   height: 28px;
 }
 
 /* ITEM# — small, bold, centered */
-.ch-item-number {
+.rep-item-number {
   font-size: 36px;
   font-weight: bold;
   text-align: center;
@@ -130,7 +130,7 @@
 }
 
 /* Size — small, centered */
-.ch-size-row {
+.rep-size-row {
   font-size: 28px;
   text-align: center;
   margin-top: -2px;
@@ -138,7 +138,7 @@
 }
 
 /* Product name — large, bold, centered */
-.ch-product-name {
+.rep-product-name {
   font-size: 68px;
   font-weight: 900;
   text-align: center;
@@ -148,7 +148,7 @@
 }
 
 /* CODE: */
-.ch-code {
+.rep-code {
   font-size: 34px;
   text-align: center;
   margin-bottom: 0;
@@ -156,7 +156,7 @@
 }
 
 /* CS: */
-.ch-cs {
+.rep-cs {
   font-size: 34px;
   text-align: center;
   margin-top: -2px;
@@ -164,7 +164,7 @@
 }
 
 /* PO# left, destination right — large, bold */
-.ch-po {
+.rep-po {
   font-size: 34px;
   font-weight: 900;
   display: flex;
@@ -177,34 +177,34 @@
   margin-bottom: 6px;
 }
 
-.ch-po > span {
+.rep-po > span {
   display: inline-block;
   transform: scale(1.1);
   transform-origin: bottom left;
 }
 
-.ch-po > span:last-child {
+.rep-po > span:last-child {
   transform-origin: bottom right;
 }
 
 /* PALLET# — large, bold, centered (bottom) */
-.ch-pallet {
+.rep-pallet {
   font-size: 60px;
   font-weight: 900;
   text-align: center;
   margin-bottom: 2px;
 }
 
-.ch-pallet-label {
+.rep-pallet-label {
   font-size: 0.8em;
 }
 
-.ch-pallet-numbers {
+.rep-pallet-numbers {
   font-size: 1.1em;
 }
 
 /* KEEP REFRIGERATED */
-.ch-keep-refrig {
+.rep-keep-refrig {
   font-size: 16px;
   text-align: center;
 }
@@ -216,7 +216,7 @@
   }
 
   .client-btn,
-  .ch-placard {
+  .rep-placard {
     width: 100%;
   }
 }
@@ -232,13 +232,13 @@
     display: none !important;
   }
 
-  #ch-printArea {
+  #rep-printArea {
     margin: 0;
     gap: 0;
     display: block;
   }
 
-  .ch-placard {
+  .rep-placard {
     box-shadow: none;
     border: 3px solid #000;
     width: 100%;
@@ -249,41 +249,41 @@
     justify-content: space-between;
   }
 
-  .ch-placard::before,
-  .ch-placard::after {
+  .rep-placard::before,
+  .rep-placard::after {
     display: none;
   }
 
-  .ch-uid-row { margin-bottom: 6px; }
+  .rep-uid-row { margin-bottom: 6px; }
 
-  .ch-uid-label { font-size: 72px; }
+  .rep-uid-label { font-size: 72px; }
 
-  .ch-uid-blank {
+  .rep-uid-blank {
     border-bottom: 2.5px solid #000;
     height: 34px;
   }
 
-  .ch-item-number { font-size: 44px; margin-bottom: 0; }
-  .ch-size-row    { font-size: 34px; margin-top: -4px; margin-bottom: 2px; }
+  .rep-item-number { font-size: 44px; margin-bottom: 0; }
+  .rep-size-row    { font-size: 34px; margin-top: -4px; margin-bottom: 2px; }
 
-  .ch-product-name {
+  .rep-product-name {
     font-size: 8vw;
     line-height: .9;
     margin-bottom: 2px;
   }
 
-  .ch-code,
-  .ch-cs {
+  .rep-code,
+  .rep-cs {
     font-size: 48px;
     margin-bottom: 0;
     line-height: .92;
   }
 
-  .ch-cs {
+  .rep-cs {
     margin-top: -4px;
   }
 
-  .ch-po {
+  .rep-po {
     font-size: 54px;
     margin-bottom: 0;
     gap: 34px;
@@ -292,14 +292,14 @@
     line-height: 1;
   }
 
-  .ch-pallet {
+  .rep-pallet {
     font-size: 80px;
     margin-bottom: 0;
   }
 
-  .ch-keep-refrig { font-size: 20px; }
+  .rep-keep-refrig { font-size: 20px; }
 
-  .ch-placard + .ch-placard {
+  .rep-placard + .rep-placard {
     page-break-before: always;
     break-before: page;
   }
