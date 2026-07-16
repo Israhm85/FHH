@@ -12,12 +12,12 @@
 
 // ── Product catalog ───────────────────────────────────────────────
 var PRODUCTS = [
-  { name: "SHELLED EDAMAME",           size: "9 OZ",  casesPerPallet: 160 },
-  { name: "STUFFED PEPPERS WITH BEEF", size: "15 OZ", casesPerPallet: 143 },
-  { name: "KUNG PAO BRUSSEL SPROUTS",  size: "14 OZ", casesPerPallet: 143 },
-  { name: "GARLIC ASIAGO DIP",         size: "10 OZ", casesPerPallet: 143 },
-  { name: "CHICKEN STUFFED POBLANO",   size: "15 OZ", casesPerPallet: 143 },
-  { name: "ROASTED GREEN VEGETABLES",  size: "12 OZ", casesPerPallet: 143 }
+  { name: "SHELLED EDAMAME",           size: "9. Oz",  casesPerPallet: 160 },
+  { name: "STUFFED PEPPERS WITH BEEF", size: "15. Oz", casesPerPallet: 143 },
+  { name: "KUNG PAO BRUSSEL SPROUTS",  size: "14. Oz", casesPerPallet: 143 },
+  { name: "GARLIC ASIAGO DIP",         size: "10. Oz", casesPerPallet: 143 },
+  { name: "CHICKEN STUFFED POBLANO",   size: "15. Oz", casesPerPallet: 143 },
+  { name: "ROASTED GREEN VEGETABLES",  size: "12. Oz", casesPerPallet: 143 }
 ];
 
 // ── DOM references ────────────────────────────────────────────────
@@ -93,38 +93,35 @@ function buildPlacard(data) {
   article.className = "placard";
 
   article.innerHTML =
-    // ── Unique I'D blank line (fill in manually with marker) ─────
+    // ── Unique I'D — label + blank underline, filled manually ────
     '<div class="placard-uid-row">' +
       '<span class="uid-label">Unique I\'D</span>' +
       '<span class="uid-blank"></span>' +
     '</div>' +
 
-    // ── Pallet info ───────────────────────────────────────────────
-    '<div class="placard-pallt">' +
-      'PALLT#: (' + data.palletNumber + ') OF (' + data.totalPallets + ')' +
+    // ── PALLET# — large, bold, centered ──────────────────────────
+    '<div class="placard-pallet">' +
+      'PALLET# (' + data.palletNumber + ') OF (' + data.totalPallets + ')' +
     '</div>' +
 
-    // ── Trader Joe's + product size sub-label ─────────────────────
-    '<div class="placard-tj-sub">TRADER JOE\'S ' + escapeHtml(data.product.size) + '</div>' +
+    // ── TRADER JOES + size, centered ──────────────────────────────
+    '<div class="placard-tj-sub">TRADER JOES ' + escapeHtml(data.product.size) + '</div>' +
 
-    // ── Large product name ────────────────────────────────────────
+    // ── Large product name, centered ──────────────────────────────
     '<div class="placard-product-name">' + escapeHtml(data.product.name) + '</div>' +
 
-    // ── Large blank area (write-in number with marker) ────────────
-    '<div class="placard-number-blank"></div>' +
+    // ── CODE — centered label, value from form (blank if none) ───
+    '<div class="placard-code">CODE: ' + escapeHtml(data.productCode) + '</div>' +
 
-    // ── Code + CS row ─────────────────────────────────────────────
-    '<div class="placard-code-cs">' +
-      '<span class="code-item">CODE: <strong>' + escapeHtml(data.productCode) + '</strong></span>' +
-      '<span class="cs-item">CS:</span>' +
-    '</div>' +
+    // ── CS — centered label, blank for manual fill ────────────────
+    '<div class="placard-cs">CS:</div>' +
 
-    // ── PO + destination ──────────────────────────────────────────
+    // ── PO# + destination — large bold, centered ──────────────────
     '<div class="placard-po">' +
       'PO#' + escapeHtml(data.poNumber) + ' ' + escapeHtml(data.destination) +
     '</div>' +
 
-    // ── Keep Refrigerated ─────────────────────────────────────────
+    // ── Keep Refrigerated — small, centered ───────────────────────
     '<div class="placard-keep-refrig">Keep Refrigerated</div>';
 
   return article;

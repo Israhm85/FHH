@@ -129,104 +129,95 @@ body {
 #printArea {
   margin-top: 32px;
   display: flex;
-  flex-wrap: wrap;
-  gap: 24px;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
 }
 
 /* ── Placard card ────────────────────────────────────────────────── */
 .placard {
   background: #fff;
   border: 3px solid #000;
-  border-radius: 0;
-  padding: 20px 24px 16px;
-  width: 520px;
+  padding: 18px 28px 14px;
+  width: 680px;
   display: flex;
   flex-direction: column;
   gap: 0;
   break-inside: avoid;
-  box-shadow: 0 2px 8px rgba(0,0,0,.15);
+  box-shadow: 0 2px 10px rgba(0,0,0,.18);
+  font-family: Arial, sans-serif;
 }
 
-/* Unique I'D — blank line only, fill with marker */
+/* Unique I'D — left label + full-width underline */
 .placard-uid-row {
   display: flex;
   align-items: flex-end;
-  gap: 8px;
-  margin-bottom: 10px;
+  gap: 6px;
+  margin-bottom: 14px;
 }
 
 .uid-label {
   font-size: 13px;
-  font-weight: bold;
   white-space: nowrap;
 }
 
 .uid-blank {
   flex: 1;
-  border-bottom: 2px solid #000;
-  height: 24px;
+  border-bottom: 1.5px solid #000;
+  height: 20px;
 }
 
-/* PALLT# */
-.placard-pallt {
-  font-size: 15px;
-  font-weight: bold;
-  margin-bottom: 3px;
+/* PALLET# — large, bold, centered */
+.placard-pallet {
+  font-size: 28px;
+  font-weight: 900;
+  text-align: center;
+  margin-bottom: 2px;
 }
 
-/* Trader Joe's + size sub-label */
+/* TRADER JOES size — small, centered */
 .placard-tj-sub {
-  font-size: 11px;
-  margin-bottom: 12px;
+  font-size: 13px;
+  text-align: center;
+  margin-bottom: 8px;
 }
 
-/* Large product name — dominant visual element */
+/* Product name — very large, bold, centered */
 .placard-product-name {
-  font-size: 56px;
+  font-size: 52px;
   font-weight: 900;
   text-align: center;
   text-transform: uppercase;
   line-height: 1.1;
-  letter-spacing: 1px;
-  margin: 0 0 14px;
+  margin: 0 0 16px;
 }
 
-/* Large blank area for write-in number with marker */
-.placard-number-blank {
-  height: 72px;
-  border-bottom: 2px solid #000;
-  margin-bottom: 16px;
+/* CODE — centered */
+.placard-code {
+  font-size: 18px;
+  text-align: center;
+  margin-bottom: 10px;
 }
 
-/* CODE + CS row */
-.placard-code-cs {
-  display: flex;
-  gap: 28px;
-  font-size: 13px;
-  margin-bottom: 5px;
+/* CS — centered */
+.placard-cs {
+  font-size: 18px;
+  text-align: center;
+  margin-bottom: 14px;
 }
 
-.code-item strong {
-  font-size: 13px;
-}
-
-.cs-item {
-  font-size: 13px;
-}
-
-/* PO line */
+/* PO# + destination — large, bold, centered */
 .placard-po {
-  font-size: 13px;
-  font-weight: bold;
-  margin-bottom: 4px;
+  font-size: 26px;
+  font-weight: 900;
+  text-align: center;
+  margin-bottom: 6px;
 }
 
-/* Keep Refrigerated */
+/* Keep Refrigerated — small, centered */
 .placard-keep-refrig {
-  font-size: 9px;
-  font-style: italic;
-  text-align: right;
+  font-size: 11px;
+  text-align: center;
 }
 
 /* ── Generation error ────────────────────────────────────────────── */
@@ -261,20 +252,28 @@ body {
   .placard {
     box-shadow: none;
     border: 3px solid #000;
-    border-radius: 0;
     width: 100%;
-    min-height: calc(100vh - 20mm);
+    min-height: 98vh;
     page-break-inside: avoid;
     break-inside: avoid;
-    padding: 28px 36px 20px;
+    padding: 24px 36px 20px;
+  }
+
+  .placard-pallet {
+    font-size: 36px;
   }
 
   .placard-product-name {
-    font-size: 80px;
+    font-size: 72px;
   }
 
-  .placard-number-blank {
-    height: 100px;
+  .placard-code,
+  .placard-cs {
+    font-size: 22px;
+  }
+
+  .placard-po {
+    font-size: 34px;
   }
 
   .placard + .placard {
