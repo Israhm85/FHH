@@ -12,12 +12,12 @@
 
 // ── Product catalog ───────────────────────────────────────────────
 var PRODUCTS = [
-  { name: "SHELLED EDAMAME 9OZ",           casesPerPallet: 160 },
-  { name: "STUFFED PEPPERS WITH BEEF 15OZ", casesPerPallet: 143 },
-  { name: "KUNG PAO BRUSSEL SPROUTS 14OZ",  casesPerPallet: 143 },
-  { name: "GARLIC ASIAGO DIP 10 OZ",        casesPerPallet: 143 },
-  { name: "CHICKEN STUFFED POBLANO 15 OZ",  casesPerPallet: 143 },
-  { name: "ROASTED GREEN VEGETABLES 12 OZ", casesPerPallet: 143 }
+  { name: "SHELLED EDAMAME",           size: "9 OZ",  casesPerPallet: 160 },
+  { name: "STUFFED PEPPERS WITH BEEF", size: "15 OZ", casesPerPallet: 143 },
+  { name: "KUNG PAO BRUSSEL SPROUTS",  size: "14 OZ", casesPerPallet: 143 },
+  { name: "GARLIC ASIAGO DIP",         size: "10 OZ", casesPerPallet: 143 },
+  { name: "CHICKEN STUFFED POBLANO",   size: "15 OZ", casesPerPallet: 143 },
+  { name: "ROASTED GREEN VEGETABLES",  size: "12 OZ", casesPerPallet: 143 }
 ];
 
 // ── DOM references ────────────────────────────────────────────────
@@ -30,7 +30,7 @@ var btnPrint      = document.getElementById("btnPrint");
 PRODUCTS.forEach(function (product, index) {
   var option = document.createElement("option");
   option.value = index;          // store array index as value
-  option.textContent = product.name;
+  option.textContent = product.name + " " + product.size;
   productSelect.appendChild(option);
 });
 
@@ -59,22 +59,19 @@ function setValidity(fieldId, isValid) {
 function validateForm() {
   var poNumber      = document.getElementById("poNumber").value.trim();
   var destination   = document.getElementById("destination").value.trim();
-  var shippingDate  = document.getElementById("shippingDate").value;
   var productCode   = document.getElementById("productCode").value.trim();
   var totalCasesRaw = document.getElementById("totalCases").value;
   var totalCases    = Number(totalCasesRaw);
 
-  var v1 = setValidity("poNumber",     poNumber !== "");
-  var v2 = setValidity("destination",  destination !== "");
-  var v3 = setValidity("shippingDate", shippingDate !== "");
-  var v4 = setValidity("productCode",  productCode !== "");
-  // totalCases must be a positive whole number
-  var v5 = setValidity(
+  var v1 = setValidity("poNumber",    poNumber !== "");
+  var v2 = setValidity("destination", destination !== "");
+  var v3 = setValidity("productCode", productCode !== "");
+  var v4 = setValidity(
     "totalCases",
     totalCasesRaw !== "" && Number.isInteger(totalCases) && totalCases >= 1
   );
 
-  return v1 && v2 && v3 && v4 && v5;
+  return v1 && v2 && v3 && v4;
 }
 
 // ── Placard builder ───────────────────────────────────────────────
@@ -86,9 +83,8 @@ function validateForm() {
  *   totalPallets: number,
  *   poNumber: string,
  *   destination: string,
- *   shippingDate: string,
  *   productCode: string,
- *   product: {name: string, casesPerPallet: number}
+ *   product: {name: string, size: string, casesPerPallet: number}
  * }} data
  * @returns {HTMLElement}
  */
@@ -96,55 +92,40 @@ function buildPlacard(data) {
   var article = document.createElement("article");
   article.className = "placard";
 
-  // Format shipping date for display (YYYY-MM-DD → MM/DD/YYYY).
-  // Append T00:00:00 so the Date is treated as local midnight instead of
-  // UTC midnight — prevents an off-by-one day in timezones behind UTC.
-  var dateObj = new Date(data.shippingDate + "T00:00:00");
-  var displayDate = isNaN(dateObj.getTime())
-    ? data.shippingDate
-    : dateObj.toLocaleDateString("en-US");
-
   article.innerHTML =
-    '<h2 class="placard-title">TRADER JOE\'S</h2>' +
-
-    '<div class="placard-row">' +
-      '<strong>DESTINATION:</strong>' +
-      '<span>' + escapeHtml(data.destination) + '</span>' +
+    // ── Unique I'D blank line (fill in manually with marker) ─────
+    '<div class="placard-uid-row">' +
+      '<span class="uid-label">Unique I\'D</span>' +
+      '<span class="uid-blank"></span>' +
     '</div>' +
 
-    '<div class="placard-row">' +
-      '<strong>TRADER JOE\'S PO#:</strong>' +
-      '<span>' + escapeHtml(data.poNumber) + '</span>' +
+    // ── Pallet info ───────────────────────────────────────────────
+    '<div class="placard-pallt">' +
+      'PALLT#: (' + data.palletNumber + ') OF (' + data.totalPallets + ')' +
     '</div>' +
 
-    '<div class="placard-row">' +
-      '<strong>SHIPPING DATE:</strong>' +
-      '<span>' + escapeHtml(displayDate) + '</span>' +
+    // ── Trader Joe's + product size sub-label ─────────────────────
+    '<div class="placard-tj-sub">TRADER JOE\'S ' + escapeHtml(data.product.size) + '</div>' +
+
+    // ── Large product name ────────────────────────────────────────
+    '<div class="placard-product-name">' + escapeHtml(data.product.name) + '</div>' +
+
+    // ── Large blank area (write-in number with marker) ────────────
+    '<div class="placard-number-blank"></div>' +
+
+    // ── Code + CS row ─────────────────────────────────────────────
+    '<div class="placard-code-cs">' +
+      '<span class="code-item">CODE: <strong>' + escapeHtml(data.productCode) + '</strong></span>' +
+      '<span class="cs-item">CS:</span>' +
     '</div>' +
 
-    '<div class="placard-row">' +
-      '<strong>CASES PER PALLET:</strong>' +
-      '<span>' + data.product.casesPerPallet + ' CS</span>' +
+    // ── PO + destination ──────────────────────────────────────────
+    '<div class="placard-po">' +
+      'PO#' + escapeHtml(data.poNumber) + ' ' + escapeHtml(data.destination) +
     '</div>' +
 
-    '<div class="placard-row">' +
-      '<strong>PALLET:</strong>' +
-      '<span>(' + data.palletNumber + ') OF (' + data.totalPallets + ')</span>' +
-    '</div>' +
-
-    '<hr class="placard-divider" />' +
-
-    '<p class="placard-product-name">' + escapeHtml(data.product.name) + '</p>' +
-
-    '<div class="placard-row">' +
-      '<strong>CODE:</strong>' +
-      '<span>' + escapeHtml(data.productCode) + '</span>' +
-    '</div>' +
-
-    '<div class="placard-unique-id">' +
-      '<strong>Unique ID:</strong>' +
-      '<span class="unique-id-blank" aria-label="Unique ID — fill manually"></span>' +
-    '</div>';
+    // ── Keep Refrigerated ─────────────────────────────────────────
+    '<div class="placard-keep-refrig">Keep Refrigerated</div>';
 
   return article;
 }
@@ -175,7 +156,6 @@ form.addEventListener("submit", function (event) {
 
   var poNumber     = document.getElementById("poNumber").value.trim();
   var destination  = document.getElementById("destination").value.trim();
-  var shippingDate = document.getElementById("shippingDate").value;
   var productCode  = document.getElementById("productCode").value.trim();
   var totalCases   = Number(document.getElementById("totalCases").value);
   var productIndex = Number(productSelect.value);
@@ -202,7 +182,6 @@ form.addEventListener("submit", function (event) {
       totalPallets:  totalPallets,
       poNumber:      poNumber,
       destination:   destination,
-      shippingDate:  shippingDate,
       productCode:   productCode,
       product:       product
     });

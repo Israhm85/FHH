@@ -137,72 +137,96 @@ body {
 /* ── Placard card ────────────────────────────────────────────────── */
 .placard {
   background: #fff;
-  border: 2px solid #333;
-  border-radius: 8px;
-  padding: 24px 28px;
-  width: 380px;
-  min-height: 320px;
-  box-shadow: 0 2px 8px rgba(0,0,0,.12);
+  border: 3px solid #000;
+  border-radius: 0;
+  padding: 20px 24px 16px;
+  width: 520px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 0;
   break-inside: avoid;
+  box-shadow: 0 2px 8px rgba(0,0,0,.15);
 }
 
-.placard-title {
-  font-size: 26px;
-  font-weight: bold;
-  text-align: center;
-  letter-spacing: 2px;
-  color: var(--accent);
-  border-bottom: 3px solid var(--accent);
-  padding-bottom: 8px;
-  margin: 0 0 6px;
-}
-
-.placard-row {
-  font-size: 14px;
+/* Unique I'D — blank line only, fill with marker */
+.placard-uid-row {
   display: flex;
-  gap: 6px;
+  align-items: flex-end;
+  gap: 8px;
+  margin-bottom: 10px;
 }
 
-.placard-row strong {
-  min-width: 140px;
-  flex-shrink: 0;
-}
-
-.placard-divider {
-  border: none;
-  border-top: 1px solid #aaa;
-  margin: 8px 0;
-}
-
-.placard-product-name {
-  font-size: 17px;
+.uid-label {
+  font-size: 13px;
   font-weight: bold;
+  white-space: nowrap;
+}
+
+.uid-blank {
+  flex: 1;
+  border-bottom: 2px solid #000;
+  height: 24px;
+}
+
+/* PALLT# */
+.placard-pallt {
+  font-size: 15px;
+  font-weight: bold;
+  margin-bottom: 3px;
+}
+
+/* Trader Joe's + size sub-label */
+.placard-tj-sub {
+  font-size: 11px;
+  margin-bottom: 12px;
+}
+
+/* Large product name — dominant visual element */
+.placard-product-name {
+  font-size: 56px;
+  font-weight: 900;
   text-align: center;
   text-transform: uppercase;
+  line-height: 1.1;
   letter-spacing: 1px;
-  margin: 4px 0;
+  margin: 0 0 14px;
 }
 
-.placard-unique-id {
-  margin-top: auto;
-  border-top: 1px solid #aaa;
-  padding-top: 8px;
+/* Large blank area for write-in number with marker */
+.placard-number-blank {
+  height: 72px;
+  border-bottom: 2px solid #000;
+  margin-bottom: 16px;
 }
 
-.placard-unique-id strong {
+/* CODE + CS row */
+.placard-code-cs {
+  display: flex;
+  gap: 28px;
+  font-size: 13px;
+  margin-bottom: 5px;
+}
+
+.code-item strong {
   font-size: 13px;
 }
 
-.unique-id-blank {
-  display: inline-block;
-  min-width: 200px;
-  border-bottom: 1.5px solid #333;
-  height: 18px;
-  margin-left: 6px;
-  vertical-align: bottom;
+.cs-item {
+  font-size: 13px;
+}
+
+/* PO line */
+.placard-po {
+  font-size: 13px;
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+/* Keep Refrigerated */
+.placard-keep-refrig {
+  font-size: 9px;
+  font-style: italic;
+  text-align: right;
 }
 
 /* ── Generation error ────────────────────────────────────────────── */
@@ -236,13 +260,21 @@ body {
 
   .placard {
     box-shadow: none;
-    border: 2px solid #000;
+    border: 3px solid #000;
     border-radius: 0;
     width: 100%;
+    min-height: calc(100vh - 20mm);
     page-break-inside: avoid;
     break-inside: avoid;
-    margin-bottom: 0;
-    padding: 20px 24px;
+    padding: 28px 36px 20px;
+  }
+
+  .placard-product-name {
+    font-size: 80px;
+  }
+
+  .placard-number-blank {
+    height: 100px;
   }
 
   .placard + .placard {
