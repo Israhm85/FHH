@@ -40,7 +40,7 @@
       <!-- ── Client selector ───────────────────────────────────────── -->
       <div class="client-selector">
         <button class="client-btn active" id="btnEastCoast" type="button">East Coast</button>
-        <button class="client-btn" id="btnChefHaks" type="button">ID's</button>
+        <button class="client-btn" id="btnChefHaks" type="button">Reporteras</button>
       </div>
 
       <!-- ── East Coast section ────────────────────────────────────── -->
@@ -165,16 +165,8 @@
     var appSubtitle = document.getElementById('appSubtitle');
 
     function setClientBrand(client) {
-      if (client === 'chef-haks') {
-        body.setAttribute('data-client', 'chef-haks');
-        brandPillText.textContent = 'Fresh Healthy Habits';
-        appTitle.textContent = "Creación de ID's";
-        appSubtitle.textContent = 'Para las reporteras de parte del 👷';
-        return;
-      }
-
-      body.setAttribute('data-client', 'east-coast');
-      brandPillText.textContent = 'Fresh Healthy Habits';
+    body.setAttribute('data-client', client);
+    brandPillText.textContent = 'Fresh Healthy Habits';
     appTitle.textContent = "Creación de ID's";
     appSubtitle.textContent = 'Para las reporteras de parte del 👷';
     }
