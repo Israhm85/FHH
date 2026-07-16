@@ -12,12 +12,12 @@
 
 // ── Product catalog ───────────────────────────────────────────────
 var CH_PRODUCTS = [
-  { name: "TUSCAN STYLE ROASTED CHICKEN",    displaySize: "18/28 oz",   itemNumber: "2063360", casesPerPallet: 20 },
-  { name: "CHIPOTLE CHICKEN BOWL",           displaySize: "12/36oz.",   itemNumber: "2058788", casesPerPallet: 15 },
-  { name: "GARLIC ROASTED VEGGIES & QUINOA", displaySize: "18/30oz.",   itemNumber: "2009544", casesPerPallet: 15 },
-  { name: "RED WHITE & BLUE VEGGIES",        displaySize: "18/30oz.",   itemNumber: "2069283", casesPerPallet: 20 },
-  { name: "SIMPLY ROASTED CHICKEN",          displaySize: "18/28 oz",   itemNumber: "2027129", casesPerPallet: 20 },
-  { name: "CILANTRO LIME CHICKEN BOWLS",     displaySize: "12/36oz.",   itemNumber: "",        casesPerPallet: 15 }
+  { name: "TUSCAN STYLE ROASTED CHICKEN",    displaySize: "18/28 oz",   itemNumber: "2063360", casesPerPallet: 20, nameLines: ["TUSCAN STYLE ROASTED", "CHICKEN"] },
+  { name: "CHIPOTLE CHICKEN BOWL",           displaySize: "12/36oz.",   itemNumber: "2058788", casesPerPallet: 15, nameLines: ["CHIPOTLE", "CHICKEN BOWL"] },
+  { name: "GARLIC ROASTED VEGGIES & QUINOA", displaySize: "18/30oz.",   itemNumber: "2009544", casesPerPallet: 15, nameLines: ["GARLIC ROASTED VEGGIES", "& QUINOA"] },
+  { name: "RED WHITE & BLUE VEGGIES",        displaySize: "18/30oz.",   itemNumber: "2069283", casesPerPallet: 20, nameLines: ["RED WHITE & BLUE", "VEGGIES"] },
+  { name: "SIMPLY ROASTED CHICKEN",          displaySize: "18/28 oz",   itemNumber: "2027129", casesPerPallet: 20, nameLines: ["SIMPLY ROASTED", "CHICKEN"] },
+  { name: "CILANTRO LIME CHICKEN BOWLS",     displaySize: "12/36oz.",   itemNumber: "",        casesPerPallet: 15, nameLines: ["CILANTRO LIME", "CHICKEN BOWLS"] }
 ];
 
 // ── DOM references — Chef Haks ────────────────────────────────────
@@ -78,6 +78,7 @@ function chValidateForm() {
 function buildChefHaksPlacard(data) {
   var article = document.createElement("article");
   article.className = "ch-placard";
+  var productNameHtml = formatChefHaksName(data.product);
 
   article.innerHTML =
     // ── Unique I'D — label + blank underline ─────────────────────
@@ -95,7 +96,7 @@ function buildChefHaksPlacard(data) {
     '<div class="ch-brand-row">CHEF HAKS ' + escapeHtml(data.product.displaySize) + '</div>' +
 
     // ── Large product name, centered ──────────────────────────────
-    '<div class="ch-product-name">' + escapeHtml(data.product.name) + '</div>' +
+    '<div class="ch-product-name">' + productNameHtml + '</div>' +
 
     // ── CODE — label only, filled manually with marker ────────────
     '<div class="ch-code">CODE:</div>' +
@@ -119,6 +120,14 @@ function buildChefHaksPlacard(data) {
     '<div class="ch-keep-refrig">KEEP REFRIGERATED</div>';
 
   return article;
+}
+
+function formatChefHaksName(product) {
+  if (product.nameLines && product.nameLines.length) {
+    return product.nameLines.map(escapeHtml).join("<br>");
+  }
+
+  return escapeHtml(product.name);
 }
 
 // ── Form submit ───────────────────────────────────────────────────

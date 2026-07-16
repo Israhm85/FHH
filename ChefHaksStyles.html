@@ -38,7 +38,7 @@
 .ch-placard {
   background: #fff;
   border: 3px solid #000;
-  padding: 18px 28px 14px;
+  padding: 14px 18px 10px;
   width: 680px;
   display: flex;
   flex-direction: column;
@@ -53,11 +53,11 @@
   display: flex;
   align-items: flex-end;
   gap: 6px;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
 .ch-uid-label {
-  font-size: 52px;
+  font-size: 60px;
   white-space: nowrap;
 }
 
@@ -69,7 +69,7 @@
 
 /* ITEM# — small, bold, centered */
 .ch-item-number {
-  font-size: 32px;
+  font-size: 36px;
   font-weight: bold;
   text-align: center;
   margin-bottom: 2px;
@@ -77,33 +77,33 @@
 
 /* CHEF HAKS + size — small, centered */
 .ch-brand-row {
-  font-size: 22px;
+  font-size: 28px;
   text-align: center;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 /* Product name — large, bold, centered */
 .ch-product-name {
-  font-size: 54px;
+  font-size: 68px;
   font-weight: 900;
   text-align: center;
   text-transform: uppercase;
-  line-height: 1.1;
-  margin: 0 0 12px;
+  line-height: .95;
+  margin: 0 0 6px;
 }
 
 /* CODE: */
 .ch-code {
-  font-size: 28px;
+  font-size: 34px;
   text-align: center;
-  margin-bottom: 4px;
+  margin-bottom: 0;
 }
 
 /* CS: */
 .ch-cs {
-  font-size: 28px;
+  font-size: 34px;
   text-align: center;
-  margin-bottom: 10px;
+  margin-bottom: 6px;
 }
 
 /* PO# left, destination right — large, bold */
@@ -116,15 +116,15 @@
   align-items: baseline;
   flex-wrap: nowrap;
   white-space: nowrap;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 /* PALLET# — large, bold, centered (bottom) */
 .ch-pallet {
-  font-size: 52px;
+  font-size: 60px;
   font-weight: 900;
   text-align: center;
-  margin-bottom: 6px;
+  margin-bottom: 2px;
 }
 
 .ch-pallet-label {
@@ -137,8 +137,13 @@
 
 /* KEEP REFRIGERATED */
 .ch-keep-refrig {
-  font-size: 14px;
+  font-size: 16px;
   text-align: center;
+}
+
+@page {
+  size: landscape;
+  margin: 4mm;
 }
 
 /* ── Print media — shared ────────────────────────────────────────── */
@@ -157,36 +162,39 @@
     box-shadow: none;
     border: 3px solid #000;
     width: 100%;
-    height: 100vh;
+    min-height: 100vh;
     page-break-inside: avoid;
     break-inside: avoid;
-    padding: 20px 36px;
+    padding: 10px 14px 8px;
     justify-content: space-between;
   }
 
-  .ch-uid-label { font-size: 60px; }
+  .ch-uid-row { margin-bottom: 6px; }
+
+  .ch-uid-label { font-size: 72px; }
 
   .ch-uid-blank {
     border-bottom: 2.5px solid #000;
-    height: 32px;
+    height: 34px;
   }
 
-  .ch-item-number { font-size: 38px; }
-  .ch-brand-row   { font-size: 26px; }
+  .ch-item-number { font-size: 44px; }
+  .ch-brand-row   { font-size: 34px; margin-bottom: 4px; }
 
   .ch-product-name {
-    font-size: 6.3vw;
-    margin-bottom: 0;
+    font-size: 8vw;
+    line-height: .9;
+    margin-bottom: 2px;
   }
 
   .ch-code,
   .ch-cs {
-    font-size: 40px;
+    font-size: 48px;
     margin-bottom: 0;
   }
 
   .ch-po {
-    font-size: 52px;
+    font-size: 54px;
     margin-bottom: 0;
     gap: 34px;
     flex-wrap: nowrap;
@@ -195,11 +203,11 @@
   }
 
   .ch-pallet {
-    font-size: 68px;
+    font-size: 80px;
     margin-bottom: 0;
   }
 
-  .ch-keep-refrig { font-size: 16px; }
+  .ch-keep-refrig { font-size: 20px; }
 
   .ch-placard + .ch-placard {
     page-break-before: always;
