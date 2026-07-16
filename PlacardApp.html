@@ -114,9 +114,10 @@ function buildPlacard(data) {
     // ── CS — centered label, blank for manual fill ────────────────
     '<div class="placard-cs">CS:</div>' +
 
-    // ── PO# + destination — large bold, centered ──────────────────
+    // ── PO# left, destination right ───────────────────────────────
     '<div class="placard-po">' +
-      'PO#' + escapeHtml(data.poNumber) + ' ' + escapeHtml(data.destination) +
+      '<span>PO#' + escapeHtml(data.poNumber) + '</span>' +
+      '<span>' + escapeHtml(data.destination) + '</span>' +
     '</div>' +
 
     // ── Keep Refrigerated — small, centered ───────────────────────
