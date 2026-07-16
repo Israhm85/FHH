@@ -158,7 +158,7 @@ body {
 }
 
 .uid-label {
-  font-size: 34px;
+  font-size: 42px;
   white-space: nowrap;
 }
 
@@ -191,14 +191,19 @@ body {
   margin-bottom: 8px;
 }
 
-/* Product name — very large, bold, centered, always single line */
+/* Product name — very large, bold, centered */
 .placard-product-name {
-  font-size: 66px;
+  font-size: 58px;
   font-weight: 900;
   text-align: center;
   text-transform: uppercase;
   line-height: 1.1;
   margin: 0 0 16px;
+}
+
+/* Edamame has a shorter name so it can afford a bigger font */
+.placard-product-name.name--edamame {
+  font-size: 82px;
 }
 
 /* CODE — centered */
@@ -281,7 +286,7 @@ body {
   }
 
   .uid-label {
-    font-size: 44px;
+    font-size: 54px;
   }
 
   .uid-blank {
@@ -307,8 +312,12 @@ body {
   }
 
   .placard-product-name {
-    font-size: 8.5vw;
+    font-size: 7.5vw;
     margin-bottom: 0;
+  }
+
+  .placard-product-name.name--edamame {
+    font-size: 10vw;
   }
 
   .placard-code,

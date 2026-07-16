@@ -12,7 +12,7 @@
 
 // ── Product catalog ───────────────────────────────────────────────
 var PRODUCTS = [
-  { name: "SHELLED EDAMAME",           size: "9. Oz",  casesPerPallet: 160 },
+  { name: "SHELLED EDAMAME",           size: "9. Oz",  casesPerPallet: 160, nameClass: "name--edamame" },
   { name: "STUFFED PEPPERS WITH BEEF", size: "15. Oz", casesPerPallet: 143 },
   { name: "KUNG PAO BRUSSEL SPROUTS",  size: "14. Oz", casesPerPallet: 143 },
   { name: "GARLIC ASIAGO DIP",         size: "10. Oz", casesPerPallet: 143 },
@@ -106,7 +106,7 @@ function buildPlacard(data) {
     '<div class="placard-tj-sub">TRADER JOES ' + escapeHtml(data.product.size) + '</div>' +
 
     // ── Large product name, centered ──────────────────────────────
-    '<div class="placard-product-name">' + escapeHtml(data.product.name) + '</div>' +
+    '<div class="placard-product-name' + (data.product.nameClass ? ' ' + data.product.nameClass : '') + '">' + escapeHtml(data.product.name) + '</div>' +
 
     // ── CODE — label only, filled manually with marker ───────────
     '<div class="placard-code">CODE:</div>' +
