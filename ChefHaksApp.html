@@ -1,42 +1,44 @@
 <script>
 /**
- * ReporterasApp.html — Reporteras Placard Generator (Google Apps Script)
+ * ChefHaksApp.html — Reporteras Placard Generator (Google Apps Script)
  *
  * Workflow:
- *  1. Populate the product <select> from the REPORTERAS_PRODUCTS catalog.
+ *  1. Populate the product <select> from the CH_PRODUCTS catalog.
  *  2. On form submit, validate inputs, calculate pallet count,
- *     and render one .rep-placard card per pallet inside #rep-printArea.
+ *     and render one .ch-placard card per pallet inside #ch-printArea.
  *  3. The Print button triggers window.print() so only placards
- *     are shown (form is hidden via @media print in ReporterasStyles.html).
+ *     are shown (form is hidden via @media print in ChefHaksStyles.html).
  */
 
 // ── Product catalog ───────────────────────────────────────────────
-var REPORTERAS_PRODUCTS = [
+var CH_PRODUCTS = [
   { name: "TUSCAN STYLE ROASTED CHICKEN",    displaySize: "18/28 oz",   itemNumber: "2063360", casesPerPallet: 20, nameLines: ["TUSCAN STYLE ROASTED", "CHICKEN"] },
   { name: "CHIPOTLE CHICKEN BOWL",           displaySize: "12/36oz.",   itemNumber: "2058788", casesPerPallet: 15, nameLines: ["CHIPOTLE", "CHICKEN BOWL"] },
   { name: "GARLIC ROASTED VEGGIES & QUINOA", displaySize: "18/30oz.",   itemNumber: "2009544", casesPerPallet: 15, nameLines: ["GARLIC ROASTED VEGGIES", "& QUINOA"] },
   { name: "RED WHITE & BLUE VEGGIES",        displaySize: "18/30oz.",   itemNumber: "2069283", casesPerPallet: 20, nameLines: ["RED WHITE & BLUE", "VEGGIES"] },
   { name: "SIMPLY ROASTED CHICKEN",          displaySize: "18/28 oz",   itemNumber: "2027129", casesPerPallet: 20, nameLines: ["SIMPLY ROASTED", "CHICKEN"] },
+  // Item number is not currently provided for this SKU in the source placard data,
+  // so placards intentionally omit the ITEM# row until the value is supplied.
   { name: "CILANTRO LIME CHICKEN BOWLS",     displaySize: "12/36oz.",   itemNumber: null,      casesPerPallet: 15, nameLines: ["CILANTRO LIME", "CHICKEN BOWLS"] }
 ];
 
 // ── DOM references — Reporteras ───────────────────────────────────
-var repForm          = document.getElementById("repPlacardForm");
-var repProductSelect = document.getElementById("rep-productSelect");
-var repPrintArea     = document.getElementById("rep-printArea");
-var repBtnPrint      = document.getElementById("rep-btnPrint");
+var chForm          = document.getElementById("chPlacardForm");
+var chProductSelect = document.getElementById("ch-productSelect");
+var chPrintArea     = document.getElementById("ch-printArea");
+var chBtnPrint      = document.getElementById("ch-btnPrint");
 
 // ── Populate product <select> ─────────────────────────────────────
-REPORTERAS_PRODUCTS.forEach(function (product, index) {
+CH_PRODUCTS.forEach(function (product, index) {
   var option = document.createElement("option");
   option.value = index;
   option.textContent = product.name + " " + product.displaySize;
-  repProductSelect.appendChild(option);
+  chProductSelect.appendChild(option);
 });
 
 // ── Validation helpers ────────────────────────────────────────────
 
-function repSetValidity(fieldId, isValid) {
+function chSetValidity(fieldId, isValid) {
   var el = document.getElementById(fieldId);
   if (isValid) {
     el.classList.remove("invalid");
@@ -46,16 +48,16 @@ function repSetValidity(fieldId, isValid) {
   return isValid;
 }
 
-function repValidateForm() {
-  var poNumber      = document.getElementById("rep-poNumber").value.trim();
-  var destination   = document.getElementById("rep-destination").value.trim();
-  var totalCasesRaw = document.getElementById("rep-totalCases").value;
+function chValidateForm() {
+  var poNumber      = document.getElementById("ch-poNumber").value.trim();
+  var destination   = document.getElementById("ch-destination").value.trim();
+  var totalCasesRaw = document.getElementById("ch-totalCases").value;
   var totalCases    = Number(totalCasesRaw);
 
-  var v1 = repSetValidity("rep-poNumber",    poNumber !== "");
-  var v2 = repSetValidity("rep-destination", destination !== "");
-  var v3 = repSetValidity(
-    "rep-totalCases",
+  var v1 = chSetValidity("ch-poNumber",    poNumber !== "");
+  var v2 = chSetValidity("ch-destination", destination !== "");
+  var v3 = chSetValidity(
+    "ch-totalCases",
     totalCasesRaw !== "" && Number.isInteger(totalCases) && totalCases >= 1
   );
 
@@ -77,52 +79,52 @@ function repValidateForm() {
  */
 function buildReporterasPlacard(data) {
   var article = document.createElement("article");
-  article.className = "rep-placard";
-  var productNameHtml = formatReporterasName(data.product);
+  article.className = "ch-placard";
+  var productNameHtml = formatChefHaksName(data.product);
 
   article.innerHTML =
     // ── Unique ID — label + blank underline ──────────────────────
-    '<div class="rep-uid-row">' +
-      '<span class="rep-uid-label">Unique ID</span>' +
-      '<span class="rep-uid-blank"></span>' +
+    '<div class="ch-uid-row">' +
+      '<span class="ch-uid-label">Unique ID</span>' +
+      '<span class="ch-uid-blank"></span>' +
     '</div>' +
 
     // ── ITEM# — only shown when an item number is available ───────
     (data.product.itemNumber
-      ? '<div class="rep-item-number">ITEM# ' + escapeHtml(data.product.itemNumber) + '</div>'
+      ? '<div class="ch-item-number">ITEM# ' + escapeHtml(data.product.itemNumber) + '</div>'
       : '') +
 
     // ── Size ──────────────────────────────────────────────────────
-    '<div class="rep-size-row">' + escapeHtml(data.product.displaySize) + '</div>' +
+    '<div class="ch-size-row">' + escapeHtml(data.product.displaySize) + '</div>' +
 
     // ── Large product name, centered ──────────────────────────────
-    '<div class="rep-product-name">' + productNameHtml + '</div>' +
+    '<div class="ch-product-name">' + productNameHtml + '</div>' +
 
     // ── CODE — label only, filled manually with marker ────────────
-    '<div class="rep-code">CODE:</div>' +
+    '<div class="ch-code">CODE:</div>' +
 
     // ── CS — label only, filled manually ─────────────────────────
-    '<div class="rep-cs">CS:</div>' +
+    '<div class="ch-cs">CS:</div>' +
 
     // ── PO# left, destination right ───────────────────────────────
-    '<div class="rep-po">' +
+    '<div class="ch-po">' +
       '<span>PO#' + escapeHtml(data.poNumber) + '</span>' +
       '<span>' + escapeHtml(data.destination) + '</span>' +
     '</div>' +
 
     // ── PALLET# — large, centered (bottom) ───────────────────────
-    '<div class="rep-pallet">' +
-      '<span class="rep-pallet-label">PALLET#</span> ' +
-      '<span class="rep-pallet-numbers">(' + data.palletNumber + ') OF (' + data.totalPallets + ')</span>' +
+    '<div class="ch-pallet">' +
+      '<span class="ch-pallet-label">PALLET#</span> ' +
+      '<span class="ch-pallet-numbers">(' + data.palletNumber + ') OF (' + data.totalPallets + ')</span>' +
     '</div>' +
 
     // ── Keep Refrigerated — small, centered ───────────────────────
-    '<div class="rep-keep-refrig">KEEP REFRIGERATED</div>';
+    '<div class="ch-keep-refrig">KEEP REFRIGERATED</div>';
 
   return article;
 }
 
-function formatReporterasName(product) {
+function formatChefHaksName(product) {
   if (product.nameLines && product.nameLines.length) {
     return product.nameLines.map(escapeHtml).join("<br>");
   }
@@ -131,28 +133,28 @@ function formatReporterasName(product) {
 }
 
 // ── Form submit ───────────────────────────────────────────────────
-repForm.addEventListener("submit", function (event) {
+chForm.addEventListener("submit", function (event) {
   event.preventDefault();
 
-  if (!repValidateForm()) {
+  if (!chValidateForm()) {
     return;
   }
 
-  var poNumber     = document.getElementById("rep-poNumber").value.trim();
-  var destination  = document.getElementById("rep-destination").value.trim();
-  var totalCases   = Number(document.getElementById("rep-totalCases").value);
-  var productIndex = Number(repProductSelect.value);
-  var product      = REPORTERAS_PRODUCTS[productIndex];
+  var poNumber     = document.getElementById("ch-poNumber").value.trim();
+  var destination  = document.getElementById("ch-destination").value.trim();
+  var totalCases   = Number(document.getElementById("ch-totalCases").value);
+  var productIndex = Number(chProductSelect.value);
+  var product      = CH_PRODUCTS[productIndex];
 
   if (!product) {
-    repPrintArea.innerHTML = '<p class="gen-error">Invalid product selection. Please reload the page and try again.</p>';
-    repBtnPrint.disabled = true;
+    chPrintArea.innerHTML = '<p class="gen-error">Invalid product selection. Please reload the page and try again.</p>';
+    chBtnPrint.disabled = true;
     return;
   }
 
   var totalPallets = Math.ceil(totalCases / product.casesPerPallet);
 
-  repPrintArea.innerHTML = "";
+  chPrintArea.innerHTML = "";
 
   for (var palletNumber = 1; palletNumber <= totalPallets; palletNumber++) {
     var placard = buildReporterasPlacard({
@@ -162,15 +164,15 @@ repForm.addEventListener("submit", function (event) {
       destination:  destination,
       product:      product
     });
-    repPrintArea.appendChild(placard);
+    chPrintArea.appendChild(placard);
   }
 
-  repBtnPrint.disabled = false;
-  repPrintArea.scrollIntoView({ behavior: "smooth", block: "start" });
+  chBtnPrint.disabled = false;
+  chPrintArea.scrollIntoView({ behavior: "smooth", block: "start" });
 });
 
 // ── Print button ──────────────────────────────────────────────────
-repBtnPrint.addEventListener("click", function () {
+chBtnPrint.addEventListener("click", function () {
   window.print();
 });
 </script>
