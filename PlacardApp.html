@@ -98,7 +98,8 @@ function buildPlacard(data) {
 
     // ── PALLET# — large, bold, centered ──────────────────────────
     '<div class="placard-pallet">' +
-      'PALLET# (' + data.palletNumber + ') OF (' + data.totalPallets + ')' +
+      '<span class="pallet-label">PALLET#</span> ' +
+      '<span class="pallet-numbers">(' + data.palletNumber + ') OF (' + data.totalPallets + ')</span>' +
     '</div>' +
 
     // ── TRADER JOES + size, centered ──────────────────────────────
