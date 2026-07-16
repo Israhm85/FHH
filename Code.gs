@@ -1,7 +1,7 @@
 function doGet(e) {
   return HtmlService.createTemplateFromFile('placard')
     .evaluate()
-    .setTitle('East Coast Placard Generator');
+    .setTitle('FHH Placard Generator');
 }
 
 function include(filename) {

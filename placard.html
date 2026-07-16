@@ -4,55 +4,148 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <base target="_top">
-  <title>FHH – East Coast Placard Generator</title>
+  <title>FHH – Placard Generator</title>
   <?!=include('PlacardStyles');?>
+  <?!=include('ChefHaksStyles');?>
 </head>
 <body>
   <main class="app">
-    <h1 class="app-title">East Coast Placard Generator</h1>
+    <h1 class="app-title">Placard Generator</h1>
 
-    <form id="placardForm" class="form-grid" novalidate>
+    <!-- ── Client selector ───────────────────────────────────────── -->
+    <div class="client-selector">
+      <button class="client-btn active" id="btnEastCoast" type="button">East Coast</button>
+      <button class="client-btn" id="btnChefHaks" type="button">Chef Haks</button>
+    </div>
 
-      <div class="field">
-        <label for="poNumber">PO #</label>
-        <input type="text" id="poNumber" placeholder="e.g. 123456" required />
-        <span class="field-error-msg" id="err-poNumber">Required</span>
-      </div>
+    <!-- ── East Coast section ────────────────────────────────────── -->
+    <section id="sectionEastCoast">
 
-      <div class="field">
-        <label for="destination">Destination</label>
-        <select id="destination" required>
-          <option value="MINOOKA">MINOOKA</option>
-          <option value="DAYTONA">DAYTONA</option>
-          <option value="HARTFORD">HARTFORD</option>
-          <option value="CAROLINE">CAROLINE</option>
-          <option value="KENTUCKY">KENTUCKY</option>
-          <option value="NAZARETH">NAZARETH</option>
-        </select>
-        <span class="field-error-msg" id="err-destination">Required</span>
-      </div>
+      <form id="placardForm" class="form-grid" novalidate>
 
-      <div class="field">
-        <label for="productSelect">Product</label>
-        <select id="productSelect" required></select>
-      </div>
+        <div class="field">
+          <label for="poNumber">PO #</label>
+          <input type="text" id="poNumber" placeholder="e.g. 123456" required />
+          <span class="field-error-msg" id="err-poNumber">Required</span>
+        </div>
 
-      <div class="field">
-        <label for="totalCases">Total CS</label>
-        <input type="number" id="totalCases" min="1" step="1" placeholder="e.g. 310" required />
-        <span class="field-error-msg" id="err-totalCases">Must be a whole number ≥ 1</span>
-      </div>
+        <div class="field">
+          <label for="destination">Destination</label>
+          <select id="destination" required>
+            <option value="MINOOKA">MINOOKA</option>
+            <option value="DAYTONA">DAYTONA</option>
+            <option value="HARTFORD">HARTFORD</option>
+            <option value="CAROLINE">CAROLINE</option>
+            <option value="KENTUCKY">KENTUCKY</option>
+            <option value="NAZARETH">NAZARETH</option>
+          </select>
+          <span class="field-error-msg" id="err-destination">Required</span>
+        </div>
 
-      <div class="form-actions">
-        <button type="submit" id="btnGenerate">Generate Placards</button>
-        <button type="button" id="btnPrint" disabled>Print</button>
-      </div>
+        <div class="field">
+          <label for="productSelect">Product</label>
+          <select id="productSelect" required></select>
+        </div>
 
-    </form>
+        <div class="field">
+          <label for="totalCases">Total CS</label>
+          <input type="number" id="totalCases" min="1" step="1" placeholder="e.g. 310" required />
+          <span class="field-error-msg" id="err-totalCases">Must be a whole number ≥ 1</span>
+        </div>
 
-    <section id="printArea" aria-live="polite"></section>
+        <div class="form-actions">
+          <button type="submit" id="btnGenerate">Generate Placards</button>
+          <button type="button" id="btnPrint" disabled>Print</button>
+        </div>
+
+      </form>
+
+      <section id="printArea" aria-live="polite"></section>
+
+    </section>
+
+    <!-- ── Chef Haks section ──────────────────────────────────────── -->
+    <section id="sectionChefHaks" style="display:none">
+
+      <form id="chPlacardForm" class="form-grid" novalidate>
+
+        <div class="field">
+          <label for="ch-poNumber">PO #</label>
+          <input type="text" id="ch-poNumber" placeholder="e.g. 9610624190" required />
+          <span class="field-error-msg" id="err-ch-poNumber">Required</span>
+        </div>
+
+        <div class="field">
+          <label for="ch-destination">Destination</label>
+          <select id="ch-destination" required>
+            <option value="MIRA LOMA, CA">MIRA LOMA, CA</option>
+            <option value="BROOKSHIRE, TX">BROOKSHIRE, TX</option>
+            <option value="DALLAS, TX">DALLAS, TX</option>
+            <option value="SUMNER, WA">SUMNER, WA</option>
+            <option value="SALT LAKE CITY, UT">SALT LAKE CITY, UT</option>
+            <option value="PORT ST LUCIE, FL">PORT ST LUCIE, FL</option>
+            <option value="TOLLESON, AZ">TOLLESON, AZ</option>
+            <option value="AURORA, CO">AURORA, CO</option>
+            <option value="COLLEGE PARK, GA">COLLEGE PARK, GA</option>
+            <option value="MONROVIA, MD">MONROVIA, MD</option>
+            <option value="MONROE TOWNSHIP, NJ">MONROE TOWNSHIP, NJ</option>
+            <option value="VAN BUREN TWP, MI">VAN BUREN TWP, MI</option>
+            <option value="OWATONNA, MN">OWATONNA, MN</option>
+            <option value="MORRIS, IL">MORRIS, IL</option>
+            <option value="TRACY, CA">TRACY, CA</option>
+            <option value="LOS ANGELES, CA">LOS ANGELES, CA</option>
+          </select>
+          <span class="field-error-msg" id="err-ch-destination">Required</span>
+        </div>
+
+        <div class="field">
+          <label for="ch-productSelect">Product</label>
+          <select id="ch-productSelect" required></select>
+        </div>
+
+        <div class="field">
+          <label for="ch-totalCases">Total CS</label>
+          <input type="number" id="ch-totalCases" min="1" step="1" placeholder="e.g. 100" required />
+          <span class="field-error-msg" id="err-ch-totalCases">Must be a whole number ≥ 1</span>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" id="ch-btnGenerate">Generate Placards</button>
+          <button type="button" id="ch-btnPrint" disabled>Print</button>
+        </div>
+
+      </form>
+
+      <section id="ch-printArea" aria-live="polite"></section>
+
+    </section>
+
   </main>
 
   <?!=include('PlacardApp');?>
+  <?!=include('ChefHaksApp');?>
+
+  <script>
+  (function () {
+    var btnEC = document.getElementById('btnEastCoast');
+    var btnCH = document.getElementById('btnChefHaks');
+    var secEC = document.getElementById('sectionEastCoast');
+    var secCH = document.getElementById('sectionChefHaks');
+
+    btnEC.addEventListener('click', function () {
+      secEC.style.display = '';
+      secCH.style.display = 'none';
+      btnEC.classList.add('active');
+      btnCH.classList.remove('active');
+    });
+
+    btnCH.addEventListener('click', function () {
+      secEC.style.display = 'none';
+      secCH.style.display = '';
+      btnCH.classList.add('active');
+      btnEC.classList.remove('active');
+    });
+  }());
+  </script>
 </body>
 </html>
