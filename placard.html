@@ -160,15 +160,9 @@
     var secEC = document.getElementById('sectionEastCoast');
     var secReporteras = document.getElementById('sectionReporteras');
     var body = document.body;
-    var brandPillText = document.getElementById('brandPillText');
-    var appTitle = document.getElementById('appTitle');
-    var appSubtitle = document.getElementById('appSubtitle');
 
     function setClientBrand(client) {
       body.setAttribute('data-client', client);
-      brandPillText.textContent = 'Fresh Healthy Habits';
-      appTitle.textContent = "Creación de IDs";
-      appSubtitle.textContent = 'Para las reporteras de parte del 👷';
     }
 
     btnEC.addEventListener('click', function () {
