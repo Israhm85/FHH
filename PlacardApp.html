@@ -59,19 +59,17 @@ function setValidity(fieldId, isValid) {
 function validateForm() {
   var poNumber      = document.getElementById("poNumber").value.trim();
   var destination   = document.getElementById("destination").value.trim();
-  var productCode   = document.getElementById("productCode").value.trim();
   var totalCasesRaw = document.getElementById("totalCases").value;
   var totalCases    = Number(totalCasesRaw);
 
   var v1 = setValidity("poNumber",    poNumber !== "");
   var v2 = setValidity("destination", destination !== "");
-  var v3 = setValidity("productCode", productCode !== "");
-  var v4 = setValidity(
+  var v3 = setValidity(
     "totalCases",
     totalCasesRaw !== "" && Number.isInteger(totalCases) && totalCases >= 1
   );
 
-  return v1 && v2 && v3 && v4;
+  return v1 && v2 && v3;
 }
 
 // ── Placard builder ───────────────────────────────────────────────
@@ -83,7 +81,6 @@ function validateForm() {
  *   totalPallets: number,
  *   poNumber: string,
  *   destination: string,
- *   productCode: string,
  *   product: {name: string, size: string, casesPerPallet: number}
  * }} data
  * @returns {HTMLElement}
@@ -110,8 +107,8 @@ function buildPlacard(data) {
     // ── Large product name, centered ──────────────────────────────
     '<div class="placard-product-name">' + escapeHtml(data.product.name) + '</div>' +
 
-    // ── CODE — centered label, value from form (blank if none) ───
-    '<div class="placard-code">CODE: ' + escapeHtml(data.productCode) + '</div>' +
+    // ── CODE — label only, filled manually with marker ───────────
+    '<div class="placard-code">CODE:</div>' +
 
     // ── CS — centered label, blank for manual fill ────────────────
     '<div class="placard-cs">CS:</div>' +
@@ -153,7 +150,6 @@ form.addEventListener("submit", function (event) {
 
   var poNumber     = document.getElementById("poNumber").value.trim();
   var destination  = document.getElementById("destination").value.trim();
-  var productCode  = document.getElementById("productCode").value.trim();
   var totalCases   = Number(document.getElementById("totalCases").value);
   var productIndex = Number(productSelect.value);
   var product      = PRODUCTS[productIndex];
@@ -179,7 +175,6 @@ form.addEventListener("submit", function (event) {
       totalPallets:  totalPallets,
       poNumber:      poNumber,
       destination:   destination,
-      productCode:   productCode,
       product:       product
     });
     printArea.appendChild(placard);
