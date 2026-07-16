@@ -33,6 +33,29 @@
   transform: translateY(-1px);
 }
 
+.section-panel--chef .section-intro {
+  background: linear-gradient(135deg, rgba(255,248,242,0.96), rgba(184, 92, 56, 0.1));
+  border-color: rgba(184, 92, 56, 0.14);
+}
+
+.section-panel--chef .section-kicker {
+  color: #8d3b20;
+}
+
+.section-panel--chef .section-kicker::before {
+  content: "✦";
+}
+
+.section-panel--chef .form-grid {
+  background: linear-gradient(180deg, rgba(255,255,255,0.96), rgba(255,247,240,0.98));
+}
+
+.section-panel--chef .form-grid::before {
+  background:
+    radial-gradient(circle at top right, rgba(184, 92, 56, 0.14), transparent 28%),
+    linear-gradient(125deg, rgba(255,255,255,0) 0 55%, rgba(255,255,255,0.44) 75%, rgba(255,255,255,0) 100%);
+}
+
 /* ── Chef Haks print area (screen) ───────────────────────────────── */
 #ch-printArea {
   margin-top: 28px;
@@ -55,6 +78,28 @@
   break-inside: avoid;
   box-shadow: 0 18px 40px rgba(14, 37, 25, 0.12);
   font-family: Calibri, 'Carlito', sans-serif;
+  position: relative;
+  overflow: hidden;
+}
+
+.ch-placard::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 10px;
+  background: linear-gradient(90deg, #b85c38, #f2b543, #cf5a36);
+}
+
+.ch-placard::after {
+  content: "";
+  position: absolute;
+  width: 120px;
+  height: 120px;
+  left: -32px;
+  bottom: -34px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(184, 92, 56, 0.14), rgba(184, 92, 56, 0));
+  pointer-events: none;
 }
 
 /* Unique ID — label + underline */
@@ -202,6 +247,11 @@
     break-inside: avoid;
     padding: 10px 14px 8px;
     justify-content: space-between;
+  }
+
+  .ch-placard::before,
+  .ch-placard::after {
+    display: none;
   }
 
   .ch-uid-row { margin-bottom: 6px; }

@@ -8,21 +8,32 @@
   <?!=include('PlacardStyles');?>
   <?!=include('ChefHaksStyles');?>
 </head>
-<body>
+<body data-client="east-coast">
   <div class="page-decor" aria-hidden="true">
     <span class="decor-orb decor-orb--lime"></span>
     <span class="decor-orb decor-orb--carrot"></span>
     <span class="decor-orb decor-orb--leaf"></span>
     <span class="decor-orb decor-orb--mint"></span>
+    <span class="decor-leaf decor-leaf--one"></span>
+    <span class="decor-leaf decor-leaf--two"></span>
+    <span class="decor-leaf decor-leaf--three"></span>
   </div>
 
   <main class="app">
     <section class="app-shell">
       <header class="app-header">
-        <span class="brand-pill">Fresh Healthy Habits</span>
-        <h1 class="app-title">Ready-to-Eat Placard Studio</h1>
-        <p class="app-subtitle">
-          A cleaner, fresher workspace for building polished pallet placards for every destination.
+        <span class="brand-pill" id="brandPill">
+          <span class="brand-pill-icon" aria-hidden="true">❋</span>
+          <span id="brandPillText">Fresh Healthy Habits</span>
+        </span>
+        <div class="hero-garnish" aria-hidden="true">
+          <span class="hero-garnish__leaf"></span>
+          <span class="hero-garnish__leaf hero-garnish__leaf--alt"></span>
+          <span class="hero-garnish__dot"></span>
+        </div>
+        <h1 class="app-title" id="appTitle">Ready-to-Eat Placard Studio</h1>
+        <p class="app-subtitle" id="appSubtitle">
+          Produce-forward placards with a fresher, more branded workflow for every destination.
         </p>
       </header>
 
@@ -33,7 +44,11 @@
       </div>
 
       <!-- ── East Coast section ────────────────────────────────────── -->
-      <section id="sectionEastCoast" class="section-panel">
+      <section id="sectionEastCoast" class="section-panel section-panel--east">
+        <div class="section-intro">
+          <span class="section-kicker">Leafy & bright</span>
+          <p class="section-copy">A crisp produce-market feel for East Coast runs, with fresh greens and light botanical accents.</p>
+        </div>
 
         <form id="placardForm" class="form-grid" novalidate>
 
@@ -79,7 +94,11 @@
       </section>
 
       <!-- ── Chef Haks section ──────────────────────────────────────── -->
-      <section id="sectionChefHaks" class="section-panel" style="display:none">
+      <section id="sectionChefHaks" class="section-panel section-panel--chef" style="display:none">
+        <div class="section-intro">
+          <span class="section-kicker">Bold & chef-led</span>
+          <p class="section-copy">A warmer plated-meal identity for Chef Haks, with richer color accents and a stronger prepared-food tone.</p>
+        </div>
 
         <form id="chPlacardForm" class="form-grid" novalidate>
 
@@ -145,12 +164,32 @@
     var btnCH = document.getElementById('btnChefHaks');
     var secEC = document.getElementById('sectionEastCoast');
     var secCH = document.getElementById('sectionChefHaks');
+    var body = document.body;
+    var brandPillText = document.getElementById('brandPillText');
+    var appTitle = document.getElementById('appTitle');
+    var appSubtitle = document.getElementById('appSubtitle');
+
+    function setClientBrand(client) {
+      if (client === 'chef-haks') {
+        body.setAttribute('data-client', 'chef-haks');
+        brandPillText.textContent = 'Chef Haks Kitchen Flow';
+        appTitle.textContent = 'Prepared Meals Placard Studio';
+        appSubtitle.textContent = 'Warm, chef-forward branding for ready-to-heat placards with a richer prepared-food personality.';
+        return;
+      }
+
+      body.setAttribute('data-client', 'east-coast');
+      brandPillText.textContent = 'Fresh Healthy Habits';
+      appTitle.textContent = 'Ready-to-Eat Placard Studio';
+      appSubtitle.textContent = 'Produce-forward placards with a fresher, more branded workflow for every destination.';
+    }
 
     btnEC.addEventListener('click', function () {
       secEC.style.display = '';
       secCH.style.display = 'none';
       btnEC.classList.add('active');
       btnCH.classList.remove('active');
+      setClientBrand('east-coast');
     });
 
     btnCH.addEventListener('click', function () {
@@ -158,7 +197,10 @@
       secCH.style.display = '';
       btnCH.classList.add('active');
       btnEC.classList.remove('active');
+      setClientBrand('chef-haks');
     });
+
+    setClientBrand('east-coast');
   }());
   </script>
 </body>
