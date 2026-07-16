@@ -1,6 +1,6 @@
 <script>
 /**
- * ChefHaksApp.html — Chef Haks Placard Generator (Google Apps Script)
+ * ChefHaksApp.html — Reporteras Placard Generator (Google Apps Script)
  *
  * Workflow:
  *  1. Populate the product <select> from the CH_PRODUCTS catalog.
@@ -22,7 +22,7 @@ var CH_PRODUCTS = [
   { name: "CILANTRO LIME CHICKEN BOWLS",     displaySize: "12/36oz.",   itemNumber: null,      casesPerPallet: 15, nameLines: ["CILANTRO LIME", "CHICKEN BOWLS"] }
 ];
 
-// ── DOM references — Chef Haks ────────────────────────────────────
+// ── DOM references — Reporteras ───────────────────────────────────
 var chForm          = document.getElementById("chPlacardForm");
 var chProductSelect = document.getElementById("ch-productSelect");
 var chPrintArea     = document.getElementById("ch-printArea");
@@ -64,10 +64,10 @@ function chValidateForm() {
   return v1 && v2 && v3;
 }
 
-// ── Chef Haks placard builder ─────────────────────────────────────
+// ── Reporteras placard builder ────────────────────────────────────
 
 /**
- * Build one Chef Haks placard <article> element.
+ * Build one Reporteras placard <article> element.
  * @param {{
  *   palletNumber: number,
  *   totalPallets: number,
@@ -77,7 +77,7 @@ function chValidateForm() {
  * }} data
  * @returns {HTMLElement}
  */
-function buildChefHaksPlacard(data) {
+function buildReporterasPlacard(data) {
   var article = document.createElement("article");
   article.className = "ch-placard";
   var productNameHtml = formatChefHaksName(data.product);
@@ -157,7 +157,7 @@ chForm.addEventListener("submit", function (event) {
   chPrintArea.innerHTML = "";
 
   for (var palletNumber = 1; palletNumber <= totalPallets; palletNumber++) {
-    var placard = buildChefHaksPlacard({
+    var placard = buildReporterasPlacard({
       palletNumber: palletNumber,
       totalPallets: totalPallets,
       poNumber:     poNumber,
