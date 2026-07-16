@@ -95,11 +95,13 @@ function buildPlacard(data) {
   const article = document.createElement("article");
   article.className = "placard";
 
-  // Format shipping date for display (YYYY-MM-DD → MM/DD/YYYY)
-  const dateParts = data.shippingDate.split("-");
-  const displayDate = dateParts.length === 3
-    ? dateParts[1] + "/" + dateParts[2] + "/" + dateParts[0]
-    : data.shippingDate;
+  // Format shipping date for display (YYYY-MM-DD → MM/DD/YYYY).
+  // Append T00:00:00 so the Date is treated as local midnight instead of
+  // UTC midnight — prevents an off-by-one day in timezones behind UTC.
+  const dateObj = new Date(data.shippingDate + "T00:00:00");
+  const displayDate = isNaN(dateObj.getTime())
+    ? data.shippingDate
+    : dateObj.toLocaleDateString("en-US");
 
   article.innerHTML =
     '<h2 class="placard-title">TRADER JOE\'S</h2>' +
@@ -147,9 +149,11 @@ function buildPlacard(data) {
 }
 
 /**
- * Minimal HTML-escape to prevent XSS from form inputs.
- * @param {string} str
- * @returns {string}
+ * Minimal HTML-escape to prevent XSS when inserting user-supplied strings
+ * into innerHTML. Replaces the five characters that carry special meaning
+ * in HTML/attribute contexts: & < > " '
+ * @param {string} str - Raw string to escape.
+ * @returns {string} HTML-safe string.
  */
 function escapeHtml(str) {
   return String(str)
@@ -173,7 +177,16 @@ form.addEventListener("submit", function (event) {
   const shippingDate = document.getElementById("shippingDate").value;
   const productCode  = document.getElementById("productCode").value.trim();
   const totalCases   = Number(document.getElementById("totalCases").value);
-  const product      = PRODUCTS[Number(productSelect.value)];
+  const productIndex = Number(productSelect.value);
+  const product      = PRODUCTS[productIndex];
+
+  // Guard against an unexpected out-of-range index (should not happen with
+  // a controlled <select>, but defensive programming prevents a runtime error).
+  if (!product) {
+    printArea.innerHTML = '<p class="gen-error">Invalid product selection. Please reload the page and try again.</p>';
+    btnPrint.disabled = true;
+    return;
+  }
 
   // Calculate total pallets (ceiling division)
   const totalPallets = Math.ceil(totalCases / product.casesPerPallet);

@@ -204,6 +204,17 @@ body {
   vertical-align: bottom;
 }
 
+/* ── Generation error ────────────────────────────────────────────── */
+.gen-error {
+  color: var(--error-color);
+  font-weight: bold;
+  text-align: center;
+  padding: 12px;
+  background: #fdecea;
+  border: 1px solid var(--error-color);
+  border-radius: 6px;
+}
+
 /* ── Print media ─────────────────────────────────────────────────── */
 @media print {
   body {
