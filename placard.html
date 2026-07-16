@@ -9,117 +9,131 @@
   <?!=include('ChefHaksStyles');?>
 </head>
 <body>
+  <div class="page-decor" aria-hidden="true">
+    <span class="decor-orb decor-orb--lime"></span>
+    <span class="decor-orb decor-orb--carrot"></span>
+    <span class="decor-orb decor-orb--leaf"></span>
+    <span class="decor-orb decor-orb--mint"></span>
+  </div>
+
   <main class="app">
-    <h1 class="app-title">Placard Generator</h1>
+    <section class="app-shell">
+      <header class="app-header">
+        <span class="brand-pill">Fresh Healthy Habits</span>
+        <h1 class="app-title">Ready-to-Eat Placard Studio</h1>
+        <p class="app-subtitle">
+          A cleaner, fresher workspace for building polished pallet placards for every destination.
+        </p>
+      </header>
 
-    <!-- ── Client selector ───────────────────────────────────────── -->
-    <div class="client-selector">
-      <button class="client-btn active" id="btnEastCoast" type="button">East Coast</button>
-      <button class="client-btn" id="btnChefHaks" type="button">Chef Haks</button>
-    </div>
+      <!-- ── Client selector ───────────────────────────────────────── -->
+      <div class="client-selector">
+        <button class="client-btn active" id="btnEastCoast" type="button">East Coast</button>
+        <button class="client-btn" id="btnChefHaks" type="button">Chef Haks</button>
+      </div>
 
-    <!-- ── East Coast section ────────────────────────────────────── -->
-    <section id="sectionEastCoast">
+      <!-- ── East Coast section ────────────────────────────────────── -->
+      <section id="sectionEastCoast" class="section-panel">
 
-      <form id="placardForm" class="form-grid" novalidate>
+        <form id="placardForm" class="form-grid" novalidate>
 
-        <div class="field">
-          <label for="poNumber">PO #</label>
-          <input type="text" id="poNumber" placeholder="e.g. 123456" required />
-          <span class="field-error-msg" id="err-poNumber">Required</span>
-        </div>
+          <div class="field">
+            <label for="poNumber">PO #</label>
+            <input type="text" id="poNumber" placeholder="e.g. 123456" required />
+            <span class="field-error-msg" id="err-poNumber">Required</span>
+          </div>
 
-        <div class="field">
-          <label for="destination">Destination</label>
-          <select id="destination" required>
-            <option value="MINOOKA">MINOOKA</option>
-            <option value="DAYTONA">DAYTONA</option>
-            <option value="HARTFORD">HARTFORD</option>
-            <option value="CAROLINE">CAROLINE</option>
-            <option value="KENTUCKY">KENTUCKY</option>
-            <option value="NAZARETH">NAZARETH</option>
-          </select>
-          <span class="field-error-msg" id="err-destination">Required</span>
-        </div>
+          <div class="field">
+            <label for="destination">Destination</label>
+            <select id="destination" required>
+              <option value="MINOOKA">MINOOKA</option>
+              <option value="DAYTONA">DAYTONA</option>
+              <option value="HARTFORD">HARTFORD</option>
+              <option value="CAROLINE">CAROLINE</option>
+              <option value="KENTUCKY">KENTUCKY</option>
+              <option value="NAZARETH">NAZARETH</option>
+            </select>
+            <span class="field-error-msg" id="err-destination">Required</span>
+          </div>
 
-        <div class="field">
-          <label for="productSelect">Product</label>
-          <select id="productSelect" required></select>
-        </div>
+          <div class="field">
+            <label for="productSelect">Product</label>
+            <select id="productSelect" required></select>
+          </div>
 
-        <div class="field">
-          <label for="totalCases">Total CS</label>
-          <input type="number" id="totalCases" min="1" step="1" placeholder="e.g. 310" required />
-          <span class="field-error-msg" id="err-totalCases">Must be a whole number ≥ 1</span>
-        </div>
+          <div class="field">
+            <label for="totalCases">Total CS</label>
+            <input type="number" id="totalCases" min="1" step="1" placeholder="e.g. 310" required />
+            <span class="field-error-msg" id="err-totalCases">Must be a whole number ≥ 1</span>
+          </div>
 
-        <div class="form-actions">
-          <button type="submit" id="btnGenerate">Generate Placards</button>
-          <button type="button" id="btnPrint" disabled>Print</button>
-        </div>
+          <div class="form-actions">
+            <button type="submit" id="btnGenerate">Generate Placards</button>
+            <button type="button" id="btnPrint" disabled>Print</button>
+          </div>
 
-      </form>
+        </form>
 
-      <section id="printArea" aria-live="polite"></section>
+        <section id="printArea" aria-live="polite"></section>
 
+      </section>
+
+      <!-- ── Chef Haks section ──────────────────────────────────────── -->
+      <section id="sectionChefHaks" class="section-panel" style="display:none">
+
+        <form id="chPlacardForm" class="form-grid" novalidate>
+
+          <div class="field">
+            <label for="ch-poNumber">PO #</label>
+            <input type="text" id="ch-poNumber" placeholder="e.g. 9610624190" required />
+            <span class="field-error-msg" id="err-ch-poNumber">Required</span>
+          </div>
+
+          <div class="field">
+            <label for="ch-destination">Destination</label>
+            <select id="ch-destination" required>
+              <option value="MIRA LOMA, CA">MIRA LOMA, CA</option>
+              <option value="BROOKSHIRE, TX">BROOKSHIRE, TX</option>
+              <option value="DALLAS, TX">DALLAS, TX</option>
+              <option value="SUMNER, WA">SUMNER, WA</option>
+              <option value="SALT LAKE CITY, UT">SALT LAKE CITY, UT</option>
+              <option value="PORT ST LUCIE, FL">PORT ST LUCIE, FL</option>
+              <option value="TOLLESON, AZ">TOLLESON, AZ</option>
+              <option value="AURORA, CO">AURORA, CO</option>
+              <option value="COLLEGE PARK, GA">COLLEGE PARK, GA</option>
+              <option value="MONROVIA, MD">MONROVIA, MD</option>
+              <option value="MONROE TOWNSHIP, NJ">MONROE TOWNSHIP, NJ</option>
+              <option value="VAN BUREN TWP, MI">VAN BUREN TWP, MI</option>
+              <option value="OWATONNA, MN">OWATONNA, MN</option>
+              <option value="MORRIS, IL">MORRIS, IL</option>
+              <option value="TRACY, CA">TRACY, CA</option>
+              <option value="LOS ANGELES, CA">LOS ANGELES, CA</option>
+            </select>
+            <span class="field-error-msg" id="err-ch-destination">Required</span>
+          </div>
+
+          <div class="field">
+            <label for="ch-productSelect">Product</label>
+            <select id="ch-productSelect" required></select>
+          </div>
+
+          <div class="field">
+            <label for="ch-totalCases">Total CS</label>
+            <input type="number" id="ch-totalCases" min="1" step="1" placeholder="e.g. 100" required />
+            <span class="field-error-msg" id="err-ch-totalCases">Must be a whole number ≥ 1</span>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" id="ch-btnGenerate">Generate Placards</button>
+            <button type="button" id="ch-btnPrint" disabled>Print</button>
+          </div>
+
+        </form>
+
+        <section id="ch-printArea" aria-live="polite"></section>
+
+      </section>
     </section>
-
-    <!-- ── Chef Haks section ──────────────────────────────────────── -->
-    <section id="sectionChefHaks" style="display:none">
-
-      <form id="chPlacardForm" class="form-grid" novalidate>
-
-        <div class="field">
-          <label for="ch-poNumber">PO #</label>
-          <input type="text" id="ch-poNumber" placeholder="e.g. 9610624190" required />
-          <span class="field-error-msg" id="err-ch-poNumber">Required</span>
-        </div>
-
-        <div class="field">
-          <label for="ch-destination">Destination</label>
-          <select id="ch-destination" required>
-            <option value="MIRA LOMA, CA">MIRA LOMA, CA</option>
-            <option value="BROOKSHIRE, TX">BROOKSHIRE, TX</option>
-            <option value="DALLAS, TX">DALLAS, TX</option>
-            <option value="SUMNER, WA">SUMNER, WA</option>
-            <option value="SALT LAKE CITY, UT">SALT LAKE CITY, UT</option>
-            <option value="PORT ST LUCIE, FL">PORT ST LUCIE, FL</option>
-            <option value="TOLLESON, AZ">TOLLESON, AZ</option>
-            <option value="AURORA, CO">AURORA, CO</option>
-            <option value="COLLEGE PARK, GA">COLLEGE PARK, GA</option>
-            <option value="MONROVIA, MD">MONROVIA, MD</option>
-            <option value="MONROE TOWNSHIP, NJ">MONROE TOWNSHIP, NJ</option>
-            <option value="VAN BUREN TWP, MI">VAN BUREN TWP, MI</option>
-            <option value="OWATONNA, MN">OWATONNA, MN</option>
-            <option value="MORRIS, IL">MORRIS, IL</option>
-            <option value="TRACY, CA">TRACY, CA</option>
-            <option value="LOS ANGELES, CA">LOS ANGELES, CA</option>
-          </select>
-          <span class="field-error-msg" id="err-ch-destination">Required</span>
-        </div>
-
-        <div class="field">
-          <label for="ch-productSelect">Product</label>
-          <select id="ch-productSelect" required></select>
-        </div>
-
-        <div class="field">
-          <label for="ch-totalCases">Total CS</label>
-          <input type="number" id="ch-totalCases" min="1" step="1" placeholder="e.g. 100" required />
-          <span class="field-error-msg" id="err-ch-totalCases">Must be a whole number ≥ 1</span>
-        </div>
-
-        <div class="form-actions">
-          <button type="submit" id="ch-btnGenerate">Generate Placards</button>
-          <button type="button" id="ch-btnPrint" disabled>Print</button>
-        </div>
-
-      </form>
-
-      <section id="ch-printArea" aria-live="polite"></section>
-
-    </section>
-
   </main>
 
   <?!=include('PlacardApp');?>
