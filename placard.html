@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <base target="_top">
+  <title>FHH – Placard Generator</title>
+  <?!=include('PlacardStyles');?>
+  <?!=include('ChefHaksStyles');?>
+</head>
+<body data-client="east-coast">
+  <div class="page-decor" aria-hidden="true">
+    <span class="decor-orb decor-orb--lime"></span>
+    <span class="decor-orb decor-orb--carrot"></span>
+    <span class="decor-orb decor-orb--leaf"></span>
+    <span class="decor-orb decor-orb--mint"></span>
+    <span class="decor-leaf decor-leaf--one"></span>
+    <span class="decor-leaf decor-leaf--two"></span>
+    <span class="decor-leaf decor-leaf--three"></span>
+  </div>
+
+  <main class="app">
+    <section class="app-shell">
+      <header class="app-header">
+        <span class="brand-pill" id="brandPill">
+          <span class="brand-pill-icon" aria-hidden="true">❋</span>
+          <span id="brandPillText">Fresh Healthy Habits</span>
+        </span>
+        <div class="hero-garnish" aria-hidden="true">
+          <span class="hero-garnish__leaf"></span>
+          <span class="hero-garnish__leaf hero-garnish__leaf--alt"></span>
+          <span class="hero-garnish__dot"></span>
+        </div>
+        <h1 class="app-title" id="appTitle">Creación de IDs</h1>
+        <p class="app-subtitle" id="appSubtitle">
+          Para las reporteras de parte del 👷
+        </p>
+      </header>
+
+      <!-- ── Client selector ───────────────────────────────────────── -->
+      <div class="client-selector">
+        <button class="client-btn active" id="btnEastCoast" type="button">East Coast</button>
+        <button class="client-btn" id="btnReporteras" type="button">Chef Haks</button>
+      </div>
+
+      <!-- ── East Coast section ────────────────────────────────────── -->
+      <section id="sectionEastCoast" class="section-panel section-panel--east">
+        <form id="placardForm" class="form-grid" novalidate>
+
+          <div class="field">
+            <label for="poNumber">PO #</label>
+            <input type="text" id="poNumber" placeholder="e.g. 123456" required />
+            <span class="field-error-msg" id="err-poNumber">Required</span>
+          </div>
+
+          <div class="field">
+            <label for="destination">Destination</label>
+            <select id="destination" required>
+              <option value="MINOOKA">MINOOKA</option>
+              <option value="DAYTONA">DAYTONA</option>
+              <option value="HARTFORD">HARTFORD</option>
+              <option value="CAROLINE">CAROLINE</option>
+              <option value="KENTUCKY">KENTUCKY</option>
+              <option value="NAZARETH">NAZARETH</option>
+            </select>
+            <span class="field-error-msg" id="err-destination">Required</span>
+          </div>
+
+          <div class="field">
+            <label for="productSelect">Product</label>
+            <select id="productSelect" required></select>
+          </div>
+
+          <div class="field">
+            <label for="totalCases">Total CS</label>
+            <input type="number" id="totalCases" min="1" step="1" placeholder="e.g. 310" required />
+            <span class="field-error-msg" id="err-totalCases">Must be a whole number ≥ 1</span>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" id="btnGenerate">Generate Placards</button>
+            <button type="button" id="btnPrint" disabled>Print</button>
+          </div>
+
+        </form>
+
+        <section id="printArea" aria-live="polite"></section>
+
+      </section>
+
+      <!-- ── Reporteras section ─────────────────────────────────────── -->
+      <section id="sectionReporteras" class="section-panel section-panel--reporteras" style="display:none">
+        <form id="chPlacardForm" class="form-grid" novalidate>
+
+          <div class="field">
+            <label for="ch-poNumber">PO #</label>
+            <input type="text" id="ch-poNumber" placeholder="e.g. 9610624190" required />
+            <span class="field-error-msg" id="err-ch-poNumber">Required</span>
+          </div>
+
+          <div class="field">
+            <label for="ch-destination">Destination</label>
+            <select id="ch-destination" required>
+              <option value="MIRA LOMA, CA">MIRA LOMA, CA</option>
+              <option value="BROOKSHIRE, TX">BROOKSHIRE, TX</option>
+              <option value="DALLAS, TX">DALLAS, TX</option>
+              <option value="SUMNER, WA">SUMNER, WA</option>
+              <option value="SALT LAKE CITY, UT">SALT LAKE CITY, UT</option>
+              <option value="PORT ST LUCIE, FL">PORT ST LUCIE, FL</option>
+              <option value="TOLLESON, AZ">TOLLESON, AZ</option>
+              <option value="AURORA, CO">AURORA, CO</option>
+              <option value="COLLEGE PARK, GA">COLLEGE PARK, GA</option>
+              <option value="MONROVIA, MD">MONROVIA, MD</option>
+              <option value="MONROE TOWNSHIP, NJ">MONROE TOWNSHIP, NJ</option>
+              <option value="VAN BUREN TWP, MI">VAN BUREN TWP, MI</option>
+              <option value="OWATONNA, MN">OWATONNA, MN</option>
+              <option value="MORRIS, IL">MORRIS, IL</option>
+              <option value="TRACY, CA">TRACY, CA</option>
+              <option value="LOS ANGELES, CA">LOS ANGELES, CA</option>
+            </select>
+            <span class="field-error-msg" id="err-ch-destination">Required</span>
+          </div>
+
+          <div class="field">
+            <label for="ch-productSelect">Product</label>
+            <select id="ch-productSelect" required></select>
+          </div>
+
+          <div class="field">
+            <label for="ch-totalCases">Total CS</label>
+            <input type="number" id="ch-totalCases" min="1" step="1" placeholder="e.g. 100" required />
+            <span class="field-error-msg" id="err-ch-totalCases">Must be a whole number ≥ 1</span>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" id="ch-btnGenerate">Generate Placards</button>
+            <button type="button" id="ch-btnPrint" disabled>Print</button>
+          </div>
+
+        </form>
+
+        <section id="ch-printArea" aria-live="polite"></section>
+
+      </section>
+    </section>
+  </main>
+
+  <?!=include('PlacardApp');?>
+  <?!=include('ChefHaksApp');?>
+
+  <script>
+  (function () {
+    var btnEC = document.getElementById('btnEastCoast');
+    var btnReporteras = document.getElementById('btnReporteras');
+    var secEC = document.getElementById('sectionEastCoast');
+    var secReporteras = document.getElementById('sectionReporteras');
+    var body = document.body;
+    var brandPillText = document.getElementById('brandPillText');
+    var appTitle = document.getElementById('appTitle');
+    var appSubtitle = document.getElementById('appSubtitle');
+
+    function setClientBrand(client) {
+      body.setAttribute('data-client', client);
+      brandPillText.textContent = 'Fresh Healthy Habits';
+      appTitle.textContent = "Creación de IDs";
+      appSubtitle.textContent = 'Para las reporteras de parte del 👷';
+    }
+
+    btnEC.addEventListener('click', function () {
+      secEC.style.display = '';
+      secReporteras.style.display = 'none';
+      btnEC.classList.add('active');
+      btnReporteras.classList.remove('active');
+      setClientBrand('east-coast');
+    });
+
+    btnReporteras.addEventListener('click', function () {
+      secEC.style.display = 'none';
+      secReporteras.style.display = '';
+      btnReporteras.classList.add('active');
+      btnEC.classList.remove('active');
+      setClientBrand('reporteras');
+    });
+
+    setClientBrand('east-coast');
+  }());
+  </script>
+</body>
+</html>

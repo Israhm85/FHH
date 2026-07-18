@@ -1,9 +1,10 @@
-function doGet(){
-const t= HtmlService.createTemplateFromFile('index');
-return t.evaluate().setTitle("Gelson's Email Builder");
+function doGet(e) {
+  return HtmlService.createTemplateFromFile('placard')
+    .evaluate()
+    .setTitle('FHH Placard Generator');
 }
 
-function include(filename){
-return HtmlService.createHtmlOutputFromFile(filename).getContent();
+function include(filename) {
+  return HtmlService.createHtmlOutputFromFile(filename).getContent();
 }
 

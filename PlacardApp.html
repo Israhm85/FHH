@@ -1,0 +1,195 @@
+<script>
+/**
+ * PlacardApp.html — East Coast Placard Generator (Google Apps Script)
+ *
+ * Workflow:
+ *  1. Populate the product <select> from the PRODUCTS catalog.
+ *  2. On form submit, validate inputs, calculate pallet count,
+ *     and render one .placard card per pallet inside #printArea.
+ *  3. The Print button triggers window.print() so only placards
+ *     are shown (form is hidden via @media print in PlacardStyles.html).
+ */
+
+// ── Product catalog ───────────────────────────────────────────────
+var PRODUCTS = [
+  { name: "SHELLED EDAMAME",           size: "9 oz",  casesPerPallet: 160, nameClass: "name--edamame" },
+  { name: "STUFFED PEPPERS WITH BEEF", size: "15 oz", casesPerPallet: 143, nameClass: "name--stuffed-peppers" },
+  { name: "KUNG PAO BRUSSEL SPROUTS",  size: "14 oz", casesPerPallet: 143, nameClass: "name--kung-pao" },
+  { name: "GARLIC ASIAGO DIP",         size: "10 oz", casesPerPallet: 143, nameClass: "name--garlic" },
+  { name: "CHICKEN STUFFED POBLANO",   size: "15 oz", casesPerPallet: 143, nameClass: "name--chicken" },
+  { name: "ROASTED GREEN VEGETABLES",  size: "12 oz", casesPerPallet: 143, nameClass: "name--roasted" }
+];
+
+// ── DOM references ────────────────────────────────────────────────
+var form          = document.getElementById("placardForm");
+var productSelect = document.getElementById("productSelect");
+var printArea     = document.getElementById("printArea");
+var btnPrint      = document.getElementById("btnPrint");
+
+// ── Populate product <select> ─────────────────────────────────────
+PRODUCTS.forEach(function (product, index) {
+  var option = document.createElement("option");
+  option.value = index;          // store array index as value
+  option.textContent = product.name + " " + product.size;
+  productSelect.appendChild(option);
+});
+
+// ── Validation helpers ────────────────────────────────────────────
+
+/**
+ * Mark a field as valid or invalid and return whether it passed.
+ * @param {string} fieldId  - id of the <input> or <select>
+ * @param {boolean} isValid
+ * @returns {boolean}
+ */
+function setValidity(fieldId, isValid) {
+  var el = document.getElementById(fieldId);
+  if (isValid) {
+    el.classList.remove("invalid");
+  } else {
+    el.classList.add("invalid");
+  }
+  return isValid;
+}
+
+/**
+ * Validate all form fields.
+ * @returns {boolean} true if every field is valid.
+ */
+function validateForm() {
+  var poNumber      = document.getElementById("poNumber").value.trim();
+  var destination   = document.getElementById("destination").value.trim();
+  var totalCasesRaw = document.getElementById("totalCases").value;
+  var totalCases    = Number(totalCasesRaw);
+
+  var v1 = setValidity("poNumber",    poNumber !== "");
+  var v2 = setValidity("destination", destination !== "");
+  var v3 = setValidity(
+    "totalCases",
+    totalCasesRaw !== "" && Number.isInteger(totalCases) && totalCases >= 1
+  );
+
+  return v1 && v2 && v3;
+}
+
+// ── Placard builder ───────────────────────────────────────────────
+
+/**
+ * Build one placard <article> element.
+ * @param {{
+ *   palletNumber: number,
+ *   totalPallets: number,
+ *   poNumber: string,
+ *   destination: string,
+ *   product: {name: string, size: string, casesPerPallet: number}
+ * }} data
+ * @returns {HTMLElement}
+ */
+function buildPlacard(data) {
+  var article = document.createElement("article");
+  article.className = "placard";
+
+  article.innerHTML =
+    // ── Unique ID — label + blank underline, filled manually ─────
+    '<div class="placard-uid-row">' +
+      '<span class="uid-label">Unique ID</span>' +
+      '<span class="uid-blank"></span>' +
+    '</div>' +
+
+    // ── PALLET# — large, bold, centered ──────────────────────────
+    '<div class="placard-pallet">' +
+      '<span class="pallet-label">PALLET#</span> ' +
+      '<span class="pallet-numbers">(' + data.palletNumber + ') OF (' + data.totalPallets + ')</span>' +
+    '</div>' +
+
+    // ── TRADER JOES + size, centered ──────────────────────────────
+    '<div class="placard-tj-sub">TRADER JOES ' + escapeHtml(data.product.size) + '</div>' +
+
+    // ── Large product name, centered ──────────────────────────────
+    '<div class="placard-product-name' + (data.product.nameClass ? ' ' + data.product.nameClass : '') + '">' + escapeHtml(data.product.name) + '</div>' +
+
+    // ── CODE — label only, filled manually with marker ───────────
+    '<div class="placard-code">CODE:</div>' +
+
+    // ── CS — centered label, blank for manual fill ────────────────
+    '<div class="placard-cs">CS:</div>' +
+
+    // ── PO# left, destination right ───────────────────────────────
+    '<div class="placard-po">' +
+      '<span>PO#' + escapeHtml(data.poNumber) + '</span>' +
+      '<span>' + escapeHtml(data.destination) + '</span>' +
+    '</div>' +
+
+    // ── Keep Refrigerated — small, centered ───────────────────────
+    '<div class="placard-keep-refrig">Keep Refrigerated</div>';
+
+  return article;
+}
+
+/**
+ * Minimal HTML-escape to prevent XSS when inserting user-supplied strings
+ * into innerHTML. Replaces the five characters that carry special meaning
+ * in HTML/attribute contexts: & < > " '
+ * @param {string} str - Raw string to escape.
+ * @returns {string} HTML-safe string.
+ */
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#x27;");
+}
+
+// ── Form submit ───────────────────────────────────────────────────
+form.addEventListener("submit", function (event) {
+  event.preventDefault();   // stop browser's native form submission
+
+  if (!validateForm()) {
+    return;                  // stop if any field is invalid
+  }
+
+  var poNumber     = document.getElementById("poNumber").value.trim();
+  var destination  = document.getElementById("destination").value.trim();
+  var totalCases   = Number(document.getElementById("totalCases").value);
+  var productIndex = Number(productSelect.value);
+  var product      = PRODUCTS[productIndex];
+
+  // Guard against an unexpected out-of-range index (should not happen with
+  // a controlled <select>, but defensive programming prevents a runtime error).
+  if (!product) {
+    printArea.innerHTML = '<p class="gen-error">Invalid product selection. Please reload the page and try again.</p>';
+    btnPrint.disabled = true;
+    return;
+  }
+
+  // Calculate total pallets (ceiling division)
+  var totalPallets = Math.ceil(totalCases / product.casesPerPallet);
+
+  // Clear previous placards
+  printArea.innerHTML = "";
+
+  // Generate one placard per pallet
+  for (var palletNumber = 1; palletNumber <= totalPallets; palletNumber++) {
+    var placard = buildPlacard({
+      palletNumber:  palletNumber,
+      totalPallets:  totalPallets,
+      poNumber:      poNumber,
+      destination:   destination,
+      product:       product
+    });
+    printArea.appendChild(placard);
+  }
+
+  // Enable the Print button now that placards exist
+  btnPrint.disabled = false;
+  // Scroll to the first placard
+  printArea.scrollIntoView({ behavior: "smooth", block: "start" });
+});
+
+// ── Print button ──────────────────────────────────────────────────
+btnPrint.addEventListener("click", function () {
+  window.print();
+});
+</script>

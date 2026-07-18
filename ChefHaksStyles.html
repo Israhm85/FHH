@@ -1,0 +1,307 @@
+<style>
+/* ── Client selector ─────────────────────────────────────────────── */
+.client-selector {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 24px;
+  padding: 8px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.68);
+  border: 1px solid rgba(43, 122, 75, 0.12);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.7);
+  backdrop-filter: blur(8px);
+}
+
+.client-btn {
+  padding: 12px 28px;
+  font-size: 15px;
+  font-weight: 800;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--accent-dark);
+  cursor: pointer;
+  transition: background .2s, color .2s, transform .2s, box-shadow .2s;
+}
+
+.client-btn.active,
+.client-btn:hover {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--mint) 100%);
+  color: #fff;
+  box-shadow: 0 12px 24px rgba(43, 122, 75, 0.18);
+  transform: translateY(-1px);
+}
+
+.section-panel--reporteras .section-intro {
+  background: linear-gradient(135deg, rgba(255,248,242,0.96), rgba(184, 92, 56, 0.1));
+  border-color: rgba(184, 92, 56, 0.14);
+}
+
+.section-panel--reporteras .section-kicker {
+  color: #8d3b20;
+}
+
+.section-panel--reporteras .section-kicker::before {
+  content: "✦";
+}
+
+.section-panel--reporteras .form-grid {
+  background: linear-gradient(180deg, rgba(255,255,255,0.96), rgba(255,247,240,0.98));
+}
+
+.section-panel--reporteras .form-grid::before {
+  background:
+    radial-gradient(circle at top right, rgba(184, 92, 56, 0.14), transparent 28%),
+    linear-gradient(125deg, rgba(255,255,255,0) 0 55%, rgba(255,255,255,0.44) 75%, rgba(255,255,255,0) 100%);
+}
+
+/* ── Reporteras print area (screen) ──────────────────────────────── */
+#ch-printArea {
+  margin-top: 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
+}
+
+/* ── Reporteras placard card ─────────────────────────────────────── */
+.ch-placard {
+  background: linear-gradient(180deg, #fff 0%, #fcfffb 100%);
+  border: 1px solid rgba(23, 49, 38, 0.1);
+  border-radius: 26px;
+  padding: 14px 18px 10px;
+  width: 680px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  break-inside: avoid;
+  box-shadow: 0 18px 40px rgba(14, 37, 25, 0.12);
+  font-family: 'Calibri', 'Carlito', sans-serif;
+  position: relative;
+  overflow: hidden;
+}
+
+.ch-placard::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 10px;
+  background: linear-gradient(90deg, #b85c38, #f2b543, #cf5a36);
+}
+
+.ch-placard::after {
+  content: "";
+  position: absolute;
+  width: 120px;
+  height: 120px;
+  left: -32px;
+  bottom: -34px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(184, 92, 56, 0.14), rgba(184, 92, 56, 0));
+  pointer-events: none;
+}
+
+/* Unique ID — label + underline */
+.ch-uid-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.ch-uid-label {
+  font-size: 60px;
+  white-space: nowrap;
+}
+
+.ch-uid-blank {
+  flex: 1;
+  border-bottom: 2px solid #000;
+  height: 28px;
+}
+
+/* ITEM# — small, bold, centered */
+.ch-item-number {
+  font-size: 36px;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 0;
+}
+
+/* Size — small, centered */
+.ch-size-row {
+  font-size: 28px;
+  text-align: center;
+  margin-top: -2px;
+  margin-bottom: 4px;
+}
+
+/* Product name — large, bold, centered */
+.ch-product-name {
+  font-size: 68px;
+  font-weight: 900;
+  text-align: center;
+  text-transform: uppercase;
+  line-height: .95;
+  margin: 0 0 6px;
+}
+
+/* CODE: */
+.ch-code {
+  font-size: 34px;
+  text-align: center;
+  margin-bottom: 0;
+  line-height: .95;
+}
+
+/* CS: */
+.ch-cs {
+  font-size: 34px;
+  text-align: center;
+  margin-top: -2px;
+  margin-bottom: 6px;
+}
+
+/* PO# left, destination right — large, bold */
+.ch-po {
+  font-size: 34px;
+  font-weight: 900;
+  display: flex;
+  justify-content: space-between;
+  gap: 28px;
+  align-items: baseline;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+  line-height: 1;
+  margin-bottom: 6px;
+}
+
+.ch-po > span {
+  display: inline-block;
+  transform: scale(1.1);
+  transform-origin: bottom left;
+}
+
+.ch-po > span:last-child {
+  transform-origin: bottom right;
+}
+
+/* PALLET# — large, bold, centered (bottom) */
+.ch-pallet {
+  font-size: 60px;
+  font-weight: 900;
+  text-align: center;
+  margin-bottom: 2px;
+}
+
+.ch-pallet-label {
+  font-size: 0.8em;
+}
+
+.ch-pallet-numbers {
+  font-size: 1.1em;
+}
+
+/* KEEP REFRIGERATED */
+.ch-keep-refrig {
+  font-size: 16px;
+  text-align: center;
+}
+
+@media (max-width: 760px) {
+  .client-selector {
+    flex-direction: column;
+    border-radius: 24px;
+  }
+
+  .client-btn,
+  .ch-placard {
+    width: 100%;
+  }
+}
+
+/* ── Print media — shared ────────────────────────────────────────── */
+@media print {
+  @page {
+    size: landscape;
+    margin: 4mm;
+  }
+
+  .client-selector {
+    display: none !important;
+  }
+
+  #ch-printArea {
+    margin: 0;
+    gap: 0;
+    display: block;
+  }
+
+  .ch-placard {
+    box-shadow: none;
+    border: 3px solid #000;
+    width: 100%;
+    min-height: 100vh;
+    page-break-inside: avoid;
+    break-inside: avoid;
+    padding: 10px 14px 8px;
+    justify-content: space-between;
+  }
+
+  .ch-placard::before,
+  .ch-placard::after {
+    display: none;
+  }
+
+  .ch-uid-row { margin-bottom: 6px; }
+
+  .ch-uid-label { font-size: 72px; }
+
+  .ch-uid-blank {
+    border-bottom: 2.5px solid #000;
+    height: 34px;
+  }
+
+  .ch-item-number { font-size: 44px; margin-bottom: 0; }
+  .ch-size-row    { font-size: 34px; margin-top: -4px; margin-bottom: 2px; }
+
+  .ch-product-name {
+    font-size: 8vw;
+    line-height: .9;
+    margin-bottom: 2px;
+  }
+
+  .ch-code,
+  .ch-cs {
+    font-size: 48px;
+    margin-bottom: 0;
+    line-height: .92;
+  }
+
+  .ch-cs {
+    margin-top: -4px;
+  }
+
+  .ch-po {
+    font-size: 54px;
+    margin-bottom: 0;
+    gap: 34px;
+    flex-wrap: nowrap;
+    white-space: nowrap;
+    line-height: 1;
+  }
+
+  .ch-pallet {
+    font-size: 80px;
+    margin-bottom: 0;
+  }
+
+  .ch-keep-refrig { font-size: 20px; }
+
+  .ch-placard + .ch-placard {
+    page-break-before: always;
+    break-before: page;
+  }
+}
+</style>
