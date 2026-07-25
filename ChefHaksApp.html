@@ -29,7 +29,7 @@ var chForm          = document.getElementById("chPlacardForm");
 var chProductSelect = document.getElementById("ch-productSelect");
 var chPrintArea     = document.getElementById("ch-printArea");
 var chBtnPrint      = document.getElementById("ch-btnPrint");
-var CH_MONROE_DESTINATION = "MONROE TOWNSHIP, NJ";
+var chMonroeDestination = "MONROE TOWNSHIP, NJ";
 
 // ── Populate product <select> ─────────────────────────────────────
 CH_PRODUCTS.forEach(function (product, index) {
@@ -84,7 +84,7 @@ function buildReporterasPlacard(data) {
   var article = document.createElement("article");
   article.className = "ch-placard";
   var productNameHtml = formatChefHaksName(data.product);
-  var poClass = data.destination === CH_MONROE_DESTINATION ? "ch-po ch-po--monroe" : "ch-po";
+  var poClass = data.destination === chMonroeDestination ? "ch-po ch-po--monroe" : "ch-po";
 
   article.innerHTML =
     // ── Unique ID — label + blank underline ──────────────────────
