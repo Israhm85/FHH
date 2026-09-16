@@ -1,0 +1,94 @@
+<script>
+(function () {
+  var idsHeroField = document.getElementById('idsHeroField');
+  var idsDetailsFields = document.getElementById('idsDetailsFields');
+
+  var IDS_FIELDS = [
+    {
+      id: 'idsProduct',
+      label: 'Product / Producto',
+      placeholder: 'Enter product name',
+      section: 'hero'
+    },
+    {
+      id: 'idsDate',
+      label: 'Date / Fecha',
+      placeholder: 'MM/DD/YYYY',
+      section: 'details'
+    },
+    {
+      id: 'idsSupervisor',
+      label: 'Supervisor',
+      placeholder: 'Supervisor name',
+      section: 'details'
+    },
+    {
+      id: 'idsQa',
+      label: 'QA',
+      placeholder: 'QA name',
+      section: 'details'
+    },
+    {
+      id: 'idsVendor',
+      label: 'Vendor',
+      placeholder: 'Vendor',
+      section: 'details'
+    },
+    {
+      id: 'idsPo',
+      label: 'PO',
+      placeholder: 'PO number',
+      section: 'details'
+    },
+    {
+      id: 'idsCodeDate',
+      label: 'Code Date',
+      placeholder: 'Code date',
+      section: 'details'
+    },
+    {
+      id: 'idsQty',
+      label: 'Qty',
+      placeholder: 'Quantity',
+      section: 'details'
+    }
+  ];
+
+  function renderField(field, isHero) {
+    var wrapper = document.createElement('div');
+    wrapper.className = isHero ? 'ids-title-field' : 'field ids-field';
+
+    var label = document.createElement('label');
+    label.setAttribute('for', field.id);
+    label.textContent = field.label;
+
+    var input = document.createElement('input');
+    input.type = 'text';
+    input.id = field.id;
+    input.name = field.id;
+    input.placeholder = field.placeholder;
+    input.autocomplete = 'off';
+
+    // Future enhancement: replace this text input with a <select> or
+    // datalist-driven control once the option catalog for this field is defined.
+    if (isHero) {
+      input.className = 'ids-title-input';
+    }
+
+    wrapper.appendChild(label);
+    wrapper.appendChild(input);
+    return wrapper;
+  }
+
+  IDS_FIELDS.forEach(function (field) {
+    var isHero = field.section === 'hero';
+    var fieldNode = renderField(field, isHero);
+    if (isHero) {
+      idsHeroField.appendChild(fieldNode);
+      return;
+    }
+
+    idsDetailsFields.appendChild(fieldNode);
+  });
+}());
+</script>

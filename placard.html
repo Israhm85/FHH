@@ -7,6 +7,7 @@
   <title>FHH – Placard Generator</title>
   <?!=include('PlacardStyles');?>
   <?!=include('ChefHaksStyles');?>
+  <?!=include('IdsStyles');?>
 </head>
 <body data-client="east-coast">
   <div class="page-decor" aria-hidden="true">
@@ -41,6 +42,7 @@
       <div class="client-selector">
         <button class="client-btn active" id="btnEastCoast" type="button">East Coast</button>
         <button class="client-btn" id="btnReporteras" type="button">Chef Haks</button>
+        <button class="client-btn" id="btnIds" type="button">ID's</button>
       </div>
 
       <!-- ── East Coast section ────────────────────────────────────── -->
@@ -142,18 +144,42 @@
         <section id="ch-printArea" aria-live="polite"></section>
 
       </section>
+
+      <!-- ── ID's section ─────────────────────────────────────────────── -->
+      <section id="sectionIds" class="section-panel section-panel--ids" style="display:none">
+        <div class="section-intro">
+          <span class="section-kicker">ID's</span>
+          <p class="section-copy">Completa la etiqueta base para capturar la información del producto.</p>
+        </div>
+
+        <form id="idsForm" class="ids-form" novalidate>
+          <section class="ids-placard" aria-labelledby="idsProduct">
+            <header class="ids-placard__header">
+              <span class="ids-fixed-tag">PRODUCT / PRODUCTO</span>
+              <span class="ids-fixed-tag ids-fixed-tag--wip">WIP</span>
+            </header>
+
+            <div class="ids-placard__hero" id="idsHeroField"></div>
+
+            <div class="ids-placard__details" id="idsDetailsFields"></div>
+          </section>
+        </form>
+      </section>
     </section>
   </main>
 
   <?!=include('PlacardApp');?>
   <?!=include('ChefHaksApp');?>
+  <?!=include('IdsApp');?>
 
   <script>
   (function () {
     var btnEC = document.getElementById('btnEastCoast');
     var btnReporteras = document.getElementById('btnReporteras');
+    var btnIds = document.getElementById('btnIds');
     var secEC = document.getElementById('sectionEastCoast');
     var secReporteras = document.getElementById('sectionReporteras');
+    var secIds = document.getElementById('sectionIds');
     var body = document.body;
     var brandPillText = document.getElementById('brandPillText');
     var appTitle = document.getElementById('appTitle');
@@ -169,17 +195,31 @@
     btnEC.addEventListener('click', function () {
       secEC.style.display = '';
       secReporteras.style.display = 'none';
+      secIds.style.display = 'none';
       btnEC.classList.add('active');
       btnReporteras.classList.remove('active');
+      btnIds.classList.remove('active');
       setClientBrand('east-coast');
     });
 
     btnReporteras.addEventListener('click', function () {
       secEC.style.display = 'none';
       secReporteras.style.display = '';
+      secIds.style.display = 'none';
       btnReporteras.classList.add('active');
       btnEC.classList.remove('active');
+      btnIds.classList.remove('active');
       setClientBrand('reporteras');
+    });
+
+    btnIds.addEventListener('click', function () {
+      secEC.style.display = 'none';
+      secReporteras.style.display = 'none';
+      secIds.style.display = '';
+      btnIds.classList.add('active');
+      btnEC.classList.remove('active');
+      btnReporteras.classList.remove('active');
+      setClientBrand('ids');
     });
 
     setClientBrand('east-coast');
