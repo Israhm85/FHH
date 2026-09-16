@@ -82,8 +82,11 @@
     input.type = field.inputType || 'text';
     input.id = field.id;
     input.name = field.id;
-    input.placeholder = field.placeholder;
     input.autocomplete = 'off';
+
+    if (field.placeholder) {
+      input.placeholder = field.placeholder;
+    }
 
     if (input.type === 'number') {
       input.min = '0';

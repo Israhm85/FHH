@@ -188,6 +188,12 @@
     function setClientBrand(client) {
       body.setAttribute('data-client', client);
       brandPillText.textContent = 'Fresh Healthy Habits';
+      if (client === 'ids') {
+        appTitle.textContent = "ID's";
+        appSubtitle.textContent = 'Formulario base para completar la etiqueta del producto.';
+        return;
+      }
+
       appTitle.textContent = "Creación de IDs";
       appSubtitle.textContent = 'Para las reporteras de parte del 👷';
     }
