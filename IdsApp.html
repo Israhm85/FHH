@@ -430,6 +430,14 @@
       var printSheet = printDocument.querySelector('.ids-print-sheet');
       var printCard = sourceCard.cloneNode(true);
       printSheet.appendChild(printCard);
+      printWindow.onbeforeprint = function () {
+        if (hasPrinted) {
+          return;
+        }
+
+        hasPrinted = true;
+        window.addEventListener('focus', handleFocusReturn);
+      };
       printWindow.onafterprint = closePrintWindow;
       
       function waitForPrintLayout(attemptsRemaining) {
@@ -455,8 +463,6 @@
           return;
         }
 
-        hasPrinted = true;
-        window.addEventListener('focus', handleFocusReturn);
         printWindow.focus();
         printWindow.print();
         cleanupTimerId = printWindow.setTimeout(closePrintWindow, 60000);
