@@ -192,27 +192,37 @@
       appSubtitle.textContent = 'Para las reporteras de parte del 👷';
     }
 
-    btnEC.addEventListener('click', function () {
-      secEC.style.display = '';
-      secReporteras.style.display = 'none';
-      secIds.style.display = 'none';
-      btnEC.classList.add('active');
-      btnReporteras.classList.remove('active');
-      btnIds.classList.remove('active');
-      setClientBrand('east-coast');
-    });
+    if (btnEC && btnReporteras && secEC && secReporteras) {
+      btnEC.addEventListener('click', function () {
+        secEC.style.display = '';
+        secReporteras.style.display = 'none';
+        if (secIds) {
+          secIds.style.display = 'none';
+        }
+        btnEC.classList.add('active');
+        btnReporteras.classList.remove('active');
+        if (btnIds) {
+          btnIds.classList.remove('active');
+        }
+        setClientBrand('east-coast');
+      });
 
-    btnReporteras.addEventListener('click', function () {
-      secEC.style.display = 'none';
-      secReporteras.style.display = '';
-      secIds.style.display = 'none';
-      btnReporteras.classList.add('active');
-      btnEC.classList.remove('active');
-      btnIds.classList.remove('active');
-      setClientBrand('reporteras');
-    });
+      btnReporteras.addEventListener('click', function () {
+        secEC.style.display = 'none';
+        secReporteras.style.display = '';
+        if (secIds) {
+          secIds.style.display = 'none';
+        }
+        btnReporteras.classList.add('active');
+        btnEC.classList.remove('active');
+        if (btnIds) {
+          btnIds.classList.remove('active');
+        }
+        setClientBrand('reporteras');
+      });
+    }
 
-    if (btnIds && secIds) {
+    if (btnIds && secIds && btnEC && btnReporteras && secEC && secReporteras) {
       btnIds.addEventListener('click', function () {
         secEC.style.display = 'none';
         secReporteras.style.display = 'none';
