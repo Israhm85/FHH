@@ -330,14 +330,16 @@
       return;
     }
 
+    printWindow.onload = function () {
+      printWindow.focus();
+      printWindow.onafterprint = function () {
+        printWindow.close();
+      };
+      printWindow.print();
+    };
     printWindow.document.open();
     printWindow.document.write(getPrintDocumentHtml());
     printWindow.document.close();
-    printWindow.focus();
-    printWindow.onafterprint = function () {
-      printWindow.close();
-    };
-    printWindow.print();
   }
 
   idsForm.addEventListener('submit', function (event) {
