@@ -184,24 +184,27 @@
     var brandPillText = document.getElementById('brandPillText');
     var appTitle = document.getElementById('appTitle');
     var appSubtitle = document.getElementById('appSubtitle');
+    var clientBranding = {
+      'east-coast': {
+        title: 'East Coast',
+        subtitle: 'Genera placards para las operaciones de East Coast.'
+      },
+      reporteras: {
+        title: 'Chef Haks',
+        subtitle: 'Genera placards para las reporteras de Chef Haks.'
+      },
+      ids: {
+        title: "ID's",
+        subtitle: 'Formulario base para completar la etiqueta del producto.'
+      }
+    };
 
     function setClientBrand(client) {
+      var branding = clientBranding[client] || clientBranding['east-coast'];
       body.setAttribute('data-client', client);
       brandPillText.textContent = 'Fresh Healthy Habits';
-      if (client === 'ids') {
-        appTitle.textContent = "ID's";
-        appSubtitle.textContent = 'Formulario base para completar la etiqueta del producto.';
-        return;
-      }
-
-      if (client === 'reporteras') {
-        appTitle.textContent = 'Chef Haks';
-        appSubtitle.textContent = 'Genera placards para las reporteras de Chef Haks.';
-        return;
-      }
-
-      appTitle.textContent = 'East Coast';
-      appSubtitle.textContent = 'Genera placards para las operaciones de East Coast.';
+      appTitle.textContent = branding.title;
+      appSubtitle.textContent = branding.subtitle;
     }
 
     if (btnEC && btnReporteras && secEC && secReporteras) {
