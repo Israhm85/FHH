@@ -356,6 +356,7 @@
     idsPrintWindowCount += 1;
 
     var printWindow = window.open('', 'ids-print-window-' + idsPrintWindowCount, 'width=1400,height=900');
+    var hasFinalizedPrintWindow = false;
     if (!printWindow) {
       return;
     }
@@ -371,6 +372,12 @@
     printWindow.document.close();
 
     function finalizePrintWindow() {
+      if (hasFinalizedPrintWindow) {
+        return;
+      }
+
+      hasFinalizedPrintWindow = true;
+
       if (printWindow.closed || !printWindow.document) {
         return;
       }
@@ -405,7 +412,6 @@
         return style;
       }()));
       printWindow.document.querySelector('.ids-print-sheet').appendChild(sourceCard.cloneNode(true));
-      window.addEventListener('focus', handleFocusReturn, { once: true });
       printWindow.onafterprint = closePrintWindow;
       printWindow.setTimeout(function () {
         if (printWindow.closed) {
@@ -415,6 +421,7 @@
         hasPrinted = true;
         printWindow.focus();
         printWindow.print();
+        window.addEventListener('focus', handleFocusReturn);
         cleanupTimerId = printWindow.setTimeout(closePrintWindow, 60000);
       }, 150);
     }
