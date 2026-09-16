@@ -200,7 +200,8 @@ body[data-client="ids"] {
 }
 
 .ids-print-card__product {
-  padding: 16px 18px 12px;
+  min-height: 170px;
+  padding: 24px 22px 20px;
   border-bottom: 2px solid #1d1d1d;
 }
 
@@ -210,27 +211,43 @@ body[data-client="ids"] {
   letter-spacing: .08em;
   text-transform: uppercase;
   margin-bottom: 6px;
+  width: 100%;
+  text-align: left;
 }
 
 .ids-print-card__product-value {
-  min-height: 60px;
-  font-size: 52px;
+  min-height: 104px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: 72px;
   font-weight: 900;
-  line-height: 1;
+  line-height: .95;
   text-transform: uppercase;
 }
 
 .ids-print-card__details {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 2px;
-  background: #1d1d1d;
+  gap: 0;
+  background: #fff;
 }
 
 .ids-print-card__cell {
   min-height: 106px;
   padding: 14px 16px 12px;
   background: #fff;
+  border-right: 2px solid #1d1d1d;
+  border-bottom: 2px solid #1d1d1d;
+}
+
+.ids-print-card__cell:nth-child(2n) {
+  border-right: 0;
+}
+
+.ids-print-card__cell:nth-last-child(-n + 2) {
+  border-bottom: 0;
 }
 
 .ids-print-card__cell-label {
