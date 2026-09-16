@@ -72,9 +72,9 @@
       id: 'idsQty',
       label: 'Qty',
       placeholder: 'Quantity',
-      inputType: 'number',
+      inputType: 'text',
       inputMode: 'numeric',
-      min: '0',
+      pattern: '^[0-9]+$',
       validationMessage: 'Enter a whole number / Ingresa un número entero.',
       required: true,
       section: 'details'
@@ -136,7 +136,7 @@
           return;
         }
 
-        input.setCustomValidity(hasCustomConstraintError ? (field.validationMessage || 'Invalid value.') : '');
+        input.setCustomValidity(hasCustomConstraintError ? (field.validationMessage || 'Invalid value / Valor inválido.') : '');
       }
 
       updatePatternValidity();
