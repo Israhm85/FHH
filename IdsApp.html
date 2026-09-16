@@ -270,22 +270,22 @@
 
   function getPrintStyles() {
     return [
-      '@page { margin: 8mm; }',
+      '@page { size: landscape; margin: 6mm; }',
       'html, body { margin: 0; padding: 0; background: #fff; color: #1d1d1d; font-family: Arial, Helvetica, sans-serif; }',
       'body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }',
       '.ids-print-sheet { width: 100%; }',
-      '.ids-print-card { width: 100%; background: #fff; border: 3px solid #1d1d1d; color: #1d1d1d; box-sizing: border-box; }',
-      '.ids-print-card__top { display: grid; grid-template-columns: 1fr 180px; border-bottom: 3px solid #1d1d1d; }',
-      '.ids-print-card__top-label, .ids-print-card__top-wip { padding: 18px 20px; font-size: 24px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }',
+      '.ids-print-card { width: 100%; background: #fff; border: 3px solid #1d1d1d; color: #1d1d1d; box-sizing: border-box; overflow: hidden; break-inside: avoid; page-break-inside: avoid; }',
+      '.ids-print-card__top { display: grid; grid-template-columns: 1fr 190px; border-bottom: 3px solid #1d1d1d; }',
+      '.ids-print-card__top-label, .ids-print-card__top-wip { padding: 14px 18px; font-size: 22px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }',
       '.ids-print-card__top-wip { text-align: center; border-left: 3px solid #1d1d1d; }',
-      '.ids-print-card__product { padding: 20px; border-bottom: 3px solid #1d1d1d; }',
-      '.ids-print-card__product-label, .ids-print-card__cell-label { font-size: 18px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }',
-      '.ids-print-card__product-label { margin-bottom: 8px; }',
-      '.ids-print-card__product-value { min-height: 94px; font-size: 64px; font-weight: 900; line-height: 1; text-transform: uppercase; }',
-      '.ids-print-card__details { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 3px; background: #1d1d1d; }',
-      '.ids-print-card__cell { min-height: 140px; padding: 18px 20px 16px; background: #fff; }',
-      '.ids-print-card__cell-label { margin-bottom: 12px; }',
-      '.ids-print-card__cell-value { min-height: 42px; font-size: 40px; font-weight: 700; line-height: 1.1; word-break: break-word; }',
+      '.ids-print-card__product { padding: 14px 18px 10px; border-bottom: 3px solid #1d1d1d; }',
+      '.ids-print-card__product-label, .ids-print-card__cell-label { font-size: 15px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }',
+      '.ids-print-card__product-label { margin-bottom: 6px; }',
+      '.ids-print-card__product-value { min-height: 58px; font-size: 46px; font-weight: 900; line-height: 1; text-transform: uppercase; }',
+      '.ids-print-card__details { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 3px; background: #1d1d1d; }',
+      '.ids-print-card__cell { min-height: 84px; padding: 12px 14px 10px; background: #fff; }',
+      '.ids-print-card__cell-label { margin-bottom: 8px; }',
+      '.ids-print-card__cell-value { min-height: 26px; font-size: 24px; font-weight: 700; line-height: 1.1; word-break: break-word; }',
     ].join('');
   }
 
@@ -308,7 +308,7 @@
       return;
     }
 
-    var printWindow = window.open('', 'ids-print-window', 'width=900,height=1200');
+    var printWindow = window.open('', 'ids-print-window', 'width=1400,height=900');
     if (!printWindow) {
       return;
     }
