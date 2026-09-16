@@ -375,23 +375,48 @@
         return;
       }
 
+      var hasPrinted = false;
+      var cleanupTimerId = null;
+
+      function closePrintWindow() {
+        window.removeEventListener('focus', handleFocusReturn);
+
+        if (cleanupTimerId !== null && !printWindow.closed) {
+          printWindow.clearTimeout(cleanupTimerId);
+          cleanupTimerId = null;
+        }
+
+        if (!printWindow.closed) {
+          printWindow.close();
+        }
+      }
+
+      function handleFocusReturn() {
+        if (!hasPrinted) {
+          return;
+        }
+
+        window.setTimeout(closePrintWindow, 300);
+      }
+
       printWindow.document.head.appendChild((function () {
         var style = printWindow.document.createElement('style');
         style.textContent = getPrintStyles();
         return style;
       }()));
       printWindow.document.querySelector('.ids-print-sheet').appendChild(sourceCard.cloneNode(true));
-      printWindow.requestAnimationFrame(function () {
-        printWindow.requestAnimationFrame(function () {
-          printWindow.focus();
-          printWindow.onafterprint = function () {
-            if (!printWindow.closed) {
-              printWindow.close();
-            }
-          };
-          printWindow.print();
-        });
-      });
+      window.addEventListener('focus', handleFocusReturn, { once: true });
+      printWindow.onafterprint = closePrintWindow;
+      printWindow.setTimeout(function () {
+        if (printWindow.closed) {
+          return;
+        }
+
+        hasPrinted = true;
+        printWindow.focus();
+        printWindow.print();
+        cleanupTimerId = printWindow.setTimeout(closePrintWindow, 60000);
+      }, 150);
     }
 
     if (printWindow.document.readyState === 'complete') {
