@@ -286,7 +286,9 @@
       return;
     }
 
-    window.print();
+    window.setTimeout(function () {
+      window.print();
+    }, 0);
   });
 }());
 </script>
