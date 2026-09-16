@@ -154,7 +154,12 @@
           input.validity.patternMismatch
         );
 
-        if (input.validity.valid || input.validity.valueMissing) {
+        if (input.validity.valid) {
+          input.setCustomValidity('');
+          return;
+        }
+
+        if (input.validity.valueMissing) {
           input.setCustomValidity('');
           return;
         }
