@@ -369,19 +369,37 @@
     printWindow.document.open();
     printWindow.document.write('<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>IDs Print</title></head><body><main class="ids-print-sheet"></main></body></html>');
     printWindow.document.close();
-    printWindow.document.head.appendChild((function () {
-      var style = printWindow.document.createElement('style');
-      style.textContent = getPrintStyles();
-      return style;
-    }()));
-    printWindow.document.querySelector('.ids-print-sheet').appendChild(sourceCard.cloneNode(true));
-    printWindow.focus();
-    printWindow.onafterprint = function () {
-      if (!printWindow.closed) {
-        printWindow.close();
+
+    function finalizePrintWindow() {
+      if (printWindow.closed || !printWindow.document) {
+        return;
       }
-    };
-    printWindow.print();
+
+      printWindow.document.head.appendChild((function () {
+        var style = printWindow.document.createElement('style');
+        style.textContent = getPrintStyles();
+        return style;
+      }()));
+      printWindow.document.querySelector('.ids-print-sheet').appendChild(sourceCard.cloneNode(true));
+      printWindow.requestAnimationFrame(function () {
+        printWindow.requestAnimationFrame(function () {
+          printWindow.focus();
+          printWindow.onafterprint = function () {
+            if (!printWindow.closed) {
+              printWindow.close();
+            }
+          };
+          printWindow.print();
+        });
+      });
+    }
+
+    if (printWindow.document.readyState === 'complete') {
+      finalizePrintWindow();
+      return;
+    }
+
+    printWindow.addEventListener('load', finalizePrintWindow, { once: true });
   }
 
   idsForm.addEventListener('submit', function (event) {
