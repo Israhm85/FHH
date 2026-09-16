@@ -379,6 +379,11 @@
       finalizePrintWindow();
     }
 
+    function cleanupPrintWindowReadiness() {
+      printDocument.removeEventListener('readystatechange', handlePrintDocumentReadyStateChange);
+      printWindow.removeEventListener('load', finalizePrintWindow);
+    }
+
     printDocument.addEventListener('readystatechange', handlePrintDocumentReadyStateChange);
     printWindow.addEventListener('load', finalizePrintWindow);
     printDocument.open();
@@ -391,8 +396,7 @@
       }
 
       hasFinalizedPrintWindow = true;
-      printDocument.removeEventListener('readystatechange', handlePrintDocumentReadyStateChange);
-      printWindow.removeEventListener('load', finalizePrintWindow);
+      cleanupPrintWindowReadiness();
 
       if (printWindow.closed || !printDocument) {
         return;
@@ -402,6 +406,7 @@
       var cleanupTimerId = null;
 
       function closePrintWindow() {
+        cleanupPrintWindowReadiness();
         window.removeEventListener('focus', handleFocusReturn);
 
         if (cleanupTimerId !== null && !printWindow.closed) {

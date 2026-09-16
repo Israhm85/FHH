@@ -268,13 +268,25 @@
       setClientBrand(activeClient);
     }
 
-    function focusClientButton(index) {
+    function activateClientButton(index) {
       if (!clientButtons[index]) {
         return;
       }
 
       clientButtons[index].focus();
-      clientButtons[index].click();
+      if (clientButtons[index] === btnEC) {
+        activateClient('east-coast');
+        return;
+      }
+
+      if (clientButtons[index] === btnReporteras) {
+        activateClient('reporteras');
+        return;
+      }
+
+      if (clientButtons[index] === btnIds) {
+        activateClient('ids');
+      }
     }
 
     function handleClientTabsKeydown(event) {
@@ -285,25 +297,25 @@
 
       if (event.key === 'ArrowRight') {
         event.preventDefault();
-        focusClientButton((currentIndex + 1) % clientButtons.length);
+        activateClientButton((currentIndex + 1) % clientButtons.length);
         return;
       }
 
       if (event.key === 'ArrowLeft') {
         event.preventDefault();
-        focusClientButton((currentIndex - 1 + clientButtons.length) % clientButtons.length);
+        activateClientButton((currentIndex - 1 + clientButtons.length) % clientButtons.length);
         return;
       }
 
       if (event.key === 'Home') {
         event.preventDefault();
-        focusClientButton(0);
+        activateClientButton(0);
         return;
       }
 
       if (event.key === 'End') {
         event.preventDefault();
-        focusClientButton(clientButtons.length - 1);
+        activateClientButton(clientButtons.length - 1);
       }
     }
 
