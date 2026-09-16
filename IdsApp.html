@@ -8,48 +8,56 @@
       id: 'idsProduct',
       label: 'Product / Producto',
       placeholder: 'Enter product name',
+      inputType: 'text',
       section: 'hero'
     },
     {
       id: 'idsDate',
       label: 'Date / Fecha',
       placeholder: 'MM/DD/YYYY',
+      inputType: 'date',
       section: 'details'
     },
     {
       id: 'idsSupervisor',
       label: 'Supervisor',
       placeholder: 'Supervisor name',
+      inputType: 'text',
       section: 'details'
     },
     {
       id: 'idsQa',
       label: 'QA',
       placeholder: 'QA name',
+      inputType: 'text',
       section: 'details'
     },
     {
       id: 'idsVendor',
       label: 'Vendor',
       placeholder: 'Vendor',
+      inputType: 'text',
       section: 'details'
     },
     {
       id: 'idsPo',
       label: 'PO',
       placeholder: 'PO number',
+      inputType: 'text',
       section: 'details'
     },
     {
       id: 'idsCodeDate',
       label: 'Code Date',
       placeholder: 'Code date',
+      inputType: 'text',
       section: 'details'
     },
     {
       id: 'idsQty',
       label: 'Qty',
       placeholder: 'Quantity',
+      inputType: 'number',
       section: 'details'
     }
   ];
@@ -63,11 +71,17 @@
     label.textContent = field.label;
 
     var input = document.createElement('input');
-    input.type = 'text';
+    input.type = field.inputType || 'text';
     input.id = field.id;
     input.name = field.id;
     input.placeholder = field.placeholder;
     input.autocomplete = 'off';
+
+    if (input.type === 'number') {
+      input.min = '0';
+      input.step = '1';
+      input.inputMode = 'numeric';
+    }
 
     // Future enhancement: replace this text input with a <select> or
     // datalist-driven control once the option catalog for this field is defined.
