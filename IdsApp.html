@@ -89,7 +89,7 @@
       placeholder: 'Quantity',
       inputType: 'text',
       defaultValue: 'N/A',
-      pattern: '^([Nn]\\/[Aa]|[0-9]+)$',
+      pattern: '^([Nn]\\/[Aa]|[0-9]+(?:\\.[0-9]+)?)$',
       validationMessage: 'Use N/A or enter a whole number / Usa N/A o ingresa un número entero.',
       required: true,
       section: 'details'
@@ -380,7 +380,7 @@
     }
 
     printDocument.addEventListener('readystatechange', handlePrintDocumentReadyStateChange);
-    printWindow.addEventListener('load', finalizePrintWindow, { once: true });
+    printWindow.addEventListener('load', finalizePrintWindow);
     printDocument.open();
     printDocument.write('<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>IDs Print</title></head><body><main class="ids-print-sheet"></main></body></html>');
     printDocument.close();
