@@ -97,15 +97,6 @@
     return node;
   }
 
-  function escapeHtml(value) {
-    return String(value)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#x27;');
-  }
-
   function formatDisplayValue(field, value) {
     if (!value) {
       return '\u00A0';
@@ -277,11 +268,8 @@
     });
   }
 
-  function getPrintDocumentHtml() {
-    var productField = null;
-    var detailMarkup = '';
-    var productValue = '\u00A0';
-    var printStyles = [
+  function getPrintStyles() {
+    return [
       '@page { margin: 8mm; }',
       'html, body { margin: 0; padding: 0; background: #fff; color: #1d1d1d; font-family: Arial, Helvetica, sans-serif; }',
       'body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }',
@@ -295,61 +283,6 @@
       '.ids-print-card__product-label { margin-bottom: 8px; }',
       '.ids-print-card__product-value { min-height: 94px; font-size: 64px; font-weight: 900; line-height: 1; text-transform: uppercase; }',
       '.ids-print-card__details { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 3px; background: #1d1d1d; }',
-      '.ids-print-card__cell { min-height: 140px; padding: 18px 20px 16px; background: #fff; }',
-      '.ids-print-card__cell-label { margin-bottom: 12px; }',
-      '.ids-print-card__cell-value { min-height: 42px; font-size: 40px; font-weight: 700; line-height: 1.1; word-break: break-word; }'
-    ].join('');
-
-    for (var i = 0; i < IDS_FIELDS.length; i += 1) {
-      if (IDS_FIELDS[i].section === 'hero') {
-        productField = IDS_FIELDS[i];
-        break;
-      }
-    }
-
-    if (productField) {
-      productValue = escapeHtml(formatDisplayValue(productField, document.getElementById(productField.id).value || ''));
-    }
-
-    IDS_FIELDS.forEach(function (field) {
-      var input = document.getElementById(field.id);
-      if (!input || field.section !== 'details') {
-        return;
-      }
-
-      detailMarkup += [
-        '<div class="ids-print-card__cell">',
-        '<div class="ids-print-card__cell-label">' + escapeHtml(field.label) + '</div>',
-        '<div class="ids-print-card__cell-value">' + escapeHtml(formatDisplayValue(field, input.value || '')) + '</div>',
-        '</div>'
-      ].join('');
-    });
-
-    return [
-      '<!DOCTYPE html>',
-      '<html lang="en">',
-      '<head>',
-      '<meta charset="UTF-8">',
-      '<meta name="viewport" content="width=device-width, initial-scale=1.0">',
-      '<title>IDs Print</title>',
-      '<style>' + printStyles + '</style>',
-      '</head>',
-      '<body>',
-      '<main class="ids-print-sheet">',
-      '<article class="ids-print-card" aria-label="IDs print card">',
-      '<div class="ids-print-card__top">',
-      '<div class="ids-print-card__top-label">PRODUCT / PRODUCTO</div>',
-      '<div class="ids-print-card__top-wip">WIP</div>',
-      '</div>',
-      '<section class="ids-print-card__product">',
-      '<div class="ids-print-card__product-label">' + escapeHtml(productField ? productField.label : 'Product / Producto') + '</div>',
-      '<div class="ids-print-card__product-value">' + productValue + '</div>',
-      '</section>',
-      '<section class="ids-print-card__details">' + detailMarkup + '</section>',
-      '</article>',
-      '</main>',
-      '</body>',
-      '</html>'
     ].join('');
   }
 
@@ -377,14 +310,39 @@
       return;
     }
 
-    printWindow.document.open();
-    printWindow.document.write(getPrintDocumentHtml());
-    printWindow.document.close();
-    printWindow.focus();
-    printWindow.onafterprint = function () {
+    var sourceCard = idsPrintArea.querySelector('.ids-print-card');
+    if (!sourceCard) {
       printWindow.close();
-    };
-    printWindow.print();
+      return;
+    }
+
+    printWindow.document.open();
+    printWindow.document.write('<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>IDs Print</title></head><body><main class="ids-print-sheet"></main></body></html>');
+    printWindow.document.close();
+    printWindow.document.head.appendChild((function () {
+      var style = printWindow.document.createElement('style');
+      style.textContent = getPrintStyles();
+      return style;
+    }()));
+    printWindow.document.querySelector('.ids-print-sheet').appendChild(sourceCard.cloneNode(true));
+    printWindow.document.body.appendChild((function () {
+      var script = printWindow.document.createElement('script');
+      script.textContent = [
+        '(function () {',
+        '  function runPrint() {',
+        '    window.focus();',
+        '    window.print();',
+        '  }',
+        '  if (document.readyState === "complete") {',
+        '    runPrint();',
+        '  } else {',
+        '    window.addEventListener("load", runPrint, { once: true });',
+        '  }',
+        '  window.addEventListener("afterprint", function () { window.close(); });',
+        '}());'
+      ].join('');
+      return script;
+    }()));
   }
 
   idsForm.addEventListener('submit', function (event) {
