@@ -74,6 +74,7 @@
       placeholder: 'Quantity',
       inputType: 'number',
       inputMode: 'numeric',
+      min: '0',
       validationMessage: 'Enter a whole number / Ingresa un número entero.',
       required: true,
       section: 'details'
@@ -115,8 +116,10 @@
     }
 
     if (input.type === 'number') {
-      input.min = '0';
       input.step = '1';
+      if (field.min !== undefined) {
+        input.min = field.min;
+      }
     }
 
     if (field.pattern || input.type === 'number') {

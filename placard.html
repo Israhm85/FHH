@@ -200,8 +200,9 @@
     };
 
     function setClientBrand(client) {
-      var branding = clientBranding[client] || clientBranding['east-coast'];
-      body.setAttribute('data-client', client);
+      var brandingKey = clientBranding[client] ? client : 'east-coast';
+      var branding = clientBranding[brandingKey];
+      body.setAttribute('data-client', brandingKey);
       if (brandPillText) {
         brandPillText.textContent = 'Fresh Healthy Habits';
       }
