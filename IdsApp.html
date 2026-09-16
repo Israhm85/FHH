@@ -200,6 +200,10 @@
         break;
       }
     }
+
+    if (!productField) {
+      return;
+    }
     var productBlock = document.createElement('section');
     productBlock.className = 'ids-print-card__product';
     productBlock.appendChild(createTextNode('div', 'ids-print-card__product-label', productField.label));
