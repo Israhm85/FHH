@@ -287,12 +287,9 @@
       return;
     }
 
+    document.body.setAttribute('data-client', 'ids');
     window.print();
   }
-
-  idsBtnPrint.addEventListener('click', function () {
-    printIdsCard();
-  });
 
   idsForm.addEventListener('submit', function (event) {
     event.preventDefault();

@@ -165,7 +165,7 @@
           </section>
 
           <div class="ids-form-actions">
-            <button id="idsBtnPrint" type="button">Print IDs</button>
+            <button id="idsBtnPrint" type="submit">Print IDs</button>
           </div>
         </form>
 
@@ -230,10 +230,12 @@
 
     function readInitialClient() {
       var bodyClient = body ? body.getAttribute('data-client') : '';
+      var normalizedBodyClient = clientBranding[bodyClient] ? bodyClient : 'east-coast';
       try {
-        return window.localStorage.getItem('fhh-active-client') || bodyClient || 'east-coast';
+        var savedClient = window.localStorage.getItem('fhh-active-client');
+        return clientBranding[savedClient] ? savedClient : normalizedBodyClient;
       } catch (error) {
-        return bodyClient || 'east-coast';
+        return normalizedBodyClient;
       }
     }
 
