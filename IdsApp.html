@@ -268,6 +268,44 @@
     });
   }
 
+  function getPrintDocumentHtml() {
+    var printStyles = [
+      '@page { margin: 8mm; }',
+      'html, body { margin: 0; padding: 0; background: #fff; color: #1d1d1d; font-family: Arial, Helvetica, sans-serif; }',
+      'body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }',
+      '.ids-print-sheet { width: 100%; }',
+      '.ids-print-card { width: 100%; background: #fff; border: 3px solid #1d1d1d; color: #1d1d1d; box-sizing: border-box; }',
+      '.ids-print-card__top { display: grid; grid-template-columns: 1fr 180px; border-bottom: 3px solid #1d1d1d; }',
+      '.ids-print-card__top-label, .ids-print-card__top-wip { padding: 18px 20px; font-size: 24px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }',
+      '.ids-print-card__top-wip { text-align: center; border-left: 3px solid #1d1d1d; }',
+      '.ids-print-card__product { padding: 20px; border-bottom: 3px solid #1d1d1d; }',
+      '.ids-print-card__product-label, .ids-print-card__cell-label { font-size: 18px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }',
+      '.ids-print-card__product-label { margin-bottom: 8px; }',
+      '.ids-print-card__product-value { min-height: 94px; font-size: 64px; font-weight: 900; line-height: 1; text-transform: uppercase; }',
+      '.ids-print-card__details { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 3px; background: #1d1d1d; }',
+      '.ids-print-card__cell { min-height: 140px; padding: 18px 20px 16px; background: #fff; }',
+      '.ids-print-card__cell-label { margin-bottom: 12px; }',
+      '.ids-print-card__cell-value { min-height: 42px; font-size: 40px; font-weight: 700; line-height: 1.1; word-break: break-word; }'
+    ].join('');
+
+    return [
+      '<!DOCTYPE html>',
+      '<html lang="en">',
+      '<head>',
+      '<meta charset="UTF-8">',
+      '<meta name="viewport" content="width=device-width, initial-scale=1.0">',
+      '<title>IDs Print</title>',
+      '<style>' + printStyles + '</style>',
+      '</head>',
+      '<body>',
+      '<main class="ids-print-sheet">',
+      idsPrintArea.innerHTML,
+      '</main>',
+      '</body>',
+      '</html>'
+    ].join('');
+  }
+
   IDS_FIELDS.forEach(function (field) {
     var formField = renderFormField(field, field.section === 'hero');
     if (field.section === 'hero') {
@@ -287,20 +325,19 @@
       return;
     }
 
-    var previousClient = document.body.getAttribute('data-client');
-    var restoreTimerId = null;
-    function restoreClient() {
-      if (restoreTimerId !== null) {
-        window.clearTimeout(restoreTimerId);
-      }
-      document.body.setAttribute('data-client', previousClient || 'east-coast');
-      window.removeEventListener('afterprint', restoreClient);
+    var printWindow = window.open('', 'ids-print-window', 'noopener,noreferrer,width=900,height=1200');
+    if (!printWindow) {
+      return;
     }
 
-    window.addEventListener('afterprint', restoreClient);
-    restoreTimerId = window.setTimeout(restoreClient, 2000);
-    document.body.setAttribute('data-client', 'ids');
-    window.print();
+    printWindow.document.open();
+    printWindow.document.write(getPrintDocumentHtml());
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.onafterprint = function () {
+      printWindow.close();
+    };
+    printWindow.print();
   }
 
   idsForm.addEventListener('submit', function (event) {
