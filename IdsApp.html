@@ -419,9 +419,9 @@
         }
 
         hasPrinted = true;
+        window.addEventListener('focus', handleFocusReturn);
         printWindow.focus();
         printWindow.print();
-        window.addEventListener('focus', handleFocusReturn);
         cleanupTimerId = printWindow.setTimeout(closePrintWindow, 60000);
       }, 150);
     }
