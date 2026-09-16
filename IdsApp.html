@@ -16,6 +16,7 @@
       label: 'Product / Producto',
       placeholder: 'Enter product name',
       inputType: 'text',
+      required: true,
       section: 'hero'
     },
     {
@@ -24,6 +25,7 @@
       placeholder: '',
       inputType: 'date',
       helpText: 'Use the date picker to choose the date.',
+      required: true,
       section: 'details'
     },
     {
@@ -31,6 +33,7 @@
       label: 'Supervisor',
       placeholder: 'Supervisor name',
       inputType: 'text',
+      required: true,
       section: 'details'
     },
     {
@@ -38,6 +41,7 @@
       label: 'QA',
       placeholder: 'QA name',
       inputType: 'text',
+      required: true,
       section: 'details'
     },
     {
@@ -45,6 +49,7 @@
       label: 'Vendor',
       placeholder: 'Vendor',
       inputType: 'text',
+      required: true,
       section: 'details'
     },
     {
@@ -52,6 +57,7 @@
       label: 'PO',
       placeholder: 'PO number',
       inputType: 'text',
+      required: true,
       section: 'details'
     },
     {
@@ -59,6 +65,7 @@
       label: 'Code Date',
       placeholder: 'Code date',
       inputType: 'text',
+      required: true,
       section: 'details'
     },
     {
@@ -66,6 +73,7 @@
       label: 'Qty',
       placeholder: 'Quantity',
       inputType: 'number',
+      required: true,
       section: 'details'
     }
   ];
@@ -86,6 +94,11 @@
 
     if (field.placeholder) {
       input.placeholder = field.placeholder;
+    }
+
+    if (field.required) {
+      input.required = true;
+      input.setAttribute('aria-required', 'true');
     }
 
     if (input.type === 'number') {

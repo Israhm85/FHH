@@ -194,8 +194,14 @@
         return;
       }
 
-      appTitle.textContent = "Creación de IDs";
-      appSubtitle.textContent = 'Para las reporteras de parte del 👷';
+      if (client === 'reporteras') {
+        appTitle.textContent = 'Chef Haks';
+        appSubtitle.textContent = 'Genera placards para las reporteras de Chef Haks.';
+        return;
+      }
+
+      appTitle.textContent = 'East Coast';
+      appSubtitle.textContent = 'Genera placards para las operaciones de East Coast.';
     }
 
     if (btnEC && btnReporteras && secEC && secReporteras) {
