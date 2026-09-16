@@ -3,6 +3,9 @@
   var idsHeroField = document.getElementById('idsHeroField');
   var idsDetailsFields = document.getElementById('idsDetailsFields');
 
+  // Future enhancement: add an `options` array (or remote source metadata) to any
+  // field definition below and branch in renderField() to replace the text input
+  // with a <select> or another option-driven control when those catalogs are ready.
   var IDS_FIELDS = [
     {
       id: 'idsProduct',
@@ -16,6 +19,7 @@
       label: 'Date / Fecha',
       placeholder: 'MM/DD/YYYY',
       inputType: 'date',
+      helpText: 'Format: MM/DD/YYYY',
       section: 'details'
     },
     {
@@ -83,14 +87,20 @@
       input.inputMode = 'numeric';
     }
 
-    // Future enhancement: replace this text input with a <select> or
-    // datalist-driven control once the option catalog for this field is defined.
     if (isHero) {
       input.className = 'ids-title-input';
     }
 
     wrapper.appendChild(label);
     wrapper.appendChild(input);
+
+    if (field.helpText) {
+      var helpText = document.createElement('span');
+      helpText.className = 'ids-help-text';
+      helpText.textContent = field.helpText;
+      wrapper.appendChild(helpText);
+    }
+
     return wrapper;
   }
 
