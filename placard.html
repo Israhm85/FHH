@@ -224,7 +224,7 @@
       try {
         window.localStorage.setItem('fhh-active-client', client);
       } catch (error) {
-        return;
+        // Ignore storage failures and continue with in-memory UI state.
       }
     }
 

@@ -288,12 +288,17 @@
     }
 
     var previousClient = document.body.getAttribute('data-client');
+    var restoreTimerId = null;
     function restoreClient() {
+      if (restoreTimerId !== null) {
+        window.clearTimeout(restoreTimerId);
+      }
       document.body.setAttribute('data-client', previousClient || 'east-coast');
       window.removeEventListener('afterprint', restoreClient);
     }
 
     window.addEventListener('afterprint', restoreClient);
+    restoreTimerId = window.setTimeout(restoreClient, 2000);
     document.body.setAttribute('data-client', 'ids');
     window.print();
   }
