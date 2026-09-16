@@ -202,7 +202,11 @@
     }
 
     if (!productField) {
-      return;
+      productField = {
+        id: 'idsProductFallback',
+        label: 'Product / Producto',
+        printClassName: 'ids-print-card__product-value'
+      };
     }
     var productBlock = document.createElement('section');
     productBlock.className = 'ids-print-card__product';
