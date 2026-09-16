@@ -425,10 +425,26 @@
         style.textContent = getPrintStyles();
         return style;
       }()));
-      printDocument.querySelector('.ids-print-sheet').appendChild(sourceCard.cloneNode(true));
+      var printSheet = printDocument.querySelector('.ids-print-sheet');
+      var printCard = sourceCard.cloneNode(true);
+      printSheet.appendChild(printCard);
       printWindow.onafterprint = closePrintWindow;
-      printWindow.setTimeout(function () {
+      
+      function waitForPrintLayout(attemptsRemaining) {
         if (printWindow.closed) {
+          return;
+        }
+
+        var hasRenderedLayout =
+          printDocument.readyState === 'complete' &&
+          printDocument.body &&
+          printCard.offsetWidth > 0 &&
+          printCard.offsetHeight > 0;
+
+        if (!hasRenderedLayout && attemptsRemaining > 0) {
+          printWindow.setTimeout(function () {
+            waitForPrintLayout(attemptsRemaining - 1);
+          }, 50);
           return;
         }
 
@@ -437,7 +453,9 @@
         printWindow.focus();
         printWindow.print();
         cleanupTimerId = printWindow.setTimeout(closePrintWindow, 60000);
-      }, 150);
+      }
+
+      waitForPrintLayout(20);
     }
 
     if (printDocument.readyState === 'complete') {
