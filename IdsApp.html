@@ -90,7 +90,7 @@
       inputType: 'text',
       defaultValue: 'N/A',
       pattern: '^([Nn]\\/[Aa]|[0-9]+(?:\\.[0-9]+)?)$',
-      validationMessage: 'Use N/A or enter a whole number / Usa N/A o ingresa un número entero.',
+      validationMessage: 'Use N/A or enter a quantity such as 12 or 12.5 / Usa N/A o ingresa una cantidad como 12 o 12.5.',
       required: true,
       section: 'details'
     }
@@ -428,6 +428,11 @@
         return style;
       }()));
       var printSheet = printDocument.querySelector('.ids-print-sheet');
+      if (!printSheet) {
+        closePrintWindow();
+        return;
+      }
+
       var printCard = sourceCard.cloneNode(true);
       printSheet.appendChild(printCard);
       printWindow.onbeforeprint = function () {
