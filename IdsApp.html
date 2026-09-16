@@ -433,8 +433,13 @@
         return;
       }
 
-      var printCard = sourceCard.cloneNode(true);
-      printSheet.appendChild(printCard);
+      printSheet.appendChild(sourceCard.cloneNode(true));
+      var popupPrintCard = printSheet.querySelector('.ids-print-card');
+      if (!popupPrintCard) {
+        closePrintWindow();
+        return;
+      }
+
       printWindow.onbeforeprint = function () {
         if (hasPrinted) {
           return;
@@ -453,8 +458,8 @@
         var hasRenderedLayout =
           printDocument.readyState === 'complete' &&
           printDocument.body &&
-          printCard.offsetWidth > 0 &&
-          printCard.offsetHeight > 0;
+          popupPrintCard.offsetWidth > 0 &&
+          popupPrintCard.offsetHeight > 0;
 
         if (!hasRenderedLayout && attemptsRemaining > 0) {
           printWindow.setTimeout(function () {

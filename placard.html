@@ -182,6 +182,7 @@
 
   <script>
   (function () {
+    var clientButtons = Array.prototype.slice.call(document.querySelectorAll('.client-btn'));
     var btnEC = document.getElementById('btnEastCoast');
     var btnReporteras = document.getElementById('btnReporteras');
     var btnIds = document.getElementById('btnIds');
@@ -267,22 +268,64 @@
       setClientBrand(activeClient);
     }
 
+    function focusClientButton(index) {
+      if (!clientButtons[index]) {
+        return;
+      }
+
+      clientButtons[index].focus();
+      clientButtons[index].click();
+    }
+
+    function handleClientTabsKeydown(event) {
+      var currentIndex = clientButtons.indexOf(event.currentTarget);
+      if (currentIndex === -1) {
+        return;
+      }
+
+      if (event.key === 'ArrowRight') {
+        event.preventDefault();
+        focusClientButton((currentIndex + 1) % clientButtons.length);
+        return;
+      }
+
+      if (event.key === 'ArrowLeft') {
+        event.preventDefault();
+        focusClientButton((currentIndex - 1 + clientButtons.length) % clientButtons.length);
+        return;
+      }
+
+      if (event.key === 'Home') {
+        event.preventDefault();
+        focusClientButton(0);
+        return;
+      }
+
+      if (event.key === 'End') {
+        event.preventDefault();
+        focusClientButton(clientButtons.length - 1);
+      }
+    }
+
     if (btnEC && secEC) {
       btnEC.addEventListener('click', function () {
         activateClient('east-coast');
       });
+      btnEC.addEventListener('keydown', handleClientTabsKeydown);
     }
 
     if (btnReporteras && secReporteras) {
       btnReporteras.addEventListener('click', function () {
         activateClient('reporteras');
       });
+      btnReporteras.addEventListener('keydown', handleClientTabsKeydown);
     }
 
     if (btnIds && secIds) {
       btnIds.addEventListener('click', function () {
         activateClient('ids');
       });
+      btnIds.addEventListener('keydown', handleClientTabsKeydown);
     }
 
     activateClient(readInitialClient());
