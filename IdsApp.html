@@ -17,9 +17,9 @@
     {
       id: 'idsDate',
       label: 'Date / Fecha',
-      placeholder: 'MM/DD/YYYY',
+      placeholder: '',
       inputType: 'date',
-      helpText: 'Format: MM/DD/YYYY',
+      helpText: 'Use the date picker to choose the date.',
       section: 'details'
     },
     {
@@ -96,8 +96,11 @@
 
     if (field.helpText) {
       var helpText = document.createElement('span');
+      var helpTextId = field.id + 'Help';
       helpText.className = 'ids-help-text';
+      helpText.id = helpTextId;
       helpText.textContent = field.helpText;
+      input.setAttribute('aria-describedby', helpTextId);
       wrapper.appendChild(helpText);
     }
 
