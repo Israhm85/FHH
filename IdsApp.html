@@ -287,6 +287,13 @@
       return;
     }
 
+    var previousClient = document.body.getAttribute('data-client');
+    function restoreClient() {
+      document.body.setAttribute('data-client', previousClient || 'east-coast');
+      window.removeEventListener('afterprint', restoreClient);
+    }
+
+    window.addEventListener('afterprint', restoreClient);
     document.body.setAttribute('data-client', 'ids');
     window.print();
   }
