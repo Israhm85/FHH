@@ -209,6 +209,8 @@
       field.options.forEach(function (optionConfig) {
         var option = document.createElement('option');
         option.value = optionConfig.value;
+        option.label = optionConfig.label || optionConfig.value;
+        option.textContent = optionConfig.label || optionConfig.value;
         dataList.appendChild(option);
       });
 
@@ -274,7 +276,7 @@
     detailFields.forEach(function (field, detailIndex) {
       var cell = document.createElement('div');
       cell.className = 'ids-print-card__cell';
-      if ((detailIndex + 1) % detailColumnCount === 0 || detailIndex === detailFields.length - 1) {
+      if ((detailIndex + 1) % detailColumnCount === 0) {
         cell.className += ' ids-print-card__cell--last-column';
       }
       if (detailIndex >= detailLastRowStartIndex) {
