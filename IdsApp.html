@@ -80,7 +80,7 @@
 
   function renderField(field, isHero) {
     var wrapper = document.createElement('div');
-    wrapper.className = isHero ? 'ids-title-field' : 'field ids-field';
+    wrapper.className = isHero ? 'ids-title-field' : 'ids-field';
 
     var label = document.createElement('label');
     label.setAttribute('for', field.id);
@@ -105,6 +105,11 @@
       input.min = '0';
       input.step = '1';
       input.inputMode = 'numeric';
+      input.pattern = '[0-9]+';
+      input.addEventListener('input', function () {
+        var isWholeNumber = input.value === '' || /^[0-9]+$/.test(input.value);
+        input.setCustomValidity(isWholeNumber ? '' : 'Enter a whole number.');
+      });
     }
 
     if (isHero) {
