@@ -72,7 +72,7 @@
       id: 'idsQty',
       label: 'Qty',
       placeholder: 'Quantity',
-      inputType: 'number',
+      inputType: 'text',
       inputMode: 'numeric',
       pattern: '^[0-9]+$',
       validationMessage: 'Enter a whole number.',
@@ -112,21 +112,17 @@
       input.setAttribute('aria-required', 'true');
     }
 
-    if (input.type === 'number') {
-      input.min = '0';
-      input.step = '1';
-    }
-
     if (field.pattern) {
-      input.addEventListener('input', function () {
+      function updatePatternValidity() {
         var regex = new RegExp(field.pattern);
-        var isValid = input.value === '' || (
-          !input.validity.badInput &&
-          !input.validity.stepMismatch &&
-          regex.test(input.value)
-        );
+        var isValid = input.value === '' || regex.test(input.value);
         input.setCustomValidity(isValid ? '' : (field.validationMessage || 'Invalid value.'));
-      });
+      }
+
+      updatePatternValidity();
+      input.addEventListener('input', updatePatternValidity);
+      input.addEventListener('change', updatePatternValidity);
+      input.addEventListener('invalid', updatePatternValidity);
     }
 
     if (isHero) {
