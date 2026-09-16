@@ -87,7 +87,7 @@
       placeholder: 'Quantity',
       inputType: 'text',
       defaultValue: 'N/A',
-      pattern: '^(N\\/A|[0-9]+)$',
+      pattern: '^([Nn]\\/[Aa]|[0-9]+)$',
       validationMessage: 'Use N/A or enter a whole number / Usa N/A o ingresa un número entero.',
       required: true,
       section: 'details'
@@ -272,7 +272,7 @@
     detailFields.forEach(function (field, detailIndex) {
       var cell = document.createElement('div');
       cell.className = 'ids-print-card__cell';
-      if ((detailIndex + 1) % detailColumnCount === 0) {
+      if ((detailIndex + 1) % detailColumnCount === 0 || detailIndex === detailFields.length - 1) {
         cell.className += ' ids-print-card__cell--last-column';
       }
       if (detailIndex >= detailLastRowStartIndex) {
