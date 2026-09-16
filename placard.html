@@ -202,9 +202,15 @@
     function setClientBrand(client) {
       var branding = clientBranding[client] || clientBranding['east-coast'];
       body.setAttribute('data-client', client);
-      brandPillText.textContent = 'Fresh Healthy Habits';
-      appTitle.textContent = branding.title;
-      appSubtitle.textContent = branding.subtitle;
+      if (brandPillText) {
+        brandPillText.textContent = 'Fresh Healthy Habits';
+      }
+      if (appTitle) {
+        appTitle.textContent = branding.title;
+      }
+      if (appSubtitle) {
+        appSubtitle.textContent = branding.subtitle;
+      }
     }
 
     if (btnEC && secEC) {

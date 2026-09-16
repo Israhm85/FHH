@@ -92,14 +92,21 @@
     input.type = field.inputType || 'text';
     input.id = field.id;
     input.name = field.id;
-    input.autocomplete = 'off';
 
     if (field.placeholder) {
       input.placeholder = field.placeholder;
     }
 
+    if (field.autocomplete) {
+      input.autocomplete = field.autocomplete;
+    }
+
     if (field.inputMode) {
       input.inputMode = field.inputMode;
+    }
+
+    if (field.pattern) {
+      input.pattern = field.pattern;
     }
 
     if (field.required) {
@@ -116,7 +123,8 @@
       function updatePatternValidity() {
         var isValid = input.value === '' || (
           !input.validity.badInput &&
-          !input.validity.stepMismatch
+          !input.validity.stepMismatch &&
+          !input.validity.patternMismatch
         );
         input.setCustomValidity(isValid ? '' : (field.validationMessage || 'Invalid value.'));
       }
