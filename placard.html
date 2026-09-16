@@ -220,77 +220,69 @@
       }
     }
 
+    function storeActiveClient(client) {
+      try {
+        window.localStorage.setItem('fhh-active-client', client);
+      } catch (error) {
+        return;
+      }
+    }
+
+    function readInitialClient() {
+      var bodyClient = body ? body.getAttribute('data-client') : '';
+      try {
+        return window.localStorage.getItem('fhh-active-client') || bodyClient || 'east-coast';
+      } catch (error) {
+        return bodyClient || 'east-coast';
+      }
+    }
+
+    function activateClient(client) {
+      var activeClient = clientBranding[client] ? client : 'east-coast';
+
+      if (secEC) {
+        secEC.style.display = activeClient === 'east-coast' ? '' : 'none';
+      }
+      if (secReporteras) {
+        secReporteras.style.display = activeClient === 'reporteras' ? '' : 'none';
+      }
+      if (secIds) {
+        secIds.style.display = activeClient === 'ids' ? '' : 'none';
+      }
+
+      if (btnEC) {
+        btnEC.classList.toggle('active', activeClient === 'east-coast');
+      }
+      if (btnReporteras) {
+        btnReporteras.classList.toggle('active', activeClient === 'reporteras');
+      }
+      if (btnIds) {
+        btnIds.classList.toggle('active', activeClient === 'ids');
+      }
+
+      setClientBrand(activeClient);
+      storeActiveClient(activeClient);
+    }
+
     if (btnEC && secEC) {
       btnEC.addEventListener('click', function () {
-        secEC.style.display = '';
-        if (secReporteras) {
-          secReporteras.style.display = 'none';
-        }
-        if (secIds) {
-          secIds.style.display = 'none';
-        }
-        btnEC.classList.add('active');
-        if (btnReporteras) {
-          btnReporteras.classList.remove('active');
-        }
-        if (btnIds) {
-          btnIds.classList.remove('active');
-        }
-        setClientBrand('east-coast');
+        activateClient('east-coast');
       });
     }
 
     if (btnReporteras && secReporteras) {
       btnReporteras.addEventListener('click', function () {
-        if (secEC) {
-          secEC.style.display = 'none';
-        }
-        secReporteras.style.display = '';
-        if (secIds) {
-          secIds.style.display = 'none';
-        }
-        btnReporteras.classList.add('active');
-        if (btnEC) {
-          btnEC.classList.remove('active');
-        }
-        if (btnIds) {
-          btnIds.classList.remove('active');
-        }
-        setClientBrand('reporteras');
+        activateClient('reporteras');
       });
     }
 
     if (btnIds && secIds) {
       btnIds.addEventListener('click', function () {
-        if (secEC) {
-          secEC.style.display = 'none';
-        }
-        if (secReporteras) {
-          secReporteras.style.display = 'none';
-        }
-        secIds.style.display = '';
-        btnIds.classList.add('active');
-        if (btnEC) {
-          btnEC.classList.remove('active');
-        }
-        if (btnReporteras) {
-          btnReporteras.classList.remove('active');
-        }
-        setClientBrand('ids');
+        activateClient('ids');
       });
     }
 
-    if (secEC) {
-      secEC.style.display = '';
-    }
-    if (secReporteras) {
-      secReporteras.style.display = 'none';
-    }
-    if (secIds) {
-      secIds.style.display = 'none';
-    }
-
-    setClientBrand('east-coast');
+    activateClient(readInitialClient());
   }());
   </script>
 </body>
