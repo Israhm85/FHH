@@ -282,7 +282,7 @@
 
   syncPrintPreview(IDS_FIELDS);
 
-  idsBtnPrint.addEventListener('click', function () {
+  function printIdsCard() {
     if (!idsForm.reportValidity()) {
       return;
     }
@@ -290,6 +290,15 @@
     window.requestAnimationFrame(function () {
       window.print();
     });
+  }
+
+  idsBtnPrint.addEventListener('click', function () {
+    printIdsCard();
+  });
+
+  idsForm.addEventListener('submit', function (event) {
+    event.preventDefault();
+    printIdsCard();
   });
 }());
 </script>
