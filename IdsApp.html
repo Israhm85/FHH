@@ -72,9 +72,8 @@
       id: 'idsQty',
       label: 'Qty',
       placeholder: 'Quantity',
-      inputType: 'text',
+      inputType: 'number',
       inputMode: 'numeric',
-      pattern: '^[0-9]+$',
       validationMessage: 'Enter a whole number.',
       required: true,
       section: 'details'
@@ -103,18 +102,22 @@
       input.inputMode = field.inputMode;
     }
 
-    if (field.pattern) {
-      input.pattern = field.pattern;
-    }
-
     if (field.required) {
       input.required = true;
       input.setAttribute('aria-required', 'true');
     }
 
-    if (field.pattern) {
+    if (input.type === 'number') {
+      input.min = '0';
+      input.step = '1';
+    }
+
+    if (field.pattern || input.type === 'number') {
       function updatePatternValidity() {
-        var isValid = input.value === '' || !input.validity.patternMismatch;
+        var isValid = input.value === '' || (
+          !input.validity.badInput &&
+          !input.validity.stepMismatch
+        );
         input.setCustomValidity(isValid ? '' : (field.validationMessage || 'Invalid value.'));
       }
 
