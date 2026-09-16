@@ -113,9 +113,10 @@
     }
 
     if (field.pattern) {
+      var patternRegex = new RegExp(field.pattern);
+
       function updatePatternValidity() {
-        var regex = new RegExp(field.pattern);
-        var isValid = input.value === '' || regex.test(input.value);
+        var isValid = input.value === '' || patternRegex.test(input.value);
         input.setCustomValidity(isValid ? '' : (field.validationMessage || 'Invalid value.'));
       }
 
