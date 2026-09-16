@@ -146,7 +146,7 @@
       </section>
 
       <!-- ── IDs section ──────────────────────────────────────────────── -->
-      <section id="sectionIds" class="section-panel section-panel--ids" style="display:none">
+      <section id="sectionIds" class="section-panel section-panel--ids">
         <div class="section-intro">
           <span class="section-kicker">IDs</span>
           <p class="section-copy">Completa la etiqueta base para capturar la información del producto.</p>
@@ -271,6 +271,16 @@
         }
         setClientBrand('ids');
       });
+    }
+
+    if (secEC) {
+      secEC.style.display = '';
+    }
+    if (secReporteras) {
+      secReporteras.style.display = 'none';
+    }
+    if (secIds) {
+      secIds.style.display = 'none';
     }
 
     setClientBrand('east-coast');

@@ -74,7 +74,7 @@
       placeholder: 'Quantity',
       inputType: 'number',
       inputMode: 'numeric',
-      validationMessage: 'Enter a whole number.',
+      validationMessage: 'Enter a whole number / Ingresa un número entero.',
       required: true,
       section: 'details'
     }
@@ -121,13 +121,19 @@
 
     if (field.pattern || input.type === 'number') {
       function updatePatternValidity() {
-        var isValid = input.value === '' || (
-          !input.validity.badInput &&
-          !input.validity.stepMismatch &&
-          !input.validity.rangeUnderflow &&
-          !input.validity.patternMismatch
+        var hasCustomConstraintError = (
+          input.validity.badInput ||
+          input.validity.stepMismatch ||
+          input.validity.rangeUnderflow ||
+          input.validity.patternMismatch
         );
-        input.setCustomValidity(isValid ? '' : (field.validationMessage || 'Invalid value.'));
+
+        if (input.validity.valid || input.validity.valueMissing) {
+          input.setCustomValidity('');
+          return;
+        }
+
+        input.setCustomValidity(hasCustomConstraintError ? (field.validationMessage || 'Invalid value.') : '');
       }
 
       updatePatternValidity();
