@@ -198,6 +198,7 @@
   function renderPrintCard(fields) {
     var printCard = document.createElement('article');
     printCard.className = 'ids-print-card';
+    printCard.setAttribute('aria-label', 'IDs print card');
 
     var topRow = document.createElement('div');
     topRow.className = 'ids-print-card__top';
@@ -286,9 +287,9 @@
       return;
     }
 
-    window.setTimeout(function () {
+    window.requestAnimationFrame(function () {
       window.print();
-    }, 0);
+    });
   });
 }());
 </script>
