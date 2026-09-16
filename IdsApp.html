@@ -357,11 +357,15 @@
 
     idsPrintWindowCount += 1;
 
-    var printWindow = window.open('', 'ids-print-window-' + idsPrintWindowCount, 'width=1400,height=900');
+    var printWindow = window.open('', 'ids-print-window-' + idsPrintWindowCount, 'width=1400,height=900,noopener,noreferrer');
     var hasFinalizedPrintWindow = false;
     if (!printWindow) {
       return;
     }
+
+    try {
+      printWindow.opener = null;
+    } catch (error) {}
 
     var printDocument = printWindow.document;
 
