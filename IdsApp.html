@@ -124,6 +124,7 @@
         var isValid = input.value === '' || (
           !input.validity.badInput &&
           !input.validity.stepMismatch &&
+          !input.validity.rangeUnderflow &&
           !input.validity.patternMismatch
         );
         input.setCustomValidity(isValid ? '' : (field.validationMessage || 'Invalid value.'));
