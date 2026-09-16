@@ -10,6 +10,8 @@
     return;
   }
 
+  var idsPrintWindowCount = 0;
+
   // Field schema:
   // - id/label/section define identity and placement
   // - inputType/inputMode/pattern configure editing behavior
@@ -351,7 +353,9 @@
       return;
     }
 
-    var printWindow = window.open('', '', 'width=1400,height=900');
+    idsPrintWindowCount += 1;
+
+    var printWindow = window.open('', 'ids-print-window-' + idsPrintWindowCount, 'width=1400,height=900');
     if (!printWindow) {
       return;
     }
