@@ -230,13 +230,21 @@
     var detailsGrid = document.createElement('section');
     detailsGrid.className = 'ids-print-card__details';
 
-    fields.forEach(function (field) {
-      if (field.section !== 'details') {
-        return;
-      }
+    var detailFields = fields.filter(function (field) {
+      return field.section === 'details';
+    });
+    var detailColumnCount = 4;
+    var detailLastRowStartIndex = Math.floor((detailFields.length - 1) / detailColumnCount) * detailColumnCount;
 
+    detailFields.forEach(function (field, detailIndex) {
       var cell = document.createElement('div');
       cell.className = 'ids-print-card__cell';
+      if ((detailIndex + 1) % detailColumnCount === 0) {
+        cell.className += ' ids-print-card__cell--last-column';
+      }
+      if (detailIndex >= detailLastRowStartIndex) {
+        cell.className += ' ids-print-card__cell--last-row';
+      }
       cell.appendChild(createTextNode('div', 'ids-print-card__cell-label', field.label));
       var cellValue = createTextNode('div', 'ids-print-card__cell-value', '\u00A0');
       cellValue.id = field.id + 'Display';
@@ -284,8 +292,8 @@
       '.ids-print-card__product-value { min-height: 120px; display: flex; align-items: center; justify-content: center; text-align: center; font-size: 72px; font-weight: 900; line-height: .95; text-transform: uppercase; }',
       '.ids-print-card__details { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; background: #fff; }',
       '.ids-print-card__cell { min-height: 84px; padding: 12px 14px 10px; background: #fff; border-right: 3px solid #1d1d1d; border-bottom: 3px solid #1d1d1d; }',
-      '.ids-print-card__cell:nth-child(4n) { border-right: 0; }',
-      '.ids-print-card__cell:nth-last-child(-n + 4) { border-bottom: 0; }',
+      '.ids-print-card__cell--last-column { border-right: 0; }',
+      '.ids-print-card__cell--last-row { border-bottom: 0; }',
       '.ids-print-card__cell-label { margin-bottom: 8px; }',
       '.ids-print-card__cell-value { min-height: 26px; font-size: 24px; font-weight: 700; line-height: 1.1; word-break: break-word; }',
     ].join('');
