@@ -193,9 +193,13 @@
     topRow.appendChild(createTextNode('div', 'ids-print-card__top-label', 'PRODUCT / PRODUCTO'));
     topRow.appendChild(createTextNode('div', 'ids-print-card__top-wip', 'WIP'));
 
-    var productField = fields.filter(function (field) {
-      return field.section === 'hero';
-    })[0];
+    var productField = null;
+    for (var i = 0; i < fields.length; i += 1) {
+      if (fields[i].section === 'hero') {
+        productField = fields[i];
+        break;
+      }
+    }
     var productBlock = document.createElement('section');
     productBlock.className = 'ids-print-card__product';
     productBlock.appendChild(createTextNode('div', 'ids-print-card__product-label', productField.label));
