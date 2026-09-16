@@ -450,6 +450,11 @@
           return;
         }
 
+        if (!hasRenderedLayout) {
+          closePrintWindow();
+          return;
+        }
+
         hasPrinted = true;
         window.addEventListener('focus', handleFocusReturn);
         printWindow.focus();
