@@ -48,7 +48,7 @@
       </div>
 
       <!-- ── East Coast section ────────────────────────────────────── -->
-      <section id="sectionEastCoast" class="section-panel section-panel--east" role="tabpanel" aria-labelledby="btnEastCoast" aria-hidden="false">
+      <section id="sectionEastCoast" class="section-panel section-panel--east" role="tabpanel" aria-labelledby="btnEastCoast" aria-hidden="false" tabindex="0">
         <form id="placardForm" class="form-grid" novalidate>
 
           <div class="field">
@@ -93,7 +93,7 @@
       </section>
 
       <!-- ── Reporteras section ─────────────────────────────────────── -->
-      <section id="sectionReporteras" class="section-panel section-panel--reporteras" role="tabpanel" aria-labelledby="btnReporteras" aria-hidden="true" style="display:none">
+      <section id="sectionReporteras" class="section-panel section-panel--reporteras" role="tabpanel" aria-labelledby="btnReporteras" aria-hidden="true" tabindex="-1" style="display:none">
         <form id="chPlacardForm" class="form-grid" novalidate>
 
           <div class="field">
@@ -148,7 +148,7 @@
       </section>
 
       <!-- ── IDs section ──────────────────────────────────────────────── -->
-      <section id="sectionIds" class="section-panel section-panel--ids" role="tabpanel" aria-labelledby="btnIds" aria-hidden="true" style="display:none">
+      <section id="sectionIds" class="section-panel section-panel--ids" role="tabpanel" aria-labelledby="btnIds" aria-hidden="true" tabindex="-1" style="display:none">
         <div class="section-intro">
           <span class="section-kicker">IDs</span>
           <p class="section-copy">Completa la etiqueta base para capturar la información del producto.</p>
@@ -258,12 +258,15 @@
       }
       if (secEC) {
         secEC.setAttribute('aria-hidden', activeClient === 'east-coast' ? 'false' : 'true');
+        secEC.setAttribute('tabindex', activeClient === 'east-coast' ? '0' : '-1');
       }
       if (secReporteras) {
         secReporteras.setAttribute('aria-hidden', activeClient === 'reporteras' ? 'false' : 'true');
+        secReporteras.setAttribute('tabindex', activeClient === 'reporteras' ? '0' : '-1');
       }
       if (secIds) {
         secIds.setAttribute('aria-hidden', activeClient === 'ids' ? 'false' : 'true');
+        secIds.setAttribute('tabindex', activeClient === 'ids' ? '0' : '-1');
       }
       setClientBrand(activeClient);
     }

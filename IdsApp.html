@@ -363,10 +363,6 @@
       return;
     }
 
-    try {
-      printWindow.opener = null;
-    } catch (error) {}
-
     var printDocument = printWindow.document;
 
     var sourceCard = idsPrintArea.querySelector('.ids-print-card');
