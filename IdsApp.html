@@ -402,12 +402,10 @@
         return;
       }
 
-      var hasPrinted = false;
       var cleanupTimerId = null;
 
       function closePrintWindow() {
         cleanupPrintWindowReadiness();
-        window.removeEventListener('focus', handleFocusReturn);
 
         if (cleanupTimerId !== null && !printWindow.closed) {
           printWindow.clearTimeout(cleanupTimerId);
@@ -417,14 +415,6 @@
         if (!printWindow.closed) {
           printWindow.close();
         }
-      }
-
-      function handleFocusReturn() {
-        if (!hasPrinted) {
-          return;
-        }
-
-        window.setTimeout(closePrintWindow, 300);
       }
 
       printDocument.head.appendChild((function () {
@@ -445,14 +435,6 @@
         return;
       }
 
-      printWindow.onbeforeprint = function () {
-        if (hasPrinted) {
-          return;
-        }
-
-        hasPrinted = true;
-        window.addEventListener('focus', handleFocusReturn);
-      };
       printWindow.onafterprint = closePrintWindow;
       
       function waitForPrintLayout(attemptsRemaining) {
