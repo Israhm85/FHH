@@ -308,7 +308,7 @@
       return;
     }
 
-    var printWindow = window.open('', 'ids-print-window-' + Date.now(), 'width=900,height=1200');
+    var printWindow = window.open('', 'ids-print-window', 'width=900,height=1200');
     if (!printWindow) {
       return;
     }
@@ -333,6 +333,11 @@
       printWindow.close();
     };
     printWindow.print();
+    window.setTimeout(function () {
+      if (!printWindow.closed) {
+        printWindow.close();
+      }
+    }, 5000);
   }
 
   idsForm.addEventListener('submit', function (event) {
