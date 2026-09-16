@@ -328,24 +328,11 @@
       return style;
     }()));
     printWindow.document.querySelector('.ids-print-sheet').appendChild(sourceCard.cloneNode(true));
-    printWindow.document.body.appendChild((function () {
-      var script = printWindow.document.createElement('script');
-      script.textContent = [
-        '(function () {',
-        '  function runPrint() {',
-        '    window.focus();',
-        '    window.print();',
-        '  }',
-        '  if (document.readyState === "complete") {',
-        '    runPrint();',
-        '  } else {',
-        '    window.addEventListener("load", runPrint, { once: true });',
-        '  }',
-        '  window.addEventListener("afterprint", function () { window.close(); });',
-        '}());'
-      ].join('');
-      return script;
-    }()));
+    printWindow.focus();
+    printWindow.onafterprint = function () {
+      printWindow.close();
+    };
+    printWindow.print();
   }
 
   idsForm.addEventListener('submit', function (event) {
