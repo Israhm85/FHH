@@ -25,6 +25,26 @@ body[data-client="ids"] {
   margin: 0;
 }
 
+.ids-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+.ids-form-actions button {
+  min-width: 180px;
+  padding: 14px 24px;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 800;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  color: #fff;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--mint) 100%);
+  box-shadow: 0 14px 24px rgba(22, 48, 35, 0.14);
+}
+
 .ids-placard {
   background: linear-gradient(180deg, #fff 0%, #f8fbff 100%);
   border: 1px solid rgba(27, 42, 67, 0.12);
@@ -227,7 +247,8 @@ body[data-client="ids"] {
 }
 
 @media (max-width: 760px) {
-  .ids-placard__header {
+  .ids-placard__header,
+  .ids-print-card__top {
     grid-template-columns: 1fr;
   }
 
@@ -265,6 +286,7 @@ body[data-client="ids"] {
   body[data-client="ids"] .client-selector,
   body[data-client="ids"] .section-intro,
   body[data-client="ids"] .ids-form,
+  body[data-client="ids"] .ids-form-actions,
   body[data-client="ids"] #sectionEastCoast,
   body[data-client="ids"] #sectionReporteras {
     display: none !important;

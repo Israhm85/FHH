@@ -3,14 +3,18 @@
   var idsHeroField = document.getElementById('idsHeroField');
   var idsDetailsFields = document.getElementById('idsDetailsFields');
   var idsPrintArea = document.getElementById('idsPrintArea');
+  var idsForm = document.getElementById('idsForm');
+  var idsBtnPrint = document.getElementById('idsBtnPrint');
 
-  if (!idsHeroField || !idsDetailsFields || !idsPrintArea) {
+  if (!idsHeroField || !idsDetailsFields || !idsPrintArea || !idsForm || !idsBtnPrint) {
     return;
   }
 
-  // Future enhancement: add an `options` array (or remote source metadata) to any
-  // field definition below and branch in renderFormField() to replace the text input
-  // with a <select> or another option-driven control when those catalogs are ready.
+  // Field schema:
+  // - id/label/section define identity and placement
+  // - inputType/inputMode/pattern configure editing behavior
+  // - required/helpText/validationMessage configure validation and guidance
+  // - displayFormat/printClassName customize printed output
   var IDS_FIELDS = [
     {
       id: 'idsProduct',
@@ -26,6 +30,7 @@
       label: 'Date / Fecha',
       placeholder: '',
       inputType: 'date',
+      displayFormat: 'mdy',
       helpText: 'Use the date picker to choose the date / Usa el selector de fecha para elegir la fecha.',
       required: true,
       section: 'details'
@@ -97,7 +102,7 @@
       return '\u00A0';
     }
 
-    if (field.inputType === 'date') {
+    if (field.displayFormat === 'mdy' && field.inputType === 'date') {
       var parts = value.split('-');
       if (parts.length === 3) {
         return parts[1] + '/' + parts[2] + '/' + parts[0];
@@ -275,5 +280,13 @@
   renderPrintCard(IDS_FIELDS);
 
   syncPrintPreview(IDS_FIELDS);
+
+  idsBtnPrint.addEventListener('click', function () {
+    if (!idsForm.reportValidity()) {
+      return;
+    }
+
+    window.print();
+  });
 }());
 </script>

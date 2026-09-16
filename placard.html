@@ -22,7 +22,7 @@
 
   <main class="app">
     <section class="app-shell">
-      <header class="app-header">
+      <header class="app-header" aria-live="polite">
         <span class="brand-pill" id="brandPill">
           <span class="brand-pill-icon" aria-hidden="true">❋</span>
           <span id="brandPillText">Fresh Healthy Habits</span>
@@ -152,7 +152,7 @@
           <p class="section-copy">Completa la etiqueta base para capturar la información del producto.</p>
         </div>
 
-        <form id="idsForm" class="ids-form" novalidate>
+        <form id="idsForm" class="ids-form">
           <section class="ids-placard" aria-label="IDs placard form">
             <header class="ids-placard__header">
               <span class="ids-fixed-tag">PRODUCT / PRODUCTO</span>
@@ -163,6 +163,10 @@
 
             <div class="ids-placard__details" id="idsDetailsFields"></div>
           </section>
+
+          <div class="ids-form-actions">
+            <button id="idsBtnPrint" type="button">Print IDs</button>
+          </div>
         </form>
 
         <section id="idsPrintArea" class="ids-print-area" aria-hidden="true"></section>
