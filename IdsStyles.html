@@ -296,8 +296,8 @@ body[data-client="ids"] {
     margin: 4mm;
   }
 
-  #sectionIds,
-  #idsPrintArea {
+  body:not([data-client="ids"]) #sectionIds,
+  body:not([data-client="ids"]) #idsPrintArea {
     display: none !important;
   }
 

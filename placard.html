@@ -41,14 +41,14 @@
       </header>
 
       <!-- ── Client selector ───────────────────────────────────────── -->
-      <div class="client-selector" aria-label="Client sections">
-        <button class="client-btn active" id="btnEastCoast" type="button" aria-pressed="true" aria-controls="sectionEastCoast">East Coast</button>
-        <button class="client-btn" id="btnReporteras" type="button" aria-pressed="false" aria-controls="sectionReporteras">Chef Haks</button>
-        <button class="client-btn" id="btnIds" type="button" aria-pressed="false" aria-controls="sectionIds">IDs</button>
+      <div class="client-selector" role="tablist" aria-label="Client sections">
+        <button class="client-btn active" id="btnEastCoast" type="button" role="tab" aria-selected="true" tabindex="0" aria-controls="sectionEastCoast">East Coast</button>
+        <button class="client-btn" id="btnReporteras" type="button" role="tab" aria-selected="false" tabindex="-1" aria-controls="sectionReporteras">Chef Haks</button>
+        <button class="client-btn" id="btnIds" type="button" role="tab" aria-selected="false" tabindex="-1" aria-controls="sectionIds">IDs</button>
       </div>
 
       <!-- ── East Coast section ────────────────────────────────────── -->
-      <section id="sectionEastCoast" class="section-panel section-panel--east">
+      <section id="sectionEastCoast" class="section-panel section-panel--east" role="tabpanel" aria-labelledby="btnEastCoast">
         <form id="placardForm" class="form-grid" novalidate>
 
           <div class="field">
@@ -93,7 +93,7 @@
       </section>
 
       <!-- ── Reporteras section ─────────────────────────────────────── -->
-      <section id="sectionReporteras" class="section-panel section-panel--reporteras" style="display:none">
+      <section id="sectionReporteras" class="section-panel section-panel--reporteras" role="tabpanel" aria-labelledby="btnReporteras" style="display:none">
         <form id="chPlacardForm" class="form-grid" novalidate>
 
           <div class="field">
@@ -148,7 +148,7 @@
       </section>
 
       <!-- ── IDs section ──────────────────────────────────────────────── -->
-      <section id="sectionIds" class="section-panel section-panel--ids" style="display:none">
+      <section id="sectionIds" class="section-panel section-panel--ids" role="tabpanel" aria-labelledby="btnIds" style="display:none">
         <div class="section-intro">
           <span class="section-kicker">IDs</span>
           <p class="section-copy">Completa la etiqueta base para capturar la información del producto.</p>
@@ -242,15 +242,27 @@
 
       if (btnEC) {
         btnEC.classList.toggle('active', activeClient === 'east-coast');
-        btnEC.setAttribute('aria-pressed', activeClient === 'east-coast' ? 'true' : 'false');
+        btnEC.setAttribute('aria-selected', activeClient === 'east-coast' ? 'true' : 'false');
+        btnEC.setAttribute('tabindex', activeClient === 'east-coast' ? '0' : '-1');
       }
       if (btnReporteras) {
         btnReporteras.classList.toggle('active', activeClient === 'reporteras');
-        btnReporteras.setAttribute('aria-pressed', activeClient === 'reporteras' ? 'true' : 'false');
+        btnReporteras.setAttribute('aria-selected', activeClient === 'reporteras' ? 'true' : 'false');
+        btnReporteras.setAttribute('tabindex', activeClient === 'reporteras' ? '0' : '-1');
       }
       if (btnIds) {
         btnIds.classList.toggle('active', activeClient === 'ids');
-        btnIds.setAttribute('aria-pressed', activeClient === 'ids' ? 'true' : 'false');
+        btnIds.setAttribute('aria-selected', activeClient === 'ids' ? 'true' : 'false');
+        btnIds.setAttribute('tabindex', activeClient === 'ids' ? '0' : '-1');
+      }
+      if (secEC) {
+        secEC.setAttribute('aria-hidden', activeClient === 'east-coast' ? 'false' : 'true');
+      }
+      if (secReporteras) {
+        secReporteras.setAttribute('aria-hidden', activeClient === 'reporteras' ? 'false' : 'true');
+      }
+      if (secIds) {
+        secIds.setAttribute('aria-hidden', activeClient === 'ids' ? 'false' : 'true');
       }
       setClientBrand(activeClient);
     }
