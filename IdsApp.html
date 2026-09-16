@@ -351,7 +351,7 @@
       return;
     }
 
-    var printWindow = window.open('', 'ids-print-window', 'width=1400,height=900');
+    var printWindow = window.open('', 'ids-print-window-' + Date.now(), 'width=1400,height=900');
     if (!printWindow) {
       return;
     }
@@ -373,14 +373,11 @@
     printWindow.document.querySelector('.ids-print-sheet').appendChild(sourceCard.cloneNode(true));
     printWindow.focus();
     printWindow.onafterprint = function () {
-      printWindow.close();
-    };
-    printWindow.print();
-    window.setTimeout(function () {
       if (!printWindow.closed) {
         printWindow.close();
       }
-    }, 5000);
+    };
+    printWindow.print();
   }
 
   idsForm.addEventListener('submit', function (event) {
