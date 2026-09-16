@@ -42,9 +42,9 @@
 
       <!-- ── Client selector ───────────────────────────────────────── -->
       <div class="client-selector" aria-label="Client sections">
-        <button class="client-btn active" id="btnEastCoast" type="button">East Coast</button>
-        <button class="client-btn" id="btnReporteras" type="button">Chef Haks</button>
-        <button class="client-btn" id="btnIds" type="button">IDs</button>
+        <button class="client-btn active" id="btnEastCoast" type="button" aria-pressed="true" aria-controls="sectionEastCoast">East Coast</button>
+        <button class="client-btn" id="btnReporteras" type="button" aria-pressed="false" aria-controls="sectionReporteras">Chef Haks</button>
+        <button class="client-btn" id="btnIds" type="button" aria-pressed="false" aria-controls="sectionIds">IDs</button>
       </div>
 
       <!-- ── East Coast section ────────────────────────────────────── -->
@@ -242,12 +242,15 @@
 
       if (btnEC) {
         btnEC.classList.toggle('active', activeClient === 'east-coast');
+        btnEC.setAttribute('aria-pressed', activeClient === 'east-coast' ? 'true' : 'false');
       }
       if (btnReporteras) {
         btnReporteras.classList.toggle('active', activeClient === 'reporteras');
+        btnReporteras.setAttribute('aria-pressed', activeClient === 'reporteras' ? 'true' : 'false');
       }
       if (btnIds) {
         btnIds.classList.toggle('active', activeClient === 'ids');
+        btnIds.setAttribute('aria-pressed', activeClient === 'ids' ? 'true' : 'false');
       }
       setClientBrand(activeClient);
     }
