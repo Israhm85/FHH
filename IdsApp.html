@@ -3,6 +3,10 @@
   var idsHeroField = document.getElementById('idsHeroField');
   var idsDetailsFields = document.getElementById('idsDetailsFields');
 
+  if (!idsHeroField || !idsDetailsFields) {
+    return;
+  }
+
   // Future enhancement: add an `options` array (or remote source metadata) to any
   // field definition below and branch in renderField() to replace the text input
   // with a <select> or another option-driven control when those catalogs are ready.

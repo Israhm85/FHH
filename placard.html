@@ -212,15 +212,17 @@
       setClientBrand('reporteras');
     });
 
-    btnIds.addEventListener('click', function () {
-      secEC.style.display = 'none';
-      secReporteras.style.display = 'none';
-      secIds.style.display = '';
-      btnIds.classList.add('active');
-      btnEC.classList.remove('active');
-      btnReporteras.classList.remove('active');
-      setClientBrand('ids');
-    });
+    if (btnIds && secIds) {
+      btnIds.addEventListener('click', function () {
+        secEC.style.display = 'none';
+        secReporteras.style.display = 'none';
+        secIds.style.display = '';
+        btnIds.classList.add('active');
+        btnEC.classList.remove('active');
+        btnReporteras.classList.remove('active');
+        setClientBrand('ids');
+      });
+    }
 
     setClientBrand('east-coast');
   }());
