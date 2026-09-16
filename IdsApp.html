@@ -40,6 +40,7 @@
       label: 'Supervisor',
       placeholder: 'Supervisor name',
       inputType: 'text',
+      defaultValue: 'FREDDY',
       required: true,
       section: 'details'
     },
@@ -48,14 +49,19 @@
       label: 'QA',
       placeholder: 'QA name',
       inputType: 'text',
+      defaultValue: 'SILVIA',
       required: true,
       section: 'details'
     },
     {
       id: 'idsVendor',
       label: 'Vendor',
-      placeholder: 'Vendor',
-      inputType: 'text',
+      inputType: 'datalist',
+      defaultValue: 'tomatillo',
+      options: [
+        { value: 'tomatillo', label: 'tomatillo' },
+        { value: 'red bell pepper', label: 'red bell pepper' }
+      ],
       required: true,
       section: 'details'
     },
@@ -80,9 +86,9 @@
       label: 'Qty',
       placeholder: 'Quantity',
       inputType: 'text',
-      inputMode: 'numeric',
-      pattern: '^[0-9]+$',
-      validationMessage: 'Enter a whole number / Ingresa un número entero.',
+      defaultValue: 'N/A',
+      pattern: '^(N\\/A|[0-9]+)$',
+      validationMessage: 'Use N/A or enter a whole number / Usa N/A o ingresa un número entero.',
       required: true,
       section: 'details'
     }
@@ -119,12 +125,18 @@
     var label = createTextNode('label', '', field.label);
     label.setAttribute('for', field.id);
 
-    var input = document.createElement('input');
-    input.type = field.inputType || 'text';
+    var input;
+    if (field.inputType === 'datalist') {
+      input = document.createElement('input');
+      input.type = 'text';
+    } else {
+      input = document.createElement('input');
+      input.type = field.inputType || 'text';
+    }
     input.id = field.id;
     input.name = field.id;
 
-    if (field.placeholder) {
+    if (field.placeholder && input.tagName === 'INPUT') {
       input.placeholder = field.placeholder;
     }
 
@@ -143,6 +155,10 @@
 
     if (field.autocomplete) {
       input.autocomplete = field.autocomplete;
+    }
+
+    if (field.defaultValue !== undefined) {
+      input.value = field.defaultValue;
     }
 
     if (isHero) {
@@ -180,6 +196,23 @@
 
     wrapper.appendChild(label);
     wrapper.appendChild(input);
+
+    if (field.inputType === 'datalist') {
+      var dataListId = field.id + 'Options';
+      var dataList = document.createElement('datalist');
+      dataList.id = dataListId;
+
+      // Future enhancement: expand `options` with dynamic data sources when
+      // this field needs to load its choices from configurable catalogs.
+      field.options.forEach(function (optionConfig) {
+        var option = document.createElement('option');
+        option.value = optionConfig.value;
+        dataList.appendChild(option);
+      });
+
+      input.setAttribute('list', dataListId);
+      wrapper.appendChild(dataList);
+    }
 
     if (field.helpText) {
       var helpText = createTextNode('span', 'ids-help-text', field.helpText);
