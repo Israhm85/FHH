@@ -2,13 +2,14 @@
 (function () {
   var idsHeroField = document.getElementById('idsHeroField');
   var idsDetailsFields = document.getElementById('idsDetailsFields');
+  var idsPrintArea = document.getElementById('idsPrintArea');
 
-  if (!idsHeroField || !idsDetailsFields) {
+  if (!idsHeroField || !idsDetailsFields || !idsPrintArea) {
     return;
   }
 
   // Future enhancement: add an `options` array (or remote source metadata) to any
-  // field definition below and branch in renderField() to replace the text input
+  // field definition below and branch in renderFormField() to replace the text input
   // with a <select> or another option-driven control when those catalogs are ready.
   var IDS_FIELDS = [
     {
@@ -17,7 +18,8 @@
       placeholder: 'Enter product name',
       inputType: 'text',
       required: true,
-      section: 'hero'
+      section: 'hero',
+      printClassName: 'ids-print-card__product-value'
     },
     {
       id: 'idsDate',
@@ -81,13 +83,36 @@
     }
   ];
 
-  function renderField(field, isHero) {
+  function createTextNode(tagName, className, text) {
+    var node = document.createElement(tagName);
+    if (className) {
+      node.className = className;
+    }
+    node.textContent = text;
+    return node;
+  }
+
+  function formatDisplayValue(field, value) {
+    if (!value) {
+      return '\u00A0';
+    }
+
+    if (field.inputType === 'date') {
+      var parts = value.split('-');
+      if (parts.length === 3) {
+        return parts[1] + '/' + parts[2] + '/' + parts[0];
+      }
+    }
+
+    return value;
+  }
+
+  function renderFormField(field, isHero) {
     var wrapper = document.createElement('div');
     wrapper.className = isHero ? 'ids-title-field' : 'ids-field';
 
-    var label = document.createElement('label');
+    var label = createTextNode('label', '', field.label);
     label.setAttribute('for', field.id);
-    label.textContent = field.label;
 
     var input = document.createElement('input');
     input.type = field.inputType || 'text';
@@ -96,10 +121,6 @@
 
     if (field.placeholder) {
       input.placeholder = field.placeholder;
-    }
-
-    if (field.autocomplete) {
-      input.autocomplete = field.autocomplete;
     }
 
     if (field.inputMode) {
@@ -115,15 +136,16 @@
       input.setAttribute('aria-required', 'true');
     }
 
-    if (input.type === 'number') {
-      input.step = '1';
-      if (field.min !== undefined) {
-        input.min = field.min;
-      }
+    if (field.autocomplete) {
+      input.autocomplete = field.autocomplete;
+    }
+
+    if (isHero) {
+      input.className = 'ids-title-input';
     }
 
     if (field.pattern || input.type === 'number') {
-      function updatePatternValidity() {
+      function updateFieldValidity() {
         var hasCustomConstraintError = (
           input.validity.badInput ||
           input.validity.stepMismatch ||
@@ -139,41 +161,101 @@
         input.setCustomValidity(hasCustomConstraintError ? (field.validationMessage || 'Invalid value / Valor inválido.') : '');
       }
 
-      updatePatternValidity();
-      input.addEventListener('input', updatePatternValidity);
-      input.addEventListener('change', updatePatternValidity);
-      input.addEventListener('invalid', updatePatternValidity);
-    }
-
-    if (isHero) {
-      input.className = 'ids-title-input';
+      updateFieldValidity();
+      input.addEventListener('input', updateFieldValidity);
+      input.addEventListener('change', updateFieldValidity);
+      input.addEventListener('invalid', updateFieldValidity);
     }
 
     wrapper.appendChild(label);
     wrapper.appendChild(input);
 
     if (field.helpText) {
-      var helpText = document.createElement('span');
+      var helpText = createTextNode('span', 'ids-help-text', field.helpText);
       var helpTextId = field.id + 'Help';
-      helpText.className = 'ids-help-text';
       helpText.id = helpTextId;
-      helpText.textContent = field.helpText;
       input.setAttribute('aria-describedby', helpTextId);
       wrapper.appendChild(helpText);
     }
 
-    return wrapper;
+    return {
+      wrapper: wrapper,
+      input: input
+    };
+  }
+
+  function renderPrintCard(fields) {
+    var printCard = document.createElement('article');
+    printCard.className = 'ids-print-card';
+
+    var topRow = document.createElement('div');
+    topRow.className = 'ids-print-card__top';
+    topRow.appendChild(createTextNode('div', 'ids-print-card__top-label', 'PRODUCT / PRODUCTO'));
+    topRow.appendChild(createTextNode('div', 'ids-print-card__top-wip', 'WIP'));
+
+    var productField = fields.filter(function (field) {
+      return field.section === 'hero';
+    })[0];
+    var productBlock = document.createElement('section');
+    productBlock.className = 'ids-print-card__product';
+    productBlock.appendChild(createTextNode('div', 'ids-print-card__product-label', productField.label));
+    var productValue = createTextNode('div', productField.printClassName || 'ids-print-card__product-value', '\u00A0');
+    productValue.id = productField.id + 'Display';
+    productBlock.appendChild(productValue);
+
+    var detailsGrid = document.createElement('section');
+    detailsGrid.className = 'ids-print-card__details';
+
+    fields.forEach(function (field) {
+      if (field.section !== 'details') {
+        return;
+      }
+
+      var cell = document.createElement('div');
+      cell.className = 'ids-print-card__cell';
+      cell.appendChild(createTextNode('div', 'ids-print-card__cell-label', field.label));
+      var cellValue = createTextNode('div', 'ids-print-card__cell-value', '\u00A0');
+      cellValue.id = field.id + 'Display';
+      cell.appendChild(cellValue);
+      detailsGrid.appendChild(cell);
+    });
+
+    printCard.appendChild(topRow);
+    printCard.appendChild(productBlock);
+    printCard.appendChild(detailsGrid);
+    idsPrintArea.appendChild(printCard);
+  }
+
+  function syncPrintPreview(fields) {
+    fields.forEach(function (field) {
+      var input = document.getElementById(field.id);
+      var display = document.getElementById(field.id + 'Display');
+      if (!input || !display) {
+        return;
+      }
+
+      function updateDisplay() {
+        display.textContent = formatDisplayValue(field, input.value);
+      }
+
+      updateDisplay();
+      input.addEventListener('input', updateDisplay);
+      input.addEventListener('change', updateDisplay);
+    });
   }
 
   IDS_FIELDS.forEach(function (field) {
-    var isHero = field.section === 'hero';
-    var fieldNode = renderField(field, isHero);
-    if (isHero) {
-      idsHeroField.appendChild(fieldNode);
+    var formField = renderFormField(field, field.section === 'hero');
+    if (field.section === 'hero') {
+      idsHeroField.appendChild(formField.wrapper);
       return;
     }
 
-    idsDetailsFields.appendChild(fieldNode);
+    idsDetailsFields.appendChild(formField.wrapper);
   });
+
+  renderPrintCard(IDS_FIELDS);
+
+  syncPrintPreview(IDS_FIELDS);
 }());
 </script>
