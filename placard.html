@@ -220,23 +220,9 @@
       }
     }
 
-    function storeActiveClient(client) {
-      try {
-        window.localStorage.setItem('fhh-active-client', client);
-      } catch (error) {
-        // Ignore storage failures and continue with in-memory UI state.
-      }
-    }
-
     function readInitialClient() {
       var bodyClient = body ? body.getAttribute('data-client') : '';
-      var normalizedBodyClient = clientBranding[bodyClient] ? bodyClient : 'east-coast';
-      try {
-        var savedClient = window.localStorage.getItem('fhh-active-client');
-        return clientBranding[savedClient] ? savedClient : normalizedBodyClient;
-      } catch (error) {
-        return normalizedBodyClient;
-      }
+      return clientBranding[bodyClient] ? bodyClient : 'east-coast';
     }
 
     function activateClient(client) {
@@ -261,9 +247,8 @@
       if (btnIds) {
         btnIds.classList.toggle('active', activeClient === 'ids');
       }
-
       setClientBrand(activeClient);
-      storeActiveClient(activeClient);
+      setClientBrand(activeClient);
     }
 
     if (btnEC && secEC) {

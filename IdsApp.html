@@ -325,7 +325,7 @@
       return;
     }
 
-    var printWindow = window.open('', 'ids-print-window', 'noopener,noreferrer,width=900,height=1200');
+    var printWindow = window.open('', 'ids-print-window-' + Date.now(), 'noopener,noreferrer,width=900,height=1200');
     if (!printWindow) {
       return;
     }
