@@ -361,15 +361,27 @@
       return;
     }
 
+    var printDocument = printWindow.document;
+
     var sourceCard = idsPrintArea.querySelector('.ids-print-card');
     if (!sourceCard) {
       printWindow.close();
       return;
     }
 
-    printWindow.document.open();
-    printWindow.document.write('<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>IDs Print</title></head><body><main class="ids-print-sheet"></main></body></html>');
-    printWindow.document.close();
+    function handlePrintDocumentReadyStateChange() {
+      if (printWindow.closed || printDocument.readyState !== 'complete') {
+        return;
+      }
+
+      finalizePrintWindow();
+    }
+
+    printDocument.addEventListener('readystatechange', handlePrintDocumentReadyStateChange);
+    printWindow.addEventListener('load', finalizePrintWindow, { once: true });
+    printDocument.open();
+    printDocument.write('<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>IDs Print</title></head><body><main class="ids-print-sheet"></main></body></html>');
+    printDocument.close();
 
     function finalizePrintWindow() {
       if (hasFinalizedPrintWindow) {
@@ -377,8 +389,10 @@
       }
 
       hasFinalizedPrintWindow = true;
+      printDocument.removeEventListener('readystatechange', handlePrintDocumentReadyStateChange);
+      printWindow.removeEventListener('load', finalizePrintWindow);
 
-      if (printWindow.closed || !printWindow.document) {
+      if (printWindow.closed || !printDocument) {
         return;
       }
 
@@ -406,12 +420,12 @@
         window.setTimeout(closePrintWindow, 300);
       }
 
-      printWindow.document.head.appendChild((function () {
-        var style = printWindow.document.createElement('style');
+      printDocument.head.appendChild((function () {
+        var style = printDocument.createElement('style');
         style.textContent = getPrintStyles();
         return style;
       }()));
-      printWindow.document.querySelector('.ids-print-sheet').appendChild(sourceCard.cloneNode(true));
+      printDocument.querySelector('.ids-print-sheet').appendChild(sourceCard.cloneNode(true));
       printWindow.onafterprint = closePrintWindow;
       printWindow.setTimeout(function () {
         if (printWindow.closed) {
@@ -426,12 +440,10 @@
       }, 150);
     }
 
-    if (printWindow.document.readyState === 'complete') {
+    if (printDocument.readyState === 'complete') {
       finalizePrintWindow();
       return;
     }
-
-    printWindow.addEventListener('load', finalizePrintWindow, { once: true });
   }
 
   idsForm.addEventListener('submit', function (event) {
