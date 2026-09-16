@@ -105,9 +105,12 @@
       input.min = '0';
       input.step = '1';
       input.inputMode = 'numeric';
-      input.pattern = '[0-9]+';
       input.addEventListener('input', function () {
-        var isWholeNumber = input.value === '' || /^[0-9]+$/.test(input.value);
+        var isWholeNumber = input.value === '' || (
+          !input.validity.badInput &&
+          !input.validity.stepMismatch &&
+          /^[0-9]+$/.test(input.value)
+        );
         input.setCustomValidity(isWholeNumber ? '' : 'Enter a whole number.');
       });
     }
