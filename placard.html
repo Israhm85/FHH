@@ -298,13 +298,13 @@
         return;
       }
 
-      if (event.key === 'ArrowRight') {
+      if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
         event.preventDefault();
         activateClientButton((currentIndex + 1) % clientButtons.length);
         return;
       }
 
-      if (event.key === 'ArrowLeft') {
+      if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
         event.preventDefault();
         activateClientButton((currentIndex - 1 + clientButtons.length) % clientButtons.length);
         return;
