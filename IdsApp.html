@@ -272,9 +272,13 @@
       return field.section === 'details';
     });
     var detailColumnCount = 4;
-    var hasFullLastRow = detailFields.length > 0 && detailFields.length % detailColumnCount === 0;
+    var hasPartialLastRow = detailFields.length > 0 && detailFields.length % detailColumnCount !== 0;
     var detailLastRowSize = detailFields.length % detailColumnCount || Math.min(detailColumnCount, detailFields.length);
     var detailLastRowStartIndex = Math.max(0, detailFields.length - detailLastRowSize);
+
+    if (hasPartialLastRow) {
+      detailsGrid.className += ' ids-print-card__details--partial-last-row';
+    }
 
     detailFields.forEach(function (field, detailIndex) {
       var cell = document.createElement('div');
@@ -282,7 +286,7 @@
       if ((detailIndex + 1) % detailColumnCount === 0 || detailIndex === detailFields.length - 1) {
         cell.className += ' ids-print-card__cell--last-column';
       }
-      if (hasFullLastRow && detailIndex >= detailLastRowStartIndex) {
+      if (detailIndex >= detailLastRowStartIndex) {
         cell.className += ' ids-print-card__cell--last-row';
       }
       cell.appendChild(createTextNode('div', 'ids-print-card__cell-label', field.label));
