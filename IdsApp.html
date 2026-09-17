@@ -272,7 +272,8 @@
       return field.section === 'details';
     });
     var detailColumnCount = 4;
-    var detailLastRowStartIndex = Math.floor((detailFields.length - 1) / detailColumnCount) * detailColumnCount;
+    var detailLastRowSize = detailFields.length % detailColumnCount || Math.min(detailColumnCount, detailFields.length);
+    var detailLastRowStartIndex = Math.max(0, detailFields.length - detailLastRowSize);
 
     detailFields.forEach(function (field, detailIndex) {
       var cell = document.createElement('div');
