@@ -7,6 +7,7 @@
   <title>FHH – Placard Generator</title>
   <?!=include('PlacardStyles');?>
   <?!=include('ChefHaksStyles');?>
+  <?!=include('IdsStyles');?>
 </head>
 <body data-client="east-coast">
   <div class="page-decor" aria-hidden="true">
@@ -31,20 +32,23 @@
           <span class="hero-garnish__leaf hero-garnish__leaf--alt"></span>
           <span class="hero-garnish__dot"></span>
         </div>
-        <h1 class="app-title" id="appTitle">Creación de IDs</h1>
-        <p class="app-subtitle" id="appSubtitle">
-          Para las reporteras de parte del 👷
-        </p>
+        <div aria-live="polite">
+          <h1 class="app-title" id="appTitle">East Coast</h1>
+          <p class="app-subtitle" id="appSubtitle">
+            Genera placards para las operaciones de East Coast.
+          </p>
+        </div>
       </header>
 
       <!-- ── Client selector ───────────────────────────────────────── -->
-      <div class="client-selector">
-        <button class="client-btn active" id="btnEastCoast" type="button">East Coast</button>
-        <button class="client-btn" id="btnReporteras" type="button">Chef Haks</button>
+      <div class="client-selector" role="tablist" aria-label="Client sections">
+        <button class="client-btn active" id="btnEastCoast" type="button" role="tab" aria-selected="true" tabindex="0" aria-controls="sectionEastCoast">East Coast</button>
+        <button class="client-btn" id="btnReporteras" type="button" role="tab" aria-selected="false" tabindex="-1" aria-controls="sectionReporteras">Chef Haks</button>
+        <button class="client-btn" id="btnIds" type="button" role="tab" aria-selected="false" tabindex="-1" aria-controls="sectionIds">IDs</button>
       </div>
 
       <!-- ── East Coast section ────────────────────────────────────── -->
-      <section id="sectionEastCoast" class="section-panel section-panel--east">
+      <section id="sectionEastCoast" class="section-panel section-panel--east" role="tabpanel" aria-labelledby="btnEastCoast" aria-hidden="false" tabindex="0">
         <form id="placardForm" class="form-grid" novalidate>
 
           <div class="field">
@@ -89,7 +93,7 @@
       </section>
 
       <!-- ── Reporteras section ─────────────────────────────────────── -->
-      <section id="sectionReporteras" class="section-panel section-panel--reporteras" style="display:none">
+      <section id="sectionReporteras" class="section-panel section-panel--reporteras" role="tabpanel" aria-labelledby="btnReporteras" aria-hidden="true" tabindex="-1" style="display:none">
         <form id="chPlacardForm" class="form-grid" novalidate>
 
           <div class="field">
@@ -142,47 +146,207 @@
         <section id="ch-printArea" aria-live="polite"></section>
 
       </section>
+
+      <!-- ── IDs section ──────────────────────────────────────────────── -->
+      <section id="sectionIds" class="section-panel section-panel--ids" role="tabpanel" aria-labelledby="btnIds" aria-hidden="true" tabindex="-1" style="display:none">
+        <div class="section-intro">
+          <span class="section-kicker">IDs</span>
+          <p class="section-copy">Completa la etiqueta base para capturar la información del producto.</p>
+        </div>
+
+        <form id="idsForm" class="ids-form">
+          <section class="ids-placard" aria-label="IDs placard form">
+            <header class="ids-placard__header">
+              <span class="ids-fixed-tag">PRODUCT / PRODUCTO</span>
+              <span class="ids-fixed-tag ids-fixed-tag--wip">WIP</span>
+            </header>
+
+            <div class="ids-placard__hero" id="idsHeroField"></div>
+
+            <div class="ids-placard__details" id="idsDetailsFields"></div>
+          </section>
+
+          <div class="ids-form-actions">
+            <button id="idsBtnPrint" type="submit">Print IDs</button>
+          </div>
+        </form>
+
+        <section id="idsPrintArea" class="ids-print-area"></section>
+      </section>
     </section>
   </main>
 
   <?!=include('PlacardApp');?>
   <?!=include('ChefHaksApp');?>
+  <?!=include('IdsApp');?>
 
   <script>
   (function () {
+    var clientButtons = Array.prototype.slice.call(document.querySelectorAll('.client-btn'));
     var btnEC = document.getElementById('btnEastCoast');
     var btnReporteras = document.getElementById('btnReporteras');
+    var btnIds = document.getElementById('btnIds');
     var secEC = document.getElementById('sectionEastCoast');
     var secReporteras = document.getElementById('sectionReporteras');
+    var secIds = document.getElementById('sectionIds');
     var body = document.body;
     var brandPillText = document.getElementById('brandPillText');
     var appTitle = document.getElementById('appTitle');
     var appSubtitle = document.getElementById('appSubtitle');
+    var clientBranding = {
+      'east-coast': {
+        title: 'East Coast',
+        subtitle: 'Genera placards para las operaciones de East Coast.'
+      },
+      reporteras: {
+        title: 'Chef Haks',
+        subtitle: 'Genera placards para las reporteras de Chef Haks.'
+      },
+      ids: {
+        title: 'IDs',
+        subtitle: 'Formulario base para completar la etiqueta del producto.'
+      }
+    };
 
     function setClientBrand(client) {
-      body.setAttribute('data-client', client);
-      brandPillText.textContent = 'Fresh Healthy Habits';
-      appTitle.textContent = "Creación de IDs";
-      appSubtitle.textContent = 'Para las reporteras de parte del 👷';
+      var brandingKey = clientBranding[client] ? client : 'east-coast';
+      var branding = clientBranding[brandingKey];
+      body.setAttribute('data-client', brandingKey);
+      if (brandPillText) {
+        brandPillText.textContent = 'Fresh Healthy Habits';
+      }
+      if (appTitle) {
+        appTitle.textContent = branding.title;
+      }
+      if (appSubtitle) {
+        appSubtitle.textContent = branding.subtitle;
+      }
     }
 
-    btnEC.addEventListener('click', function () {
-      secEC.style.display = '';
-      secReporteras.style.display = 'none';
-      btnEC.classList.add('active');
-      btnReporteras.classList.remove('active');
-      setClientBrand('east-coast');
-    });
+    function readInitialClient() {
+      var bodyClient = body ? body.getAttribute('data-client') : '';
+      return clientBranding[bodyClient] ? bodyClient : 'east-coast';
+    }
 
-    btnReporteras.addEventListener('click', function () {
-      secEC.style.display = 'none';
-      secReporteras.style.display = '';
-      btnReporteras.classList.add('active');
-      btnEC.classList.remove('active');
-      setClientBrand('reporteras');
-    });
+    function activateClient(client) {
+      var activeClient = clientBranding[client] ? client : 'east-coast';
 
-    setClientBrand('east-coast');
+      if (secEC) {
+        secEC.style.display = activeClient === 'east-coast' ? '' : 'none';
+      }
+      if (secReporteras) {
+        secReporteras.style.display = activeClient === 'reporteras' ? '' : 'none';
+      }
+      if (secIds) {
+        secIds.style.display = activeClient === 'ids' ? '' : 'none';
+      }
+
+      if (btnEC) {
+        btnEC.classList.toggle('active', activeClient === 'east-coast');
+        btnEC.setAttribute('aria-selected', activeClient === 'east-coast' ? 'true' : 'false');
+        btnEC.setAttribute('tabindex', activeClient === 'east-coast' ? '0' : '-1');
+      }
+      if (btnReporteras) {
+        btnReporteras.classList.toggle('active', activeClient === 'reporteras');
+        btnReporteras.setAttribute('aria-selected', activeClient === 'reporteras' ? 'true' : 'false');
+        btnReporteras.setAttribute('tabindex', activeClient === 'reporteras' ? '0' : '-1');
+      }
+      if (btnIds) {
+        btnIds.classList.toggle('active', activeClient === 'ids');
+        btnIds.setAttribute('aria-selected', activeClient === 'ids' ? 'true' : 'false');
+        btnIds.setAttribute('tabindex', activeClient === 'ids' ? '0' : '-1');
+      }
+      if (secEC) {
+        secEC.setAttribute('aria-hidden', activeClient === 'east-coast' ? 'false' : 'true');
+        secEC.setAttribute('tabindex', activeClient === 'east-coast' ? '0' : '-1');
+      }
+      if (secReporteras) {
+        secReporteras.setAttribute('aria-hidden', activeClient === 'reporteras' ? 'false' : 'true');
+        secReporteras.setAttribute('tabindex', activeClient === 'reporteras' ? '0' : '-1');
+      }
+      if (secIds) {
+        secIds.setAttribute('aria-hidden', activeClient === 'ids' ? 'false' : 'true');
+        secIds.setAttribute('tabindex', activeClient === 'ids' ? '0' : '-1');
+      }
+      setClientBrand(activeClient);
+    }
+
+    function activateClientFromButton(button) {
+      if (button === btnEC) {
+        activateClient('east-coast');
+        return;
+      }
+
+      if (button === btnReporteras) {
+        activateClient('reporteras');
+        return;
+      }
+
+      if (button === btnIds) {
+        activateClient('ids');
+      }
+    }
+
+    function focusClientButton(index) {
+      if (!clientButtons[index]) {
+        return;
+      }
+
+      clientButtons[index].focus();
+    }
+
+    function handleClientTabsKeydown(event) {
+      var currentIndex = clientButtons.indexOf(event.currentTarget);
+      if (currentIndex === -1) {
+        return;
+      }
+
+      if (event.key === 'ArrowRight') {
+        event.preventDefault();
+        focusClientButton((currentIndex + 1) % clientButtons.length);
+        return;
+      }
+
+      if (event.key === 'ArrowLeft') {
+        event.preventDefault();
+        focusClientButton((currentIndex - 1 + clientButtons.length) % clientButtons.length);
+        return;
+      }
+
+      if (event.key === 'Home') {
+        event.preventDefault();
+        focusClientButton(0);
+        return;
+      }
+
+      if (event.key === 'End') {
+        event.preventDefault();
+        focusClientButton(clientButtons.length - 1);
+      }
+    }
+
+    if (btnEC && secEC) {
+      btnEC.addEventListener('click', function () {
+        activateClientFromButton(btnEC);
+      });
+      btnEC.addEventListener('keydown', handleClientTabsKeydown);
+    }
+
+    if (btnReporteras && secReporteras) {
+      btnReporteras.addEventListener('click', function () {
+        activateClientFromButton(btnReporteras);
+      });
+      btnReporteras.addEventListener('keydown', handleClientTabsKeydown);
+    }
+
+    if (btnIds && secIds) {
+      btnIds.addEventListener('click', function () {
+        activateClientFromButton(btnIds);
+      });
+      btnIds.addEventListener('keydown', handleClientTabsKeydown);
+    }
+
+    activateClient(readInitialClient());
   }());
   </script>
 </body>
