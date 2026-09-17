@@ -10,8 +10,6 @@
     return;
   }
 
-  var idsPrintWindowCount = 0;
-
   // Field schema:
   // - id/label/section define identity and placement
   // - inputType/inputMode/pattern configure editing behavior
@@ -21,8 +19,15 @@
     {
       id: 'idsProduct',
       label: 'Product / Producto',
-      placeholder: 'Enter product name',
-      inputType: 'text',
+      placeholder: 'Select product',
+      inputType: 'datalist',
+      defaultValue: 'tomatillo',
+      // Future enhancement: keep adding product options here or replace this
+      // local array with a dynamic catalog source when the product list grows.
+      options: [
+        { value: 'tomatillo', label: 'tomatillo' },
+        { value: 'red bell pepper', label: 'red bell pepper' }
+      ],
       required: true,
       section: 'hero',
       printClassName: 'ids-print-card__product-value'
@@ -313,29 +318,6 @@
     });
   }
 
-  function getPrintStyles() {
-    return [
-      '@page { size: landscape; margin: 6mm; }',
-      'html, body { margin: 0; padding: 0; background: #fff; color: #1d1d1d; font-family: Arial, Helvetica, sans-serif; }',
-      'body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }',
-      '.ids-print-sheet { width: 100%; }',
-      '.ids-print-card { width: 100%; background: #fff; border: 3px solid #1d1d1d; color: #1d1d1d; box-sizing: border-box; overflow: hidden; break-inside: avoid; page-break-inside: avoid; }',
-      '.ids-print-card__top { display: grid; grid-template-columns: 1fr 190px; border-bottom: 3px solid #1d1d1d; }',
-      '.ids-print-card__top-label, .ids-print-card__top-wip { padding: 14px 18px; font-size: 22px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }',
-      '.ids-print-card__top-wip { text-align: center; border-left: 3px solid #1d1d1d; }',
-      '.ids-print-card__product { min-height: 200px; padding: 24px 22px 20px; border-bottom: 3px solid #1d1d1d; }',
-      '.ids-print-card__product-label, .ids-print-card__cell-label { font-size: 15px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }',
-      '.ids-print-card__product-label { width: 100%; margin-bottom: 8px; text-align: left; }',
-      '.ids-print-card__product-value { min-height: 120px; display: flex; align-items: center; justify-content: center; text-align: center; font-size: 72px; font-weight: 900; line-height: .95; text-transform: uppercase; }',
-      '.ids-print-card__details { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; background: #fff; }',
-      '.ids-print-card__cell { min-height: 84px; padding: 12px 14px 10px; background: #fff; border-right: 3px solid #1d1d1d; border-bottom: 3px solid #1d1d1d; }',
-      '.ids-print-card__cell--last-column { border-right: 0; }',
-      '.ids-print-card__cell--last-row { border-bottom: 0; }',
-      '.ids-print-card__cell-label { margin-bottom: 8px; }',
-      '.ids-print-card__cell-value { min-height: 26px; font-size: 24px; font-weight: 700; line-height: 1.1; word-break: break-word; }',
-    ].join('');
-  }
-
   IDS_FIELDS.forEach(function (field) {
     var formField = renderFormField(field, field.section === 'hero');
     if (field.section === 'hero') {
@@ -354,124 +336,7 @@
     if (!idsForm.reportValidity()) {
       return;
     }
-
-    idsPrintWindowCount += 1;
-
-    var printWindow = window.open('', 'ids-print-window-' + idsPrintWindowCount, 'width=1400,height=900,noopener,noreferrer');
-    var hasFinalizedPrintWindow = false;
-    if (!printWindow) {
-      return;
-    }
-
-    var printDocument = printWindow.document;
-
-    var sourceCard = idsPrintArea.querySelector('.ids-print-card');
-    if (!sourceCard) {
-      printWindow.close();
-      return;
-    }
-
-    function handlePrintDocumentReadyStateChange() {
-      if (printWindow.closed || printDocument.readyState !== 'complete') {
-        return;
-      }
-
-      finalizePrintWindow();
-    }
-
-    function cleanupPrintWindowReadiness() {
-      printDocument.removeEventListener('readystatechange', handlePrintDocumentReadyStateChange);
-      printWindow.removeEventListener('load', finalizePrintWindow);
-    }
-
-    printDocument.addEventListener('readystatechange', handlePrintDocumentReadyStateChange);
-    printWindow.addEventListener('load', finalizePrintWindow);
-    printDocument.open();
-    printDocument.write('<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>IDs Print</title></head><body><main class="ids-print-sheet"></main></body></html>');
-    printDocument.close();
-
-    function finalizePrintWindow() {
-      if (hasFinalizedPrintWindow) {
-        return;
-      }
-
-      hasFinalizedPrintWindow = true;
-      cleanupPrintWindowReadiness();
-
-      if (printWindow.closed || !printDocument) {
-        return;
-      }
-
-      var cleanupTimerId = null;
-
-      function closePrintWindow() {
-        cleanupPrintWindowReadiness();
-
-        if (cleanupTimerId !== null && !printWindow.closed) {
-          printWindow.clearTimeout(cleanupTimerId);
-          cleanupTimerId = null;
-        }
-
-        if (!printWindow.closed) {
-          printWindow.close();
-        }
-      }
-
-      printDocument.head.appendChild((function () {
-        var style = printDocument.createElement('style');
-        style.textContent = getPrintStyles();
-        return style;
-      }()));
-      var printSheet = printDocument.querySelector('.ids-print-sheet');
-      if (!printSheet) {
-        closePrintWindow();
-        return;
-      }
-
-      printSheet.appendChild(sourceCard.cloneNode(true));
-      var popupPrintCard = printSheet.querySelector('.ids-print-card');
-      if (!popupPrintCard) {
-        closePrintWindow();
-        return;
-      }
-
-      printWindow.onafterprint = closePrintWindow;
-      
-      function waitForPrintLayout(attemptsRemaining) {
-        if (printWindow.closed) {
-          return;
-        }
-
-        var hasRenderedLayout =
-          printDocument.readyState === 'complete' &&
-          printDocument.body &&
-          popupPrintCard.offsetWidth > 0 &&
-          popupPrintCard.offsetHeight > 0;
-
-        if (!hasRenderedLayout && attemptsRemaining > 0) {
-          printWindow.setTimeout(function () {
-            waitForPrintLayout(attemptsRemaining - 1);
-          }, 50);
-          return;
-        }
-
-        if (!hasRenderedLayout) {
-          closePrintWindow();
-          return;
-        }
-
-        printWindow.focus();
-        printWindow.print();
-        cleanupTimerId = printWindow.setTimeout(closePrintWindow, 60000);
-      }
-
-      waitForPrintLayout(20);
-    }
-
-    if (printDocument.readyState === 'complete') {
-      finalizePrintWindow();
-      return;
-    }
+    window.print();
   }
 
   idsForm.addEventListener('submit', function (event) {
