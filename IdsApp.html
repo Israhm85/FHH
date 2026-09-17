@@ -278,7 +278,7 @@
     detailFields.forEach(function (field, detailIndex) {
       var cell = document.createElement('div');
       cell.className = 'ids-print-card__cell';
-      if ((detailIndex + 1) % detailColumnCount === 0) {
+      if ((detailIndex + 1) % detailColumnCount === 0 || detailIndex === detailFields.length - 1) {
         cell.className += ' ids-print-card__cell--last-column';
       }
       if (detailIndex >= detailLastRowStartIndex) {

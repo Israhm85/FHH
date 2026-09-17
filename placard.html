@@ -271,25 +271,28 @@
       setClientBrand(activeClient);
     }
 
-    function activateClientButton(index) {
+    function activateClientFromButton(button) {
+      if (button === btnEC) {
+        activateClient('east-coast');
+        return;
+      }
+
+      if (button === btnReporteras) {
+        activateClient('reporteras');
+        return;
+      }
+
+      if (button === btnIds) {
+        activateClient('ids');
+      }
+    }
+
+    function focusClientButton(index) {
       if (!clientButtons[index]) {
         return;
       }
 
       clientButtons[index].focus();
-      if (clientButtons[index] === btnEC) {
-        activateClient('east-coast');
-        return;
-      }
-
-      if (clientButtons[index] === btnReporteras) {
-        activateClient('reporteras');
-        return;
-      }
-
-      if (clientButtons[index] === btnIds) {
-        activateClient('ids');
-      }
     }
 
     function handleClientTabsKeydown(event) {
@@ -300,45 +303,51 @@
 
       if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
         event.preventDefault();
-        activateClientButton((currentIndex + 1) % clientButtons.length);
+        focusClientButton((currentIndex + 1) % clientButtons.length);
         return;
       }
 
       if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
         event.preventDefault();
-        activateClientButton((currentIndex - 1 + clientButtons.length) % clientButtons.length);
+        focusClientButton((currentIndex - 1 + clientButtons.length) % clientButtons.length);
         return;
       }
 
       if (event.key === 'Home') {
         event.preventDefault();
-        activateClientButton(0);
+        focusClientButton(0);
         return;
       }
 
       if (event.key === 'End') {
         event.preventDefault();
-        activateClientButton(clientButtons.length - 1);
+        focusClientButton(clientButtons.length - 1);
+        return;
+      }
+
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        activateClientFromButton(event.currentTarget);
       }
     }
 
     if (btnEC && secEC) {
       btnEC.addEventListener('click', function () {
-        activateClient('east-coast');
+        activateClientFromButton(btnEC);
       });
       btnEC.addEventListener('keydown', handleClientTabsKeydown);
     }
 
     if (btnReporteras && secReporteras) {
       btnReporteras.addEventListener('click', function () {
-        activateClient('reporteras');
+        activateClientFromButton(btnReporteras);
       });
       btnReporteras.addEventListener('keydown', handleClientTabsKeydown);
     }
 
     if (btnIds && secIds) {
       btnIds.addEventListener('click', function () {
-        activateClient('ids');
+        activateClientFromButton(btnIds);
       });
       btnIds.addEventListener('keydown', handleClientTabsKeydown);
     }
