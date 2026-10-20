@@ -53,19 +53,17 @@ function chSetValidity(fieldId, isValid) {
 }
 
 function chValidateForm() {
-  var poNumber      = document.getElementById("ch-poNumber").value.trim();
   var destination   = document.getElementById("ch-destination").value.trim();
   var totalCasesRaw = document.getElementById("ch-totalCases").value;
   var totalCases    = Number(totalCasesRaw);
 
-  var v1 = chSetValidity("ch-poNumber",    poNumber !== "");
   var v2 = chSetValidity("ch-destination", destination !== "");
   var v3 = chSetValidity(
     "ch-totalCases",
     totalCasesRaw !== "" && Number.isInteger(totalCases) && totalCases >= 1
   );
 
-  return v1 && v2 && v3;
+  return v2 && v3;
 }
 
 // ── Reporteras placard builder ────────────────────────────────────
