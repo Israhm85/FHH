@@ -1,9 +1,10 @@
-East Coast: placards desde Google Sheets por fecha
-================================================
+East Coast: placards desde Google Sheets por fecha o semana
+=========================================================
 
 El modo Manual permanece disponible con sus seis productos originales.
 Chef Haks e IDs conservan sus formularios y comportamiento.
-El nuevo modo es adicional: Desde hoja por fecha -> Cargar y generar ->
+Los modos de hoja son adicionales: Desde hoja por fecha o Desde hoja por semana ->
+Cargar y generar ->
 seleccionar Todas las tiendas o una tienda -> Imprimir lote.
 No abre el diálogo de impresión automáticamente.
 
@@ -15,7 +16,7 @@ Unique ID, CODE y CS permanecen en blanco para completarlos a mano.
 
 Configuración única en Apps Script
 ---------------------------------
-No se proporcionó un ID real ni el nombre exacto de una pestaña.
+No se proporcionó un ID real. El usuario confirmó la pestaña: EAST COAST.
 El título "FHH Orders 2026" no determina el nombre de la pestaña.
 En Project Settings / Configuración del proyecto -> Script Properties:
 
@@ -24,11 +25,12 @@ EAST_COAST_SPREADSHEET_ID
   de la URL de la hoja de pedidos, NO la URL completa.
 
 EAST_COAST_SHEET_NAMES
-  Opcional. Array JSON de nombres exactos de pestañas, por ejemplo:
-  ["Pedidos East Coast", "JIT"]
-  Estos nombres son ilustrativos, no configuración real.
-  Si se omite, se lee únicamente la primera pestaña.
-  Configurar explícitamente las pestañas pertinentes si hay varias.
+  Obligatorio para ambos modos de hoja. Guardar exactamente:
+  ["EAST COAST"]
+  No usar TJ-OCT: es otra pestaña, no los pedidos de East Coast.
+  Ya NO se lee la primera pestaña por defecto. Si falta esta propiedad,
+  la carga informa cómo configurarla antes de acceder a la hoja.
+  Se admite un array de varias pestañas pertinentes si operaciones lo requiere.
   No seleccionar pestañas de resúmenes sin bloques de pedidos.
 
 EAST_COAST_PRODUCTS
@@ -69,18 +71,51 @@ Fechas y formato esperado de hoja
 ---------------------------------
 La fecha viaja como ISO YYYY-MM-DD; se muestra además MM/DD/YYYY.
 11/04/2026 significa 4 de noviembre de 2026, NO 11 de abril.
-Se compara ARRIVE (RDD) POR TIENDA, nunca inicio de semana o PICK UP DATE.
+En el modo por fecha se compara ARRIVE (RDD) POR TIENDA,
+nunca inicio de semana o PICK UP DATE.
 Se admiten celdas Date (zona horaria de la hoja), texto MM/DD/YYYY y
 YYYY-MM-DD, con validación del calendario. No se interpreta por locale.
+
+En Desde hoja por semana introducir 44 para WK 44 (rango 1 a 53).
+Se usa el marcador escrito en la hoja, NO una semana ISO calculada ni
+un rango de fechas de llegada. Incluye todas las tiendas de ese bloque,
+aunque tengan ARRIVE (RDD) distintos. La elección de tienda permite
+imprimir un lote individual; Todas las tiendas imprime el conjunto.
+La fecha no se solicita ni se exige para filtrar por semana.
+Si existe ARRIVE (RDD), se conserva como referencia para distinguir pedidos.
+La numeración sigue siendo por ítem/PO, no por semana ni por tienda.
+Un mismo ítem/PO con distintas llegadas no debe combinar paletas parciales.
+API del servidor: getEastCoastOrdersByWeek("WK 44") devuelve la referencia
+week junto con tiendas/productos y totales; getEastCoastOrders(fecha ISO)
+permanece disponible para el modo por fecha. No se envían objetos Date.
+
+Marcadores de semana soportados: una celda "WK 44" o "Week 44"
+(mayúsculas/espacios tolerantes), o celdas adyacentes "WK" y 44.
+Cada marcador inicia una región hasta el siguiente marcador; varios
+bloques PO# dentro de esa región pertenecen a la misma semana.
+El marcador y el encabezado de tiendas pueden compartir una fila.
+No se incluyen productos de la semana siguiente. Un título WK sin
+pedidos no genera tarjetas. Una hoja sin marcadores reconocibles informa
+un error; una semana inexistente en una hoja válida produce "No hay órdenes".
+Texto descriptivo como "Week starts" no selecciona una semana.
+Marcadores numéricos inválidos (WK 54, WK440), marcadores conflictivos
+y cantidades positivas sin bloque PO# se reportan como errores.
+La semana no contiene un año: configurar sólo pestañas del año operativo.
+Si una pestaña contiene varios años con el mismo WK, deben separarse o
+añadirse un selector de año antes de usar esa estructura en producción.
+La captura disponible no permite validar la posición/formato real de WK:
+confirmar el marcador de la hoja real con operaciones.
 
 Parser en Orders.gs: nombres de productos en A, destinos en columnas
 posteriores; detecta filas PO#, PICK UP DATE, ARRIVE (RDD) y encabezados
 locales por bloque, sin números de fila fijos. Cada bloque debe tener
-su propio encabezado de destinos antes de PO# y ARRIVE (RDD) después.
+su propio encabezado de destinos antes de PO#; ARRIVE (RDD) después
+es obligatorio en modo fecha y opcional en modo semana.
 Los productos siguen dentro del bloque. Se aceptan múltiples bloques
 semanales y JIT con la misma estructura. "JIT EDAMAME" es alias de edamame
 si aparece como fila de producto; un título de sección sin cantidades
-no genera tarjetas. No se infieren PO/fecha para una sección JIT sin metadatos.
+no genera tarjetas. No se infiere PO para una sección JIT sin metadatos;
+en modo fecha tampoco se infiere ARRIVE (RDD).
 Se omiten filas de totales/pallets, V-BOARDS y semana, y columnas de resumen
 identificadas por sus encabezados. No se limita la fecha a Nazareth.
 Si la hoja real tiene otro diseño, adaptar el parser con una nueva fixture
@@ -92,7 +127,8 @@ no es posible recuperar ceros que la hoja ya haya eliminado.
 Cantidades vacías/cero no generan placards. Cantidades negativas,
 fraccionarias, no numéricas/no finitas, PO faltante y productos/capacidades
 desconocidos bloquean el lote; no se imprime un éxito incompleto.
-Líneas del mismo producto/PO/destino se suman antes de dividir con techo.
+Líneas del mismo producto/PO/destino se suman antes de dividir con techo;
+en modo semana, fechas de llegada distintas permanecen separadas.
 Instantáneas idénticas de una orden repetida se excluyen con aviso; revisar
 ese aviso si la hoja realmente contiene pedidos independientes idénticos.
 Un producto parcial genera una paleta adicional; no se usa un divisor global.
@@ -135,14 +171,21 @@ Las fixtures sintéticas prueban Nazareth, fecha 2026-11-04,
 PO 0159543664: [4,2,1,2,1,1,1,3,3,1,0,2] = 21 placards;
 incluyen otras tiendas, fechas excluidas, bloques repetidos, aliases,
 edamame 160, turkey 90, paletas parciales, errores y zona horaria.
+Las fixtures de semana incluyen WK 44 con llegadas distintas, límites
+entre semanas, bloques múltiples y selección explícita de EAST COAST
+cuando la primera pestaña es TJ-OCT.
 Las pruebas del cliente ejercitan numeración por ítem, selección,
-escape de texto, errores y respuestas fuera de orden.
+escape de texto, errores y respuestas fuera de orden entre fecha/semana.
 También se comprobó localmente la UI en Chromium con respuestas sintéticas:
 selección de tienda, aislamiento CSS al imprimir y un PDF de Nazareth
 de exactamente 21 páginas con las secuencias 1 OF 4 ... 4 OF 4 y 1 OF 2.
+Para el nuevo modo semanal se comprobó Chromium con respuestas sintéticas:
+WK 44 con llegadas distintas, selección por tienda, PDF de cuatro páginas
+1 OF 4 ... 4 OF 4, cambios de WK y regresiones Manual/fecha/Chef Haks/IDs.
 
 Comprobaciones manuales antes de uso:
-1. Sin ID configurado: Manual funciona; Desde hoja muestra error útil.
+1. Sin ID o sin EAST_COAST_SHEET_NAMES: Manual funciona;
+   los modos de hoja muestran un error de configuración útil.
 2. Configurar hoja de prueba, seleccionar 2026-11-04 y cargar.
 3. Confirmar todas las tiendas de ARRIVE (RDD), no sólo Nazareth.
 4. Verificar PO y desglose; elegir Nazareth y revisar las 21 páginas.
@@ -154,6 +197,12 @@ Comprobaciones manuales antes de uso:
    revisar vista previa: sólo el cliente activo debe aparecer.
 8. Revisar legibilidad, tamaño de papel landscape, escala y saltos de página
    de productos largos en la impresora objetivo, antes de imprimir.
+9. Configurar EAST_COAST_SHEET_NAMES = ["EAST COAST"]; comprobar que no
+   aparece TJ-OCT en errores/órdenes. Elegir Desde hoja por semana, WK 44.
+10. Comparar TODAS sus tiendas/ítems con la hoja, aunque sus llegadas difieran.
+    Confirmar que WK 43/45 no aparecen. Probar una semana sin pedidos.
+11. Cambiar WK durante una carga y alternar fecha/semana: ningún lote
+    obsoleto puede imprimirse tras un error o respuesta atrasada.
 
 Las fixtures y las comprobaciones locales NO prueban acceso ni exactitud
 de la hoja real. La validación en vivo requiere ID/pestañas reales,

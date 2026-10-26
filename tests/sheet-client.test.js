@@ -63,7 +63,10 @@ function setup() {
       withSuccessHandler(success) {
         return {
           withFailureHandler(failure) {
-            return { getEastCoastOrders(date) { pending.push({ success, failure, date }); } };
+            return {
+              getEastCoastOrders(date) { pending.push({ success, failure, date }); },
+              getEastCoastOrdersByWeek(week) { pending.push({ success, failure, week }); }
+            };
           }
         };
       }
@@ -88,7 +91,22 @@ function setup() {
       }))
     };
   }
-  return { el, body, pending, context, load, result, prints: () => prints };
+  function loadWeek(week = '44') {
+    el('orderWeek').value = week;
+    el('orderWeek').fire('input');
+    el('sheetForm').fire('submit');
+    return pending.at(-1);
+  }
+  function weekResult(week = 'WK 44') {
+    const value = result();
+    delete value.date;
+    value.week = week;
+    value.stores.forEach((store, i) => {
+      store.products[0].arrivalDate = i === 0 ? '2026-11-04' : '2026-11-06';
+    });
+    return value;
+  }
+  return { el, body, pending, context, load, result, loadWeek, weekResult, prints: () => prints };
 }
 
 test('catalog injection cannot close its script tag and manual uses defaults only', () => {
@@ -210,4 +228,121 @@ test('no orders and invalid/mismatched responses leave print disabled', () => {
   app.load().success(app.result('2026-04-11'));
   assert.match(app.el('sheetStatus').textContent, /inválida/);
   assert.equal(app.el('printArea').children.length, 0);
+});
+
+test('week mode requests worksheet WK and prints all stores regardless of arrival dates', () => {
+  const app = setup();
+  app.el('ecWeekMode').fire('click');
+  assert.equal(app.el('arrivalField').hidden, true);
+  assert.equal(app.el('arrivalDate').disabled, true);
+  assert.equal(app.el('orderWeek').required, true);
+  assert.equal(app.el('weekField').hidden, false);
+  assert.equal(app.el('placardForm').hidden, true);
+  const request = app.loadWeek('044');
+  assert.equal(request.week, 'WK 44');
+  assert.equal(request.date, undefined);
+  assert.equal(app.el('ecWeekMode').disabled, true);
+  assert.equal(app.el('btnPrintSheet').disabled, true);
+  request.success(app.weekResult());
+  assert.equal(app.el('weekDisplay').textContent, 'WK 44');
+  assert.equal(app.el('printArea').children.length, 3);
+  assert.match(app.el('sheetStatus').textContent, /WK 44 — 3 placards en 2 tiendas/);
+  assert.match(app.el('sheetSummary').children[1].children[1].children[0].textContent, /2026-11-06/);
+  app.el('sheetStore').value = '1';
+  app.el('sheetStore').fire('change');
+  const cards = app.el('printArea').children;
+  assert.equal(cards.length, 2);
+  assert.match(cards[0].innerHTML, /DAYTONA/);
+  assert.match(cards[0].innerHTML, /PO#0159543664/);
+  assert.match(cards[0].innerHTML, /\(1\) OF \(2\)/);
+  assert.match(cards[1].innerHTML, /\(2\) OF \(2\)/);
+  assert.doesNotMatch(cards[0].innerHTML, /NAZARETH/);
+  assert.equal(app.prints(), 0);
+  app.el('btnPrintSheet').fire('click');
+  assert.equal(app.prints(), 1);
+  app.body.setAttribute('data-client', 'reporteras');
+  app.el('btnPrintSheet').fire('click');
+  assert.equal(app.prints(), 1);
+});
+
+test('week changes and cross-mode out-of-order responses never restore stale batches', () => {
+  const app = setup();
+  app.el('ecWeekMode').fire('click');
+  app.loadWeek().success(app.weekResult());
+  const oldWeek = app.loadWeek('45');
+  assert.equal(app.el('printArea').children.length, 0);
+  app.el('btnPrintSheet').fire('click');
+  assert.equal(app.prints(), 0);
+  const newWeek = app.loadWeek('46');
+  oldWeek.success(app.weekResult('WK 45'));
+  oldWeek.failure({ message: 'late' });
+  assert.equal(app.el('btnLoadOrders').disabled, true);
+  app.el('orderWeek').fire('input');
+  app.el('ecSheetMode').fire('click');
+  assert.equal(app.el('arrivalDate').required, true);
+  assert.equal(app.el('orderWeek').disabled, true);
+  const date = app.load();
+  newWeek.success(app.weekResult('WK 46'));
+  assert.equal(app.el('printArea').children.length, 0);
+  date.success(app.result());
+  assert.equal(app.el('printArea').children.length, 3);
+  app.el('ecWeekMode').fire('click');
+  assert.equal(app.el('printArea').children.length, 0);
+  date.failure({ message: 'late date failure' });
+  const week = app.loadWeek();
+  week.failure({ message: 'Bad EAST COAST tab' });
+  assert.equal(app.el('sheetStatus').textContent, 'Bad EAST COAST tab');
+  assert.equal(app.el('btnPrintSheet').disabled, true);
+  app.el('ecManualMode').fire('click');
+  assert.equal(app.el('placardForm').hidden, false);
+});
+
+test('WK 44 Nazareth renders exactly 21 cards with item-specific totals', () => {
+  const app = setup();
+  app.el('ecWeekMode').fire('click');
+  const result = app.weekResult();
+  const quantities = [572, 286, 143, 286, 143, 143, 143, 429, 429, 143, 180];
+  const counts = [4, 2, 1, 2, 1, 1, 1, 3, 3, 1, 2];
+  result.stores[0].products = quantities.map((totalCases, i) => ({
+    product: { name: `Fixture item ${i}`, size: '', casesPerPallet: i === 10 ? 90 : 143 },
+    poNumber: '0159543664', arrivalDate: '2026-11-04',
+    totalCases, totalPallets: counts[i]
+  }));
+  result.stores[0].totalPallets = 21;
+  result.totalPallets = 23;
+  app.loadWeek().success(result);
+  assert.equal(app.el('printArea').children.length, 23);
+  app.el('sheetStore').value = '0';
+  app.el('sheetStore').fire('change');
+  const cards = app.el('printArea').children;
+  assert.equal(cards.length, 21);
+  let offset = 0;
+  counts.forEach((count, item) => {
+    for (let pallet = 1; pallet <= count; pallet++) {
+      const html = cards[offset++].innerHTML;
+      assert.ok(html.includes(`(${pallet}) OF (${count})`));
+      assert.ok(html.includes(`Fixture item ${item}`));
+      assert.match(html, /PO#0159543664/);
+      assert.doesNotMatch(html, /OF \(21\)/);
+    }
+  });
+});
+
+test('invalid, missing, mismatched and empty weeks leave printing disabled', () => {
+  const app = setup();
+  app.el('ecWeekMode').fire('click');
+  ['', '0', '54', '-1', '44.5', 'WK 44', 'NaN'].forEach(week => {
+    app.loadWeek(week);
+    assert.equal(app.pending.length, 0);
+    assert.match(app.el('sheetStatus').textContent, /semana válida/);
+    assert.equal(app.el('btnPrintSheet').disabled, true);
+  });
+  app.loadWeek('53').success({ week: 'WK 53', stores: [], totalPallets: 0 });
+  assert.match(app.el('sheetStatus').textContent, /No hay órdenes.*WK 53/);
+  app.loadWeek().success(app.weekResult('WK 45'));
+  assert.match(app.el('sheetStatus').textContent, /inválida/);
+  assert.equal(app.el('printArea').children.length, 0);
+  app.loadWeek().success(app.result());
+  assert.match(app.el('sheetStatus').textContent, /inválida/);
+  assert.equal(app.el('btnPrintSheet').disabled, true);
 });

@@ -44,15 +44,26 @@ function getEastCoastProducts_(defaultsOnly) {
 
 function getEastCoastOrders(date) {
   eastCoastIsoDate_(date, 'Arrival date');
+  return eastCoastFetchOrders_({ date: date });
+}
+
+function getEastCoastOrdersByWeek(week) {
+  return eastCoastFetchOrders_({ week: eastCoastWeek_(week, 'Order week') });
+}
+
+function eastCoastFetchOrders_(selection) {
   var properties = PropertiesService.getScriptProperties();
   var id = properties.getProperty('EAST_COAST_SPREADSHEET_ID');
   if (!id || !id.trim()) {
     throw new Error('Set the EAST_COAST_SPREADSHEET_ID Script Property to the East Coast orders spreadsheet ID.');
   }
   var namesRaw = properties.getProperty('EAST_COAST_SHEET_NAMES');
-  var names = namesRaw ? eastCoastJsonArray_(namesRaw, 'EAST_COAST_SHEET_NAMES') : null;
-  if (names && (!names.length || names.some(function (name) { return typeof name !== 'string' || !name.trim(); }) ||
-      names.some(function (name, index) { return names.indexOf(name) !== index; }))) {
+  if (!namesRaw || !namesRaw.trim()) {
+    throw new Error('Set EAST_COAST_SHEET_NAMES to a nonempty JSON array of explicit East Coast orders tab names, for example ["EAST COAST"]. East Coast tab configuration is required; first-tab fallback is not allowed.');
+  }
+  var names = eastCoastJsonArray_(namesRaw, 'EAST_COAST_SHEET_NAMES');
+  if (!names.length || names.some(function (name) { return typeof name !== 'string' || !name.trim(); }) ||
+      names.some(function (name, index) { return names.indexOf(name) !== index; })) {
     throw new Error('EAST_COAST_SHEET_NAMES must be a nonempty JSON array of unique sheet names.');
   }
   var spreadsheet;
@@ -62,11 +73,11 @@ function getEastCoastOrders(date) {
     throw new Error('Cannot open the East Coast orders spreadsheet. Check EAST_COAST_SPREADSHEET_ID and grant the web app executing account read access. ' + error.message);
   }
   var catalog = getEastCoastProducts_();
-  var sheets = names ? names.map(function (name) {
+  var sheets = names.map(function (name) {
     var sheet = spreadsheet.getSheetByName(name);
     if (!sheet) throw new Error('East Coast orders tab not found: "' + name + '". Check EAST_COAST_SHEET_NAMES.');
     return sheet;
-  }) : spreadsheet.getSheets().slice(0, 1);
+  });
   if (!sheets.length) throw new Error('The East Coast orders spreadsheet has no sheets.');
   var timezone = spreadsheet.getSpreadsheetTimeZone();
   var shipments = [];
@@ -79,9 +90,98 @@ function getEastCoastOrders(date) {
     } catch (error) {
       throw new Error('Cannot read East Coast orders tab "' + sheet.getName() + '". Check spreadsheet read access. ' + error.message);
     }
-    shipments = shipments.concat(parseEastCoastSheet_(typed, displayed, timezone, date, catalog, sheet.getName()));
+    shipments = shipments.concat(selection.week ?
+      parseEastCoastWeekSheet_(typed, displayed, timezone, selection.week, catalog, sheet.getName()) :
+      parseEastCoastSheet_(typed, displayed, timezone, selection.date, catalog, sheet.getName()));
   });
-  return eastCoastAggregate_(date, shipments);
+  return eastCoastAggregate_(selection.date, shipments, selection.week);
+}
+
+function eastCoastWeek_(value, context) {
+  var match = typeof value === 'string' && /^(?:(?:wk|week)\s*:?\s*)?(\d{1,2})$/i.exec(eastCoastText_(value));
+  if (!match || Number(match[1]) < 1 || Number(match[1]) > 53) {
+    throw new Error(context + ' must be a worksheet week from WK 1 through WK 53 (for example "WK 44"). No calendar week is inferred.');
+  }
+  return 'WK ' + Number(match[1]);
+}
+
+function eastCoastWeekMarkers_(displayed, sheetName) {
+  var markers = [];
+  displayed.forEach(function (row, rowIndex) {
+    var week = '';
+    var columns = [];
+    row.forEach(function (cell, column) {
+      var text = eastCoastText_(cell);
+      if (!/^(?:wk|week)(?:\b|\d)/.test(text)) return;
+      if (!/^(?:wk|week)\s*:?\s*$/.test(text) && !/^(?:wk|week)\s*:?\s*[+-]?\d/.test(text)) return;
+      var context = 'Week marker in "' + sheetName + '", row ' + (rowIndex + 1);
+      if (/^(?:wk|week)\s*:?\s*$/.test(text)) {
+        text += ' ' + eastCoastText_(row[column + 1]);
+        columns.push(column + 1);
+      }
+      var found = eastCoastWeek_(text, context);
+      if (week && week !== found) throw new Error('Conflicting week markers in "' + sheetName + '", row ' + (rowIndex + 1) + ': ' + week + ' and ' + found + '.');
+      week = found;
+      columns.push(column);
+    });
+    if (week) markers.push({ row: rowIndex, week: week, columns: columns });
+  });
+  if (!markers.length) throw new Error('East Coast orders tab "' + sheetName + '" has no recognizable worksheet week markers. Add an explicit WK 44 or Week 44 marker; ARRIVE dates do not determine weeks.');
+  return markers;
+}
+
+function parseEastCoastWeekSheet_(typed, displayed, timezone, week, catalog, sheetName) {
+  week = eastCoastWeek_(week, 'Order week');
+  sheetName = sheetName || 'Orders';
+  var markers = eastCoastWeekMarkers_(displayed, sheetName);
+  var shipments = [];
+  markers.forEach(function (marker, index) {
+    if (marker.week !== week) return;
+    var start = marker.row;
+    var end = index + 1 < markers.length ? markers[index + 1].row : displayed.length;
+    var rows = displayed.slice(start, end);
+    var values = typed.slice(start, end);
+    rows[0] = rows[0].slice();
+    values[0] = (values[0] || []).slice();
+    marker.columns.forEach(function (column) { rows[0][column] = ''; values[0][column] = ''; });
+    if (!rows.some(function (row) { var value = eastCoastRowMarker_(row); return value && value.kind === 'po'; })) {
+      eastCoastCheckMissingWeekPo_(values, rows, catalog, sheetName, start);
+      return;
+    }
+    // Slice at literal markers so neither headers nor products can cross week boundaries.
+    shipments = shipments.concat(parseEastCoastSheet_(values, rows, timezone, '', catalog, sheetName, true, start));
+  });
+  return shipments;
+}
+
+function eastCoastCheckMissingWeekPo_(typed, displayed, catalog, sheetName, rowOffset) {
+  var products = eastCoastProductIndex_(catalog);
+  var header = [];
+  displayed.forEach(function (row, rowIndex) {
+    if (eastCoastRowMarker_(row)) return;
+    var label = eastCoastProductLabel_(row, header.length ? header[0].column : row.length, products);
+    if (label.summary) return;
+    var candidate = eastCoastHeader_(row, header.length ? header[0].column - 1 : 0, products);
+    if (candidate.length && (!header.length || candidate.every(function (store) {
+      return header.some(function (existing) { return existing.column === store.column && eastCoastText_(existing.destination) === eastCoastText_(store.destination); });
+    }))) {
+      header = candidate;
+      return;
+    }
+    var productColumn = -1;
+    row.forEach(function (cell, column) { if (products[eastCoastText_(cell)]) productColumn = column; });
+    for (var column = 0; column < row.length; column++) {
+      var raw = (typed[rowIndex] || [])[column];
+      var text = String(row[column] === undefined ? '' : row[column]).trim();
+      var orderColumn = header.some(function (store) { return store.column === column; }) ||
+        productColumn >= 0 && column > productColumn;
+      if (!orderColumn && typeof raw !== 'number' && !/^[+-]?(?:\d|#)/.test(text)) continue;
+      var context = '"' + sheetName + '", row ' + (rowOffset + rowIndex + 1) + ', column ' + (column + 1);
+      if (eastCoastQuantity_(raw, text, context)) {
+        throw new Error('Missing PO# order block for nonzero cases in selected week in ' + context + '.');
+      }
+    }
+  });
 }
 
 function eastCoastJsonArray_(raw, property) {
@@ -198,8 +298,9 @@ function eastCoastQuantity_(typed, displayed, context) {
   return value;
 }
 
-function parseEastCoastSheet_(typed, displayed, timezone, date, catalog, sheetName) {
-  eastCoastIsoDate_(date, 'Arrival date');
+function parseEastCoastSheet_(typed, displayed, timezone, date, catalog, sheetName, weekMode, rowOffset) {
+  if (!weekMode) eastCoastIsoDate_(date, 'Arrival date');
+  rowOffset = rowOffset || 0;
   sheetName = sheetName || 'Orders';
   var products = eastCoastProductIndex_(catalog);
   if (!displayed.length || !displayed.some(function (row) { return row.some(function (cell) { return String(cell).trim() !== ''; }); })) {
@@ -211,9 +312,12 @@ function parseEastCoastSheet_(typed, displayed, timezone, date, catalog, sheetNa
     if (marker && marker.kind === 'po') blocks.push({ row: rowIndex, labelColumn: marker.column });
   });
   if (!blocks.length) throw new Error('East Coast orders tab "' + sheetName + '" has no recognizable PO# order blocks.');
+  if (weekMode) {
+    eastCoastCheckMissingWeekPo_(typed.slice(0, blocks[0].row), displayed.slice(0, blocks[0].row), catalog, sheetName, rowOffset);
+  }
   var shipments = [];
   blocks.forEach(function (block, blockIndex) {
-    var context = '"' + sheetName + '", PO# row ' + (block.row + 1);
+    var context = '"' + sheetName + '", PO# row ' + (rowOffset + block.row + 1);
     var previous = blockIndex ? blocks[blockIndex - 1].row : -1;
     var end = blockIndex + 1 < blocks.length ? blocks[blockIndex + 1].row : displayed.length;
     var header = [], headerRow = -1;
@@ -240,16 +344,17 @@ function parseEastCoastSheet_(typed, displayed, timezone, date, catalog, sheetNa
         arrivalRow = metadataRow;
       }
     }
-    if (arrivalRow < 0) throw new Error('Missing ARRIVE (RDD) row in East Coast orders ' + context + '.');
+    if (arrivalRow < 0 && !weekMode) throw new Error('Missing ARRIVE (RDD) row in East Coast orders ' + context + '.');
+    var arrivalCells = displayed[arrivalRow] || [];
     var columns = Object.create(null);
     header.forEach(function (store) { columns[store.column] = true; });
     var firstStoreColumn = header[0].column;
     // An order column without a local destination must never be silently dropped.
-    var width = Math.max(displayed[block.row].length, displayed[arrivalRow].length);
+    var width = Math.max(displayed[block.row].length, arrivalCells.length);
     for (var c = block.labelColumn + 1; c < width; c++) {
       if (columns[c] || eastCoastMarker_(displayed[headerRow][c]) ||
           /^(?:total.*|pallet.*|v[\s-]*board.*)$/i.test(String(displayed[headerRow][c] || '').trim())) continue;
-      if (String(displayed[block.row][c] || '').trim() || String(displayed[arrivalRow][c] || '').trim()) {
+      if (String(displayed[block.row][c] || '').trim() || String(arrivalCells[c] || '').trim()) {
         throw new Error('Missing destination for column ' + (c + 1) + ' in ' + context + '.');
       }
       if (c < firstStoreColumn) continue;
@@ -257,7 +362,7 @@ function parseEastCoastSheet_(typed, displayed, timezone, date, catalog, sheetNa
         if (eastCoastRowMarker_(displayed[orphanRow]) || eastCoastProductLabel_(displayed[orphanRow], firstStoreColumn, products).summary) continue;
         var orphanValue = (typed[orphanRow] || [])[c];
         var orphanDisplay = displayed[orphanRow][c];
-        if (eastCoastQuantity_(orphanValue, orphanDisplay, context + ', column ' + (c + 1) + ', row ' + (orphanRow + 1))) {
+        if (eastCoastQuantity_(orphanValue, orphanDisplay, context + ', column ' + (c + 1) + ', row ' + (rowOffset + orphanRow + 1))) {
           throw new Error('Missing destination for nonzero cases in column ' + (c + 1) + ' in ' + context + '.');
         }
       }
@@ -265,9 +370,9 @@ function parseEastCoastSheet_(typed, displayed, timezone, date, catalog, sheetNa
     header.forEach(function (store) {
       var column = store.column;
       var storeContext = context + ', ' + store.destination;
-      var arrival = eastCoastCellDate_((typed[arrivalRow] || [])[column], displayed[arrivalRow][column], timezone, 'ARRIVE (RDD) in ' + storeContext);
+      var arrival = eastCoastCellDate_((typed[arrivalRow] || [])[column], arrivalCells[column], timezone, 'ARRIVE (RDD) in ' + storeContext);
       var po = String(displayed[block.row][column] === undefined ? '' : displayed[block.row][column]).trim();
-      if (!arrival && po) throw new Error('Missing ARRIVE (RDD) date for PO# ' + po + ' in ' + storeContext + '.');
+      if (!weekMode && !arrival && po) throw new Error('Missing ARRIVE (RDD) date for PO# ' + po + ' in ' + storeContext + '.');
       var entries = [];
       for (var productRow = block.row + 1; productRow < end; productRow++) {
         var productCells = displayed[productRow];
@@ -279,20 +384,20 @@ function parseEastCoastSheet_(typed, displayed, timezone, date, catalog, sheetNa
         var display = productCells[column];
         var nonblank = raw !== undefined && raw !== null && raw !== '' || display !== undefined && String(display).trim() !== '';
         if (!nonblank) continue;
-        if (!arrival) {
-          var missingDateQuantity = eastCoastQuantity_(raw, display, storeContext + ', row ' + (productRow + 1));
+        if (!weekMode && !arrival) {
+          var missingDateQuantity = eastCoastQuantity_(raw, display, storeContext + ', row ' + (rowOffset + productRow + 1));
           if (missingDateQuantity) throw new Error('Missing ARRIVE (RDD) date for nonzero order in ' + storeContext + '.');
           continue;
         }
-        if (arrival !== date) continue;
-        var quantity = eastCoastQuantity_(raw, display, storeContext + ', row ' + (productRow + 1));
+        if (!weekMode && arrival !== date) continue;
+        var quantity = eastCoastQuantity_(raw, display, storeContext + ', row ' + (rowOffset + productRow + 1));
         if (!quantity) continue;
         if (!po) throw new Error('Missing PO# for nonzero order in ' + storeContext + '.');
         if (/^#(?:REF!|N\/A|VALUE!|DIV\/0!|NAME\?|NUM!|NULL!|ERROR!|SPILL!|CALC!|FIELD!|DATA!|GETTING_DATA|BLOCKED!|CONNECT!|UNKNOWN!|BUSY!|LOADING!)$/i.test(po)) {
           throw new Error('Spreadsheet error "' + po + '" in PO# for nonzero order in ' + storeContext + '. Correct the PO cell before generating placards.');
         }
         var product = products[eastCoastText_(label)];
-        if (!product) throw new Error('Unknown product "' + (label || '(blank product name)') + '" with nonzero cases in ' + storeContext + ', row ' + (productRow + 1) + '. Add a verified definition to EAST_COAST_PRODUCTS.');
+        if (!product) throw new Error('Unknown product "' + (label || '(blank product name)') + '" with nonzero cases in ' + storeContext + ', row ' + (rowOffset + productRow + 1) + '. Add a verified definition to EAST_COAST_PRODUCTS.');
         if (!eastCoastCapacity_(product.casesPerPallet)) throw new Error('Missing or invalid pallet capacity for ' + product.name + ' in ' + storeContext + '.');
         entries.push({ product: { name: product.name, size: product.size || '', casesPerPallet: product.casesPerPallet, nameClass: product.nameClass },
           poNumber: po, totalCases: quantity, totalPallets: 0 });
@@ -311,8 +416,9 @@ function eastCoastAdd_(left, right, context) {
   return sum;
 }
 
-function eastCoastAggregate_(date, shipments) {
-  var result = { date: date, stores: [], totalPallets: 0, warnings: [] };
+function eastCoastAggregate_(date, shipments, week) {
+  var result = week ? { week: week, stores: [], totalPallets: 0, warnings: [] } :
+    { date: date, stores: [], totalPallets: 0, warnings: [] };
   var stores = Object.create(null), seen = Object.create(null), warningSet = Object.create(null);
   function warn(message) {
     if (!warningSet[message]) { warningSet[message] = true; result.warnings.push(message); }
@@ -342,9 +448,15 @@ function eastCoastAggregate_(date, shipments) {
         stores[storeKey] = store;
         result.stores.push(store);
       }
-      var existing = store.products.filter(function (value) { return value.poNumber === entry.poNumber && value.product.name === entry.product.name; })[0];
+      var existing = store.products.filter(function (value) {
+        return value.poNumber === entry.poNumber && value.product.name === entry.product.name && (!week || value.arrivalDate === shipment.date);
+      })[0];
       if (existing) existing.totalCases = eastCoastAdd_(existing.totalCases, entry.totalCases, 'case totals for ' + shipment.destination + ', PO ' + entry.poNumber + ', ' + entry.product.name);
-      else store.products.push({ product: entry.product, poNumber: entry.poNumber, totalCases: entry.totalCases, totalPallets: 0 });
+      else {
+        var order = { product: entry.product, poNumber: entry.poNumber, totalCases: entry.totalCases, totalPallets: 0 };
+        if (week) order.arrivalDate = shipment.date;
+        store.products.push(order);
+      }
       if (!entry.product.size) warn('Size unavailable for ' + entry.product.name + '; verify packaging before printing.');
       if (entry.product.name === 'Holiday Vanilla Bean Whipped Sw…') warn('Product name is truncated in the source: Holiday Vanilla Bean Whipped Sw…; no longer name has been inferred.');
     });
@@ -355,7 +467,7 @@ function eastCoastAggregate_(date, shipments) {
       store.totalCases = eastCoastAdd_(store.totalCases, entry.totalCases, 'case totals for ' + store.destination);
       store.totalPallets = eastCoastAdd_(store.totalPallets, entry.totalPallets, 'pallet totals for ' + store.destination);
     });
-    result.totalPallets = eastCoastAdd_(result.totalPallets, store.totalPallets, 'pallet totals for ' + date);
+    result.totalPallets = eastCoastAdd_(result.totalPallets, store.totalPallets, 'pallet totals for ' + (week || date));
   });
   return result;
 }

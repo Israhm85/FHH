@@ -9,9 +9,10 @@ const vm = require('node:vm');
 const source = fs.readFileSync(path.join(__dirname, '..', 'Orders.gs'), 'utf8');
 
 function load(options = {}) {
-  const properties = { EAST_COAST_SPREADSHEET_ID: 'test-sheet', ...options.properties };
   const calls = [];
   const tabs = options.tabs || [{ name: 'Weekly', displayed: block() }];
+  const properties = { EAST_COAST_SPREADSHEET_ID: 'test-sheet',
+    EAST_COAST_SHEET_NAMES: JSON.stringify(tabs.map(tab => tab.name)), ...options.properties };
   const sheets = tabs.map(tab => ({
     getName: () => tab.name,
     getDataRange: () => {
@@ -47,7 +48,8 @@ function load(options = {}) {
     }
   });
   vm.runInContext(source, context, { filename: 'Orders.gs' });
-  return { context, calls, get: date => JSON.parse(JSON.stringify(context.getEastCoastOrders(date))) };
+  return { context, calls, get: date => JSON.parse(JSON.stringify(context.getEastCoastOrders(date))),
+    getWeek: week => JSON.parse(JSON.stringify(context.getEastCoastOrdersByWeek(week))) };
 }
 
 function block(options = {}) {
@@ -378,12 +380,12 @@ test('a populated PO with a blank arrival fails even when its product rows are z
     .get('2026-11-04'), /Missing ARRIVE \(RDD\) date for PO#/);
 });
 
-test('default reads first tab only and explicit selected tabs read all matching stores', () => {
+test('explicit selected tabs read all matching stores or only the specified tab', () => {
   const tabs = [
     { name: 'One', displayed: block({ stores: ['Nazareth'] }) },
     { name: 'Two', displayed: block({ stores: ['CAROLINE'], pos: ['0002'] }) }
   ];
-  assert.equal(load({ tabs }).get('2026-11-04').stores.length, 1);
+  assert.equal(load({ tabs, properties: { EAST_COAST_SHEET_NAMES: '["One"]' } }).get('2026-11-04').stores.length, 1);
   assert.equal(load({ tabs, properties: { EAST_COAST_SHEET_NAMES: '["One","Two"]' } }).get('2026-11-04').stores.length, 2);
 });
 
@@ -450,7 +452,7 @@ test('helpful missing config, spreadsheet access, missing tab and read errors', 
   assert.throws(() => load({ accessError: 'Permission denied' }).get('2026-11-04'), /grant.*read access.*Permission denied/);
   assert.throws(() => load({ properties: { EAST_COAST_SHEET_NAMES: '["Missing"]' } }).get('2026-11-04'), /tab not found.*Missing/);
   assert.throws(() => load({ tabs: [{ name: 'Read', error: 'Denied' }] }).get('2026-11-04'), /Cannot read.*Read.*read access/);
-  assert.throws(() => load({ tabs: [] }).get('2026-11-04'), /no sheets/);
+  assert.throws(() => load({ tabs: [] }).get('2026-11-04'), /EAST_COAST_SHEET_NAMES/);
 });
 
 test('malformed tab configuration and empty/unrecognizable data fail helpfully', () => {
@@ -487,5 +489,360 @@ test('invalid extra definitions and ambiguous aliases fail clearly', () => {
     '[{"name":"Dish","casesPerPallet":100,"nameClass":"unsafe class"}]',
     '[{"name":"Dish","casesPerPallet":100,"aliases":["Kung Pao"]}]']) {
     assert.throws(() => load({ properties: { EAST_COAST_PRODUCTS: extra } }).get('2026-11-04'), /EAST_COAST_PRODUCTS|Ambiguous East Coast product alias/);
+  }
+});
+
+test('both sheet APIs require explicit East Coast tab configuration before opening or reading', () => {
+  for (const names of [undefined, null, '', ' ', '[]', '["Weekly","Weekly"]', '[" "]', '[1]', '{}', 'bad JSON']) {
+    const { get, getWeek, calls } = load({ properties: { EAST_COAST_SHEET_NAMES: names },
+      tabs: [{ name: 'TJ-OCT', error: 'Must never read first tab' }] });
+    assert.throws(() => get('2026-11-04'), /EAST_COAST_SHEET_NAMES/);
+    assert.throws(() => getWeek('WK 44'), /EAST_COAST_SHEET_NAMES/);
+    assert.equal(calls.length, 0);
+    if (!names || names === ' ') {
+      assert.throws(() => getWeek('44'), /East Coast tab configuration.*first-tab fallback is not allowed/);
+    }
+  }
+});
+
+test('configured East Coast tab ignores the wrong first TJ-OCT tab in both modes', () => {
+  const { get, getWeek } = load({
+    properties: { EAST_COAST_SHEET_NAMES: '["EAST COAST"]' },
+    tabs: [{ name: 'TJ-OCT', error: 'Wrong first tab read' }, { name: 'EAST COAST', displayed: block() }]
+  });
+  assert.equal(get('2026-11-04').totalPallets, 1);
+  assert.equal(getWeek('44').totalPallets, 1);
+});
+
+test('week API normalizes canonical labels and aliases including boundary weeks before sheet access', () => {
+  for (const [input, expected] of [['WK 44', 'WK 44'], ['44', 'WK 44'], [' week : 44 ', 'WK 44'],
+    ['wK\u00a0 44', 'WK 44'], ['1', 'WK 1'], ['Week 53', 'WK 53'], ['WK 01', 'WK 1']]) {
+    const displayed = block();
+    displayed[0] = [expected];
+    const result = load({ tabs: [{ name: 'Weeks', displayed }] }).getWeek(input);
+    assert.equal(result.week, expected);
+    assert.equal(result.totalPallets, 1);
+    assert.ok(!Object.hasOwn(result, 'date'));
+  }
+  for (const week of ['', null, undefined, 44, '0', '54', 'WK 440', 'WK440', '44x', '2026-W44', 'WK -1', '4.4']) {
+    const { getWeek, calls } = load();
+    assert.throws(() => getWeek(week), /WK 1 through WK 53/);
+    assert.equal(calls.length, 0);
+  }
+});
+
+test('literal week 44 includes screenshot Nazareth 21 and Daytona/New York despite different arrivals', () => {
+  const displayed = [
+    ...block({ rows: holidayRows }),
+    ...block({ stores: ['Daytona', 'New York'], pos: ['0002', '0003'],
+      arrivals: ['11/05/2026', '11/06/2026'], rows: [['Kung Pao', 143, 286]] }).slice(1)
+  ];
+  const { getWeek, get } = load({ tabs: [{ name: 'EAST COAST', displayed }] });
+  const result = getWeek('WK 44');
+  assert.equal(result.week, 'WK 44');
+  assert.deepEqual(result.stores.map(store => store.destination), ['Nazareth', 'Daytona', 'New York']);
+  assert.equal(result.totalPallets, 24);
+  const nazareth = result.stores[0];
+  assert.equal(nazareth.totalCases, 2897);
+  assert.equal(nazareth.totalPallets, 21);
+  const palletBreakdown = nazareth.products.map(entry => entry.totalPallets);
+  assert.ok(!nazareth.products.some(entry => entry.product.name === 'CHICKEN STUFFED POBLANO'));
+  palletBreakdown.splice(10, 0, 0);
+  assert.deepEqual(palletBreakdown, [4, 2, 1, 2, 1, 1, 1, 3, 3, 1, 0, 2]);
+  assert.ok(nazareth.products.every(entry => entry.poNumber === '0159543664'));
+  assert.deepEqual(result.stores.slice(1).map(store => store.products[0].arrivalDate), ['2026-11-05', '2026-11-06']);
+  assert.equal(get('2026-11-04').stores.length, 1);
+  assert.ok(result.warnings.some(warning => warning.includes('truncated')));
+});
+
+test('week markers are anchored, case/whitespace insensitive and may be split in any column', () => {
+  for (const marker of [[' wk : 44 '], ['', '', 'WEEK', 44], ['', 'Wk:', '44'],
+    ['Week 44', '', 'WK : 44']]) {
+    const displayed = block().map(row => ['', '', ...row]);
+    displayed[0] = marker;
+    assert.equal(load({ tabs: [{ name: 'Split', displayed }] }).getWeek('44').totalPallets, 1);
+  }
+  const displayed = block();
+  displayed[0] = ['Orders for WK 44'];
+  assert.throws(() => load({ tabs: [{ name: 'Anchored', displayed }] }).getWeek('44'), /no recognizable worksheet week markers/);
+});
+
+test('valid weeks absent from configured tabs return empty results without calendar/date inference', () => {
+  const displayed = block({ arrivals: ['11/04/2026'] });
+  displayed[0] = ['Week 43'];
+  const result = load({ tabs: [{ name: 'Only 43', displayed }] }).getWeek('44');
+  assert.deepEqual(result, { week: 'WK 44', stores: [], totalPallets: 0, warnings: [] });
+});
+
+test('missing, malformed, out-of-range and conflicting sheet markers reject the full batch', () => {
+  for (const marker of [['WK'], ['WK', ''], ['WK 0'], ['WK 54'], ['WK 440'], ['WK440'],
+    ['Week 4.4'], ['WK', 'nope'], ['WK 44', 'Week 45']]) {
+    const displayed = [...block(), ...block()];
+    displayed[8] = marker;
+    assert.throws(() => load({ tabs: [{ name: 'Bad marker', displayed }] }).getWeek('44'),
+      /Week marker.*Bad marker|Conflicting week markers.*Bad marker/);
+  }
+  for (const displayed of [[['', '']], block().slice(1), [['some unrelated table']]]) {
+    assert.throws(() => load({ tabs: [{ name: 'No markers', displayed }] }).getWeek('44'),
+      /No markers.*no recognizable worksheet week markers.*ARRIVE dates do not determine weeks/);
+  }
+});
+
+test('week boundaries isolate local headers and products even when the next week has no PO', () => {
+  const first = block({ stores: ['VIRGINIA'], rows: [['Kung Pao', 143]] });
+  first[0] = ['WK 43'];
+  const selected = block({ stores: ['CAROLINE'], pos: ['0008'], rows: [['Garlic Asiago Dip', 286]] });
+  const displayed = [...first, ...selected, ['WK', '45'], ['', 'Unknown next-week store'],
+    ['Mystery product', 'bad quantity']];
+  const { getWeek } = load({ tabs: [{ name: 'Regions', displayed }] });
+  assert.deepEqual(getWeek('44').stores.map(store => store.destination), ['CAROLINE']);
+  assert.equal(getWeek('44').totalPallets, 2);
+  assert.throws(() => getWeek('45'), /invalid case quantity/);
+  const missing = block({ stores: ['CAROLINE'] });
+  missing.splice(1, 1);
+  assert.throws(() => load({ tabs: [{ name: 'Missing local header', displayed: [...first, ...missing] }] })
+    .getWeek('44'), /Missing destination header/);
+});
+
+test('week mode does not parse irrelevant weeks malformed metadata, products, quantities or headers', () => {
+  const irrelevant = block({ arrivals: ['not a date'], pos: ['#REF!'], rows: [['Mystery', 'bad quantity']] });
+  irrelevant[0] = ['WK 43'];
+  irrelevant.splice(1, 1);
+  irrelevant.push(['ARRIVE (RDD)', 'another bad date']);
+  const displayed = [...irrelevant, ...block()];
+  assert.equal(load({ tabs: [{ name: 'Isolation', displayed }] }).getWeek('44').totalPallets, 1);
+});
+
+test('week mode accepts missing ARRIVE rows and blank dates, including blank dates with populated PO', () => {
+  for (const displayed of [block().filter(row => row[0] !== 'ARRIVE (RDD)'), block({ arrivals: [''] })]) {
+    const result = load({ tabs: [{ name: 'No arrival', displayed }] }).getWeek('44');
+    assert.equal(result.totalPallets, 1);
+    assert.equal(result.stores[0].products[0].arrivalDate, '');
+    assert.equal(result.stores[0].products[0].poNumber, '0159543664');
+  }
+});
+
+test('week mode serializes typed dates in spreadsheet timezone and preserves displayed leading-zero PO', () => {
+  const displayed = block();
+  const typed = displayed.map(row => row.slice());
+  typed[2][1] = 159543664;
+  typed[4][1] = new Date('2026-11-04T01:00:00Z');
+  const { getWeek, calls } = load({ tabs: [{ name: 'Dates', displayed, typed }] });
+  const result = getWeek('44');
+  assert.equal(result.stores[0].products[0].arrivalDate, '2026-11-03');
+  assert.equal(result.stores[0].products[0].poNumber, '0159543664');
+  assert.ok(calls.some(call => call.timezone === 'America/New_York'));
+});
+
+test('week mode rejects malformed or multiple supplied arrival rows in selected blocks', () => {
+  for (const arrival of ['11/31/2026', '11/04/26', '#VALUE!']) {
+    assert.throws(() => load({ tabs: [{ name: 'Bad arrival', displayed: block({ arrivals: [arrival] }) }] })
+      .getWeek('44'), /ARRIVE \(RDD\)/);
+  }
+  const displayed = block();
+  displayed.splice(5, 0, ['ARRIVE (RDD)', '11/04/2026']);
+  assert.throws(() => load({ tabs: [{ name: 'Duplicate arrival', displayed }] }).getWeek('44'), /Multiple ARRIVE/);
+  const typed = block();
+  typed[4][1] = new Date(NaN);
+  assert.throws(() => load({ tabs: [{ name: 'Invalid typed date', displayed: block(), typed }] }).getWeek('44'), /invalid date/);
+});
+
+test('week aggregate keeps different arrival orders separate rather than merging partial pallets', () => {
+  const displayed = [
+    ...block({ arrivals: ['11/04/2026'], rows: [['Kung Pao', 50], ['Kung Pao', 20]] }),
+    ...block({ arrivals: ['11/05/2026'], rows: [['Kung Pao', 73]] }).slice(1),
+    ...block({ arrivals: [''], rows: [['Kung Pao', 1]] }).slice(1),
+    ...block({ arrivals: ['11/04/2026'], pos: ['0009'], rows: [['Kung Pao', 1]] }).slice(1)
+  ];
+  const result = load({ tabs: [{ name: 'Arrivals', displayed }] }).getWeek('44');
+  assert.equal(result.totalPallets, 4);
+  assert.deepEqual(result.stores[0].products.map(entry => [entry.poNumber, entry.arrivalDate, entry.totalCases]),
+    [['0159543664', '2026-11-04', 70], ['0159543664', '2026-11-05', 73],
+      ['0159543664', '', 1], ['0009', '2026-11-04', 1]]);
+});
+
+test('week mode sums same-arrival partial lines and deduplicates repeated per-product views within/across tabs', () => {
+  const displayed = [
+    ...block({ rows: [['Kung Pao', 50], ['Kung Pao', 20], ['Shelled Edamame', 160]] }),
+    ...block({ rows: [['Kung Pao', 73]] }).slice(1),
+    ...block({ rows: [['JIT EDAMAME', 160]] }).slice(1)
+  ];
+  const result = load({ tabs: [{ name: 'Weekly', displayed },
+    { name: 'Repeated', displayed: block({ rows: [['JIT EDAMAME', 160]] }) }] }).getWeek('44');
+  assert.equal(result.totalPallets, 2);
+  assert.deepEqual(result.stores[0].products.map(entry => entry.totalCases), [143, 160]);
+  assert.ok(result.warnings.some(warning => warning.includes('duplicated within tab')));
+  assert.ok(result.warnings.some(warning => warning.includes('duplicated across tabs')));
+});
+
+test('identical cases on different arrivals are not deduplicated, while repeated blank-arrival views are', () => {
+  const displayed = [
+    ...block({ arrivals: ['11/04/2026'], rows: [['Kung Pao', 70]] }),
+    ...block({ arrivals: ['11/05/2026'], rows: [['Kung Pao', 70]] }).slice(1),
+    ...block({ arrivals: [''], rows: [['Kung Pao', 70]] }).slice(1),
+    ...block({ arrivals: [''], rows: [['Kung Pao', 70]] }).slice(1)
+  ];
+  const result = load({ tabs: [{ name: 'Date deduplication', displayed }] }).getWeek('44');
+  assert.equal(result.totalPallets, 3);
+  assert.equal(result.stores[0].totalCases, 210);
+  assert.equal(result.warnings.filter(warning => warning.includes('Ignored identical order')).length, 1);
+});
+
+test('each configured tab must contain valid week markers even if another has selected orders', () => {
+  for (const displayed of [block().slice(1), [['WK 54']]]) {
+    assert.throws(() => load({ tabs: [{ name: 'Valid', displayed: block() }, { name: 'Invalid', displayed }] })
+      .getWeek('44'), /Invalid.*no recognizable worksheet week markers|Week marker.*Invalid/);
+  }
+});
+
+test('a marker-only week cannot lend its local header to a later selected region', () => {
+  const missing = block();
+  missing.splice(1, 1);
+  const displayed = [['WK 43'], ['', 'VIRGINIA'], ['Mystery', 123], ...missing];
+  assert.throws(() => load({ tabs: [{ name: 'Boundary', displayed }] }).getWeek('44'), /Missing destination header/);
+});
+
+test('selected week invalid quantities, PO, unknown/blank product or missing destinations fail the whole batch', () => {
+  const badBlocks = [
+    block({ rows: [['Unknown product', 1]] }), block({ rows: [['', 1]] }),
+    block({ pos: [''] }), block({ pos: ['#REF!'] }),
+    ...[-1, 1.5, Infinity, NaN, '#N/A', '143 cases'].map(value => block({ rows: [['Kung Pao', value]] }))
+  ];
+  const missingHeader = block();
+  missingHeader.splice(1, 1);
+  badBlocks.push(missingHeader);
+  const orphan = block({ stores: ['Nazareth', 'CAROLINE'], pos: ['0001', ''], arrivals: ['', ''],
+    rows: [['Kung Pao', 143, 1]] });
+  orphan[1][2] = '';
+  orphan[3][2] = '';
+  badBlocks.push(orphan);
+  for (const bad of badBlocks) {
+    assert.throws(() => load({ tabs: [{ name: 'Bad selected week', displayed: [...block(), ...bad] }] }).getWeek('44'),
+      /Unknown product|blank product name|PO#|invalid case quantity|Missing destination/);
+  }
+});
+
+test('week mode preserves zero skips, extra product aliases, capacities and JIT schema', () => {
+  const displayed = [
+    ['WK', 44],
+    ['JIT EDAMAME', 'Nazareth', 'CAROLINE', 'TOTAL CASES'],
+    ['PO#', '001', '002', ''],
+    ['JIT EDAMAME', 161, 160, 321],
+    ['Kung Pao', 144, 143, 287],
+    ['Holiday Entree Turkey Pot Pie', 91, 90, 181],
+    ['Mystery zero', 0, '', 0],
+    ['total pallets', 6, 3, 9]
+  ];
+  const result = load({ tabs: [{ name: 'JIT', displayed }] }).getWeek('44');
+  assert.equal(result.totalPallets, 9);
+  assert.deepEqual(result.stores[0].products.map(entry => [entry.product.casesPerPallet, entry.totalPallets]),
+    [[160, 2], [143, 2], [90, 2]]);
+  const properties = { EAST_COAST_PRODUCTS: '[{"name":"Verified","casesPerPallet":100,"aliases":["Custom"]}]' };
+  assert.equal(load({ properties, tabs: [{ name: 'Custom', displayed: block({ rows: [['Custom', 101]] }) }] })
+    .getWeek('44').totalPallets, 2);
+});
+
+test('week mode rejects unsafe aggregate counts and invalid configured capacities', () => {
+  const displayed = block({ rows: [['Kung Pao', Number.MAX_SAFE_INTEGER], ['Kung Pao', 1]] });
+  assert.throws(() => load({ tabs: [{ name: 'Overflow', displayed }] }).getWeek('44'), /safe whole-number range/);
+  assert.throws(() => load({ properties: {
+    EAST_COAST_PRODUCTS: '[{"name":"Kung Pao","casesPerPallet":0}]'
+  } }).getWeek('44'), /EAST_COAST_PRODUCTS/);
+});
+
+test('week API provides helpful spreadsheet open, missing-tab and read-access failures', () => {
+  assert.throws(() => load({ properties: { EAST_COAST_SPREADSHEET_ID: '' } }).getWeek('44'), /EAST_COAST_SPREADSHEET_ID/);
+  assert.throws(() => load({ accessError: 'Permission denied' }).getWeek('44'), /grant.*read access.*Permission denied/);
+  assert.throws(() => load({ properties: { EAST_COAST_SHEET_NAMES: '["Missing"]' } }).getWeek('44'), /tab not found.*Missing/);
+  assert.throws(() => load({ tabs: [{ name: 'Read', error: 'Denied' }] }).getWeek('44'), /Cannot read.*Read.*read access/);
+});
+
+test('week marker and local destinations can share a row, including split WK and adjacent number', () => {
+  for (const [header, metadata, product] of [
+    [['WK 44', 'NAZARETH', 'DAYTONA'], ['PO#', '0001', '0002'], ['Kung Pao', 143, 286]],
+    [['WK', 44, 'NAZARETH', 'DAYTONA'], ['PO#', '', '0001', '0002'], ['Kung Pao', '', 143, 286]],
+    [['', 'NAZARETH', 'DAYTONA', 'Week : 44'], ['PO#', '0001', '0002', ''], ['Kung Pao', 143, 286, '']]
+  ]) {
+    const displayed = [header, metadata, product];
+    const result = load({ tabs: [{ name: 'EAST COAST', displayed }] }).getWeek('WK 44');
+    assert.deepEqual(result.stores.map(store => store.destination), ['NAZARETH', 'DAYTONA']);
+    assert.equal(result.totalPallets, 3);
+  }
+});
+
+test('week parser reports original worksheet PO and product row numbers after slicing', () => {
+  for (const [rows, expected] of [
+    [[['Unknown', 1]], /Unknown product.*PO# row 11.*row 13/],
+    [[['Kung Pao', 'bad quantity']], /PO# row 11.*row 13.*invalid case quantity/]
+  ]) {
+    const first = block();
+    first[0] = ['WK 43'];
+    const second = block({ rows }).filter(row => row[0] !== 'ARRIVE (RDD)');
+    assert.throws(() => load({ tabs: [{ name: 'EAST COAST', displayed: [...first, ...second] }] }).getWeek('44'), expected);
+  }
+});
+
+test('selected week nonzero products without PO blocks fail rather than producing incomplete empty results', () => {
+  for (const label of ['Kung Pao', 'Unknown product']) {
+    const displayed = [['WK', 44], ['', 'NAZARETH'], [label, 143]];
+    assert.throws(() => load({ tabs: [{ name: 'EAST COAST', displayed }] }).getWeek('44'),
+      /Missing PO# order block.*EAST COAST.*row 3/);
+  }
+  const displayed = [['WK 44'], ['Kung Pao', 143], ...block().slice(1)];
+  assert.throws(() => load({ tabs: [{ name: 'EAST COAST', displayed }] }).getWeek('44'), /Missing PO# order block/);
+  for (const displayed of [[['WK 44']], [['WK', 44]], [['WK 44'], ['', 'NAZARETH'], ['Kung Pao', 0]]]) {
+    assert.equal(load({ tabs: [{ name: 'EAST COAST', displayed }] }).getWeek('44').totalPallets, 0);
+  }
+});
+
+test('descriptive week-start metadata and summaries are not numeric worksheet markers or product rows', () => {
+  const displayed = [
+    ['Week of 10/26/2026'],
+    ['Week starts', '10/26/2026'],
+    ...block({ rows: [
+      ['Kung Pao', 143],
+      ['Week starts 10/26/2026', 999],
+      ['Week of 10/26/2026', 999],
+      ['Week total', 999],
+      ['WK planning notes', 999],
+      ['total cases', 999]
+    ] })
+  ];
+  const result = load({ tabs: [{ name: 'EAST COAST', displayed }] }).getWeek('WK 44');
+  assert.equal(result.totalPallets, 1);
+  assert.equal(result.stores[0].products.length, 1);
+  assert.equal(result.stores[0].totalCases, 143);
+  assert.throws(() => load({ tabs: [{ name: 'Metadata only', displayed: displayed.slice(0, 2) }] }).getWeek('44'),
+    /no recognizable worksheet week markers/);
+});
+
+test('unlabeled nonzero cells without a PO or before the first PO cannot silently disappear', () => {
+  for (const displayed of [
+    [['WK44'], ['', 'NAZARETH'], ['', 143]],
+    [['WK44'], ['', 143], ...block().slice(1)]
+  ]) {
+    assert.throws(() => load({ tabs: [{ name: 'EAST COAST', displayed }] }).getWeek('WK 44'),
+      /Missing PO# order block for nonzero cases.*EAST COAST.*row [23]/);
+  }
+  const displayed = [['WK', 44], ['', 'NAZARETH'], ['', 0], ['Week starts', '10/26/2026'], ['total cases', 143]];
+  assert.equal(load({ tabs: [{ name: 'EAST COAST', displayed }] }).getWeek('WK 44').totalPallets, 0);
+});
+
+test('invalid nonblank quantities in local store columns fail without a PO and before the first PO', () => {
+  for (const label of ['Kung Pao', 'Unknown product', 'JIT EDAMAME', '']) {
+    for (const appendPo of [false, true]) {
+      const displayed = [['WK44'], ['', 'NAZARETH'], [label, 'bad']];
+      if (appendPo) displayed.push(...block().slice(1));
+      assert.throws(() => load({ tabs: [{ name: 'EAST COAST', displayed }] }).getWeek('WK 44'),
+        /EAST COAST.*row 3.*invalid case quantity.*bad/);
+    }
+  }
+  for (const displayed of [
+    [['WK44'], ['', 'NAZARETH']],
+    [['WK', 44, 'NAZARETH', 'DAYTONA']],
+    [['WK44'], ['JIT EDAMAME', 'NAZARETH']],
+    [['WK44'], ['', 'NAZARETH'], ['', 'NAZARETH'], ['Unknown product', 0]]
+  ]) {
+    assert.equal(load({ tabs: [{ name: 'EAST COAST', displayed }] }).getWeek('WK 44').totalPallets, 0);
   }
 });
