@@ -127,8 +127,8 @@ test('column I week markers survive total exclusion and retain week boundaries',
       const data = block({ stores, pos: stores.map(() => po),
         rows: rows.map(([name, cases]) => [name, 0, 0, 0, 0, 0, cases, 0, cases]) });
       data[0] = Array(9).fill('');
-      data[0][8] = split ? 'WK' : 'WK ' + week;
-      if (split) data[0][9] = String(week);
+      data[0][8] = split ? String(week) : 'WK ' + week;
+      if (split) data[0][7] = 'WK';
       data[1][8] = '';
       return data;
     }
@@ -170,6 +170,42 @@ test('date loading still excludes column I markers and totals without requiring 
   displayed[0] = Array(9).fill('');
   displayed[0][8] = 'WK 44';
   const app = load({ tabs: [{ name: 'EAST COAST', displayed }] });
+  assert.equal(app.get('2026-11-04').totalPallets, 1);
+});
+
+test('EAST COAST ignores unrelated J+ quantities, headers, metadata and week markers', () => {
+  const stores = ['MINOOKA', 'DAYTONA', 'HARTFORD', 'CAROLINE', 'KENTUCKY', 'Nazareth', 'NEW YORK'];
+  const displayed = block({ stores, rows: holidayRows.map(([name, cases]) =>
+    [name, 0, 143, 0, 0, 0, cases, 143, cases + 286]) });
+  displayed[0] = Array(9).fill('');
+  displayed[0][8] = 'WK 44';
+  displayed[1][8] = '';
+  const baseline = load({ tabs: [{ name: 'EAST COAST', displayed }] });
+  const date = baseline.get('2026-11-04');
+  const week = baseline.getWeek('WK 44');
+  const extended = displayed.map((row, index) => {
+    const copy = row.slice();
+    copy.length = Math.max(copy.length, 11);
+    copy[10] = index === 1 ? '' : 999;
+    copy[11] = index === 0 ? 'WK 54' : 'Unrelated content';
+    copy[12] = index === 0 ? 'WK 45' : '#REF!';
+    copy[13] = index === 1 ? 'OTHER STORE' : 'PO#';
+    return copy;
+  });
+  const before = JSON.stringify(extended);
+  const app = load({ tabs: [{ name: 'EAST COAST', displayed: extended }] });
+  assert.deepEqual(app.get('2026-11-04'), date);
+  assert.deepEqual(app.getWeek('WK 44'), week);
+  assert.equal(week.stores.find(store => store.destination === 'Nazareth').totalPallets, 21);
+  assert.equal(JSON.stringify(extended), before);
+});
+
+test('EAST COAST cannot take its week reference from columns beyond I', () => {
+  const displayed = block();
+  displayed[0] = Array(10).fill('');
+  displayed[0][9] = 'WK 44';
+  const app = load({ tabs: [{ name: 'EAST COAST', displayed }] });
+  assert.throws(() => app.getWeek('WK 44'), /no recognizable worksheet week markers/);
   assert.equal(app.get('2026-11-04').totalPallets, 1);
 });
 

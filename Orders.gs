@@ -90,6 +90,11 @@ function eastCoastFetchOrders_(selection) {
     } catch (error) {
       throw new Error('Cannot read East Coast orders tab "' + sheet.getName() + '". Check spreadsheet read access. ' + error.message);
     }
+    if (sheet.getName() === 'EAST COAST') {
+      // The confirmed orders layout ends at I; unrelated J+ cells are not orders.
+      typed = typed.map(function (row) { return row.slice(0, 9); });
+      displayed = displayed.map(function (row) { return row.slice(0, 9); });
+    }
     // Capture week boundaries before removing column I item totals and labels.
     var weekMarkers = selection.week ? eastCoastWeekMarkers_(displayed, sheet.getName()) : null;
     if (sheet.getName() === 'EAST COAST') {

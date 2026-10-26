@@ -34,13 +34,19 @@ EAST_COAST_SHEET_NAMES
   No seleccionar pestañas de resúmenes sin bloques de pedidos.
 
 Diseño confirmado de la pestaña EAST COAST:
+  Los pedidos llegan sólo hasta I: se procesan exclusivamente A:I antes de
+  buscar semanas, encabezados, PO y cantidades. J en adelante no participa,
+  aunque getDataRange incluya valores, fórmulas o datos de otras operaciones.
+  Esta limitación sólo corresponde a la pestaña exacta EAST COAST.
   La columna I contiene TOTAL POR ÍTEM y marcadores WK, no otra tienda.
   En modo semana se detectan primero los marcadores en la lectura original,
-  incluidos WK 44 en I o WK en I con 44 en J; después se excluyen los
+  incluidos WK 44 en I o WK en H con 44 en I; después se excluyen los
   valores de I de las cantidades de pedidos. Se conservan los límites entre
   semanas aunque sus marcadores estén en la misma columna que los totales.
   En modo fecha también se excluye I de las cantidades, incluso con
   encabezado vacío o combinado. No se modifica la hoja ni se imprime ese total.
+  Tanto WK como su número deben estar dentro de A:I en EAST COAST;
+  un marcador en J en adelante no se usa para seleccionar pedidos.
   Esta regla sólo se aplica a la pestaña exacta EAST COAST; otras pestañas
   conservan la detección de encabezados y validación de destinos.
   Si I contiene PO/PICK UP DATE/ARRIVE, la carga falla por conflicto de
