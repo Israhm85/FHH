@@ -664,6 +664,14 @@ body[data-client="reporteras"] {
 }
 
 /* ── Print media ─────────────────────────────────────────────────── */
+[hidden] {
+  display: none !important;
+}
+
+#sheetSummary > section {
+  margin-block: 18px;
+}
+
 @media print {
   @page {
     size: landscape;
@@ -678,6 +686,7 @@ body[data-client="reporteras"] {
   .page-decor,
   .app-header,
   .client-selector,
+  .east-coast-ui,
   .app-title,
   .section-intro,
   .form-grid {
@@ -700,6 +709,12 @@ body[data-client="reporteras"] {
     margin: 0;
     gap: 0;
     display: block;
+  }
+
+  body:not([data-client="east-coast"]) #sectionEastCoast,
+  body[data-client="east-coast"] #sectionReporteras,
+  body[data-client="east-coast"] #sectionIds {
+    display: none !important;
   }
 
   .placard {
@@ -760,6 +775,7 @@ body[data-client="reporteras"] {
   .placard-product-name.name--garlic          { font-size: 11vw; }    /* GARLIC / ASIAGO DIP */
   .placard-product-name.name--chicken         { font-size: 9vw; }     /* CHICKEN STUFFED / POBLANO */
   .placard-product-name.name--roasted         { font-size: 10.5vw; }  /* ROASTED GREEN / VEGETABLES */
+  .placard-product-name.name--holiday         { font-size: 6vw; }
 
   .placard-code,
   .placard-cs {
