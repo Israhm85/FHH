@@ -583,22 +583,21 @@ body[data-client="reporteras"] {
 .placard-po {
   font-size: 52px;
   font-weight: 900;
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
   gap: 16px;
   align-items: baseline;
-  line-height: 1;
+  line-height: 1.1;
   margin-bottom: 6px;
 }
 
 .placard-po > span {
-  display: inline-block;
-  transform: scale(1.1);
-  transform-origin: bottom left;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .placard-po > span:last-child {
-  transform-origin: bottom right;
+  text-align: right;
 }
 
 /* Keep Refrigerated — small, centered */
@@ -784,7 +783,7 @@ body[data-client="reporteras"] {
   }
 
   .placard-po {
-    font-size: 80px;
+    font-size: 64px;
     gap: 16px;
     margin-bottom: 0;
   }
