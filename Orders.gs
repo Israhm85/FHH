@@ -90,11 +90,40 @@ function eastCoastFetchOrders_(selection) {
     } catch (error) {
       throw new Error('Cannot read East Coast orders tab "' + sheet.getName() + '". Check spreadsheet read access. ' + error.message);
     }
+    if (sheet.getName() === 'EAST COAST') {
+      var orders = eastCoastWithoutItemTotals_(typed, displayed, sheet.getName());
+      typed = orders.typed;
+      displayed = orders.displayed;
+    }
     shipments = shipments.concat(selection.week ?
       parseEastCoastWeekSheet_(typed, displayed, timezone, selection.week, catalog, sheet.getName()) :
       parseEastCoastSheet_(typed, displayed, timezone, selection.date, catalog, sheet.getName()));
   });
   return eastCoastAggregate_(selection.date, shipments, selection.week);
+}
+
+function eastCoastWithoutItemTotals_(typed, displayed, sheetName) {
+  // In the confirmed EAST COAST layout, I contains item totals, not store orders.
+  var totalColumn = 8;
+  displayed.forEach(function (row, index) {
+    var marker = eastCoastRowMarker_(row);
+    if (!marker) return;
+    var raw = (typed[index] || [])[totalColumn];
+    var text = String(row[totalColumn] === undefined ? '' : row[totalColumn]).trim();
+    if (text || raw !== undefined && raw !== null && raw !== '') {
+      throw new Error('Column I is configured as item totals in "' + sheetName +
+        '", but contains order metadata at row ' + (index + 1) +
+        '. Check the sheet layout before generating placards.');
+    }
+  });
+  function withoutTotals(rows) {
+    return rows.map(function (row) {
+      var copy = row.slice();
+      if (copy.length > totalColumn) copy[totalColumn] = '';
+      return copy;
+    });
+  }
+  return { typed: withoutTotals(typed), displayed: withoutTotals(displayed) };
 }
 
 function eastCoastWeek_(value, context) {

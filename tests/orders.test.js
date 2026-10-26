@@ -84,6 +84,42 @@ const holidayRows = [
   ['Holiday Entree Turkey Pot Pie', 180]
 ];
 
+test('EAST COAST excludes unlabeled column I item totals in date and week batches', () => {
+  const stores = ['MINOOKA', 'DAYTONA', 'HARTFORD', 'CAROLINE', 'KENTUCKY', 'Nazareth', 'NEW YORK'];
+  const rows = holidayRows.map(([name, cases]) => [name, 0, 143, 0, 0, 0, cases, 143, cases + 286]);
+  const displayed = block({ stores, pos: stores.map((_, i) => i === 5 ? '0159543664' : '000' + i),
+    arrivals: stores.map(() => '11/04/2026'), rows });
+  displayed[1][8] = '';
+  const before = JSON.stringify(displayed);
+  const app = load({ tabs: [{ name: 'EAST COAST', displayed }] });
+  const date = app.get('2026-11-04');
+  const week = app.getWeek('WK 44');
+  [date, week].forEach(result => {
+    assert.deepEqual(result.stores.map(store => store.destination), ['DAYTONA', 'Nazareth', 'NEW YORK']);
+    const nazareth = result.stores.find(store => store.destination === 'Nazareth');
+    assert.equal(nazareth.totalPallets, 21);
+    assert.deepEqual(nazareth.products.map(order => order.totalPallets), [4, 2, 1, 2, 1, 1, 1, 3, 3, 1, 2]);
+    assert.ok(nazareth.products.every(order => order.poNumber === '0159543664'));
+  });
+  assert.equal(JSON.stringify(displayed), before, 'read-only preprocessing must not mutate sheet arrays');
+});
+
+test('column I exclusions never hide order metadata or affect other tabs', () => {
+  const stores = ['MINOOKA', 'DAYTONA', 'HARTFORD', 'CAROLINE', 'KENTUCKY', 'Nazareth', 'NEW YORK'];
+  for (const row of [2, 3, 4]) {
+    const displayed = block({ stores });
+    displayed[row][8] = row === 2 ? '0009' : '11/04/2026';
+    const app = load({ tabs: [{ name: 'EAST COAST', displayed }] });
+    assert.throws(() => app.get('2026-11-04'), /Column I.*order metadata/);
+    assert.throws(() => app.getWeek('WK 44'), /Column I.*order metadata/);
+  }
+  const displayed = block({ stores, rows: [['Kung Pao', 0, 0, 0, 0, 0, 143, 0, 143]] });
+  displayed[1][8] = '';
+  const app = load({ tabs: [{ name: 'Other orders', displayed }] });
+  assert.throws(() => app.get('2026-11-04'), /Missing destination for nonzero cases in column 9/);
+  assert.throws(() => app.getWeek('WK 44'), /Missing destination for nonzero cases in column 9/);
+});
+
 test('exact Nazareth breakdown uses per-item PALLET# totals, 21 only for store summary, and leading-zero PO', () => {
   const { get } = load({ tabs: [{ name: 'Holiday', displayed: block({ rows: holidayRows }) }] });
   const result = get('2026-11-04');

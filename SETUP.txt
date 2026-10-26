@@ -33,6 +33,16 @@ EAST_COAST_SHEET_NAMES
   Se admite un array de varias pestañas pertinentes si operaciones lo requiere.
   No seleccionar pestañas de resúmenes sin bloques de pedidos.
 
+Diseño confirmado de la pestaña EAST COAST:
+  La columna I es TOTAL POR ÍTEM, no otra tienda. En ambos modos de hoja
+  se excluye I de las matrices de lectura, incluso con encabezado vacío
+  o combinado. No se modifica la hoja ni se imprime ese total.
+  Esta regla sólo se aplica a la pestaña exacta EAST COAST; otras pestañas
+  conservan la detección de encabezados y validación de destinos.
+  Si I contiene PO/PICK UP DATE/ARRIVE, la carga falla por conflicto de
+  diseño en vez de descartar un posible pedido real. Si cambia el diseño,
+  actualizar esta regla y sus pruebas antes de usarlo.
+
 EAST_COAST_PRODUCTS
   Opcional. Array JSON para añadir productos/aliases verificados:
   [{"name":"PRODUCTO CONFIRMADO","size":"","casesPerPallet":120,
