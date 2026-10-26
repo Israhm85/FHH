@@ -100,7 +100,7 @@ function buildPlacard(data) {
     '<div class="placard-tj-sub">TRADER JOES ' + escapeHtml(data.product.size || "") + '</div>' +
 
     // ── Large product name, centered ──────────────────────────────
-    '<div class="placard-product-name' + (data.product.nameClass ? ' ' + escapeHtml(data.product.nameClass) : '') + '">' + escapeHtml(data.product.placardName || data.product.name) + '</div>' +
+    '<div class="placard-product-name' + (data.product.nameClass ? ' ' + escapeHtml(data.product.nameClass) : '') + (data.product.placardName && data.product.placardName !== data.product.name ? ' name--short-label' : '') + '">' + escapeHtml(data.product.placardName || data.product.name) + '</div>' +
 
     // ── CODE — label only, filled manually with marker ───────────
     '<div class="placard-code">CODE:</div>' +

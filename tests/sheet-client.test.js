@@ -152,6 +152,7 @@ test('placard builder prints short labels, escapes them and falls back to the or
     assert.doesNotMatch(card.innerHTML, /Original worksheet name|<img/i);
     assert.match(card.innerHTML, /\(1\) OF \(3\)/);
     assert.match(card.innerHTML, /0159543664/);
+    assert.match(card.innerHTML, /name--short-label/);
   });
   const fallback = app.context.buildPlacard({
     palletNumber: 1, totalPallets: 1, poNumber: '0001', destination: 'DAYTONA',
