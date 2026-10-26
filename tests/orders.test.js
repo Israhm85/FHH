@@ -84,6 +84,25 @@ const holidayRows = [
   ['Holiday Entree Turkey Pot Pie', 180]
 ];
 
+test('short placard labels preserve original names, capacities and Nazareth totals in both modes', () => {
+  const app = load({ tabs: [{ name: 'EAST COAST', displayed: block({ rows: holidayRows }) }] });
+  for (const result of [app.get('2026-11-04'), app.getWeek('WK 44')]) {
+    const products = result.stores[0].products;
+    const labels = [[0, 'corn pudding'], [1, 'roasted vegetables'],
+      [2, 'cranberry stuffing'], [3, 'scalloped potatoes'],
+      [8, 'vainilla sweet potatoes'], [10, 'pot pie']];
+    labels.forEach(([index, label]) => {
+      assert.equal(products[index].product.placardName, label);
+      assert.equal(products[index].product.casesPerPallet, index === 10 ? 90 : 143);
+    });
+    assert.equal(products[0].product.name, 'Holiday Creamed Corn Pudding');
+    assert.equal(products[8].product.name, 'Holiday Vanilla Bean Whipped Sw…');
+    assert.equal(products[4].product.placardName, products[4].product.name);
+    assert.equal(result.totalPallets, 21);
+    assert.ok(products.every(order => order.poNumber === '0159543664'));
+  }
+});
+
 test('verified full sweet potatoes name matches the existing product in date and week batches', () => {
   const rows = holidayRows.map(([name, cases]) => [
     name === 'Holiday Vanilla Bean Whipped Sw…'

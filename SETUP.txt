@@ -155,6 +155,17 @@ Un producto parcial genera una paleta adicional; no se usa un divisor global.
 
 Catálogo y limitaciones
 ----------------------
+Nombres impresos (placardName en el catálogo central):
+  Holiday Creamed Corn Pudding -> corn pudding
+  Roasted vegetables w/ garlic -> roasted vegetables
+  Holiday Apple Cranberry Stuffing -> cranberry stuffing
+  Four cheese scalloped potatoes -> scalloped potatoes
+  Holiday Vanilla Bean Whipped Sweet Potatoes -> vainilla sweet potatoes
+  Holiday Entree Turkey Pot Pie -> pot pie
+Sólo cambia el nombre dentro del placard. Los nombres de hoja, aliases,
+resúmenes y claves de agrupación se conservan, igual que las capacidades.
+Los productos sin placardName siguen imprimiendo su nombre original.
+
 Fuente única: getEastCoastProducts_() en Orders.gs, compartida con la UI.
 Matching por aliases explícitos, ignorando mayúsculas/espacios repetidos.
 Capacidades:
@@ -180,7 +191,8 @@ No se inventan tamaños ni números de ítem.
 El nombre Holiday Vanilla Bean Whipped Sw… estaba truncado en la captura.
 El error de la hoja proporcionó Holiday Vanilla Bean Whipped Sweet Potatoes;
 se reconoce como alias del mismo producto, no como una definición duplicada.
-El placard conserva por compatibilidad el texto truncado y su aviso;
+El catálogo conserva por compatibilidad la clave truncada y su aviso;
+el placard imprime "vainilla sweet potatoes" por solicitud del usuario.
 no se ha supuesto un tamaño de empaque. Ambos nombres usan 143 cajas por paleta.
 Para incorporar otro producto, añadir una definición/alias verificado,
 su casesPerPallet específico y una prueba; nunca adivinar una capacidad.

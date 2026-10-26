@@ -6,13 +6,13 @@ function getEastCoastProducts_(defaultsOnly) {
     { name: 'GARLIC ASIAGO DIP', size: '10 oz', casesPerPallet: 143, nameClass: 'name--garlic', aliases: [], manual: true },
     { name: 'CHICKEN STUFFED POBLANO', size: '15 oz', casesPerPallet: 143, nameClass: 'name--chicken', aliases: ['Stuffed poblanos chicken', 'Chicken stuffed poblanos', 'Stuffed poblano chicken'], manual: true },
     { name: 'ROASTED GREEN VEGETABLES', size: '12 oz', casesPerPallet: 143, nameClass: 'name--roasted', aliases: [], manual: true },
-    { name: 'Holiday Creamed Corn Pudding', size: '', casesPerPallet: 143, nameClass: 'name--holiday', aliases: [], manual: false },
-    { name: 'Roasted vegetables w/ garlic', size: '', casesPerPallet: 143, nameClass: 'name--holiday', aliases: ['Roasted vegetables with garlic'], manual: false },
-    { name: 'Holiday Apple Cranberry Stuffing', size: '', casesPerPallet: 143, nameClass: 'name--holiday', aliases: [], manual: false },
-    { name: 'Four cheese scalloped potatoes', size: '', casesPerPallet: 143, nameClass: 'name--holiday', aliases: [], manual: false },
+    { name: 'Holiday Creamed Corn Pudding', placardName: 'corn pudding', size: '', casesPerPallet: 143, nameClass: 'name--holiday', aliases: [], manual: false },
+    { name: 'Roasted vegetables w/ garlic', placardName: 'roasted vegetables', size: '', casesPerPallet: 143, nameClass: 'name--holiday', aliases: ['Roasted vegetables with garlic'], manual: false },
+    { name: 'Holiday Apple Cranberry Stuffing', placardName: 'cranberry stuffing', size: '', casesPerPallet: 143, nameClass: 'name--holiday', aliases: [], manual: false },
+    { name: 'Four cheese scalloped potatoes', placardName: 'scalloped potatoes', size: '', casesPerPallet: 143, nameClass: 'name--holiday', aliases: [], manual: false },
     { name: 'Loaded mashed potatoes', size: '', casesPerPallet: 143, nameClass: 'name--holiday', aliases: [], manual: false },
-    { name: 'Holiday Vanilla Bean Whipped Sw…', size: '', casesPerPallet: 143, nameClass: 'name--holiday', aliases: ['Holiday Vanilla Bean Whipped Sw...', 'Holiday Vanilla Bean Whipped Sw', 'Holiday Vanilla Bean Whipped Sweet Potatoes'], manual: false },
-    { name: 'Holiday Entree Turkey Pot Pie', size: '', casesPerPallet: 90, nameClass: 'name--holiday', aliases: [], manual: false }
+    { name: 'Holiday Vanilla Bean Whipped Sw…', placardName: 'vainilla sweet potatoes', size: '', casesPerPallet: 143, nameClass: 'name--holiday', aliases: ['Holiday Vanilla Bean Whipped Sw...', 'Holiday Vanilla Bean Whipped Sw', 'Holiday Vanilla Bean Whipped Sweet Potatoes'], manual: false },
+    { name: 'Holiday Entree Turkey Pot Pie', placardName: 'pot pie', size: '', casesPerPallet: 90, nameClass: 'name--holiday', aliases: [], manual: false }
   ];
   var raw = defaultsOnly === true ? null : PropertiesService.getScriptProperties().getProperty('EAST_COAST_PRODUCTS');
   if (raw) {
@@ -435,7 +435,7 @@ function parseEastCoastSheet_(typed, displayed, timezone, date, catalog, sheetNa
         var product = products[eastCoastText_(label)];
         if (!product) throw new Error('Unknown product "' + (label || '(blank product name)') + '" with nonzero cases in ' + storeContext + ', row ' + (rowOffset + productRow + 1) + '. Add a verified definition to EAST_COAST_PRODUCTS.');
         if (!eastCoastCapacity_(product.casesPerPallet)) throw new Error('Missing or invalid pallet capacity for ' + product.name + ' in ' + storeContext + '.');
-        entries.push({ product: { name: product.name, size: product.size || '', casesPerPallet: product.casesPerPallet, nameClass: product.nameClass },
+        entries.push({ product: { name: product.name, placardName: product.placardName || product.name, size: product.size || '', casesPerPallet: product.casesPerPallet, nameClass: product.nameClass },
           poNumber: po, totalCases: quantity, totalPallets: 0 });
       }
       if (entries.length) shipments.push({ destination: store.destination, poNumber: po, date: arrival, products: entries, sheet: sheetName });

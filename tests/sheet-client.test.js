@@ -139,6 +139,27 @@ test('manual generation and per-product numbering still work', () => {
   assert.equal(app.prints(), 1);
 });
 
+test('placard builder prints short labels, escapes them and falls back to the original name', () => {
+  const app = setup();
+  const labels = ['corn pudding', 'roasted vegetables', 'cranberry stuffing',
+    'scalloped potatoes', 'vainilla sweet potatoes', 'pot pie', '<img onerror=x>'];
+  labels.forEach(label => {
+    const card = app.context.buildPlacard({
+      palletNumber: 1, totalPallets: 3, poNumber: '0159543664', destination: 'NAZARETH',
+      product: { name: 'Original worksheet name', placardName: label, size: '' }
+    });
+    assert.ok(card.innerHTML.includes(app.context.escapeHtml(label)));
+    assert.doesNotMatch(card.innerHTML, /Original worksheet name|<img/i);
+    assert.match(card.innerHTML, /\(1\) OF \(3\)/);
+    assert.match(card.innerHTML, /0159543664/);
+  });
+  const fallback = app.context.buildPlacard({
+    palletNumber: 1, totalPallets: 1, poNumber: '0001', destination: 'DAYTONA',
+    product: { name: 'SHELLED EDAMAME', size: '9 oz' }
+  });
+  assert.match(fallback.innerHTML, /SHELLED EDAMAME/);
+});
+
 test('sheet mode groups all stores, selects isolated batch, preserves PO and escapes strings', () => {
   const app = setup();
   app.el('ecSheetMode').fire('click');
