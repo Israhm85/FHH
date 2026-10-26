@@ -127,6 +127,24 @@ test('full vanilla product generates every store quantity with its own PO and pa
   }
 });
 
+test('zero items never suppress other positive items or stores', () => {
+  const displayed = block({ stores: ['NAZARETH', 'DAYTONA'], pos: ['0001', '0002'],
+    rows: [
+      ['Stuffed poblanos chicken', 0, 0],
+      ['Holiday Vanilla Bean Whipped Sweet Potatoes', 429, 0],
+      ['Kung Pao', 0, 286],
+      ['Garlic Asiago Dip', 143, 143]
+    ] });
+  const app = load({ tabs: [{ name: 'EAST COAST', displayed }] });
+  for (const result of [app.get('2026-11-04'), app.getWeek('WK 44')]) {
+    assert.equal(result.stores.length, 2);
+    assert.deepEqual(result.stores.map(store => store.totalPallets), [4, 3]);
+    assert.deepEqual(result.stores.map(store => store.products.length), [2, 2]);
+    assert.ok(result.stores.every(store => store.products.every(order => order.totalCases > 0)));
+    assert.equal(result.totalPallets, 7);
+  }
+});
+
 test('EAST COAST excludes unlabeled column I item totals in date and week batches', () => {
   const stores = ['MINOOKA', 'DAYTONA', 'HARTFORD', 'CAROLINE', 'KENTUCKY', 'Nazareth', 'NEW YORK'];
   const rows = holidayRows.map(([name, cases]) => [name, 0, 143, 0, 0, 0, cases, 143, cases + 286]);
