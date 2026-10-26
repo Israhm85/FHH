@@ -120,6 +120,59 @@ test('column I exclusions never hide order metadata or affect other tabs', () =>
   assert.throws(() => app.getWeek('WK 44'), /Missing destination for nonzero cases in column 9/);
 });
 
+test('column I week markers survive total exclusion and retain week boundaries', () => {
+  const stores = ['MINOOKA', 'DAYTONA', 'HARTFORD', 'CAROLINE', 'KENTUCKY', 'Nazareth', 'NEW YORK'];
+  for (const split of [false, true]) {
+    function weekly(week, po, rows) {
+      const data = block({ stores, pos: stores.map(() => po),
+        rows: rows.map(([name, cases]) => [name, 0, 0, 0, 0, 0, cases, 0, cases]) });
+      data[0] = Array(9).fill('');
+      data[0][8] = split ? 'WK' : 'WK ' + week;
+      if (split) data[0][9] = String(week);
+      data[1][8] = '';
+      return data;
+    }
+    const displayed = [
+      ...weekly(43, '00043', [['Kung Pao', 143]]),
+      ...weekly(44, '0159543664', holidayRows),
+      ...weekly(45, '00045', [['Kung Pao', 286]])
+    ];
+    const before = JSON.stringify(displayed);
+    const app = load({ tabs: [{ name: 'EAST COAST', displayed }] });
+    const result = app.getWeek('WK 44');
+    assert.equal(result.totalPallets, 21);
+    assert.equal(result.stores.length, 1);
+    assert.equal(result.stores[0].destination, 'Nazareth');
+    assert.deepEqual(result.stores[0].products.map(order => order.totalPallets), [4, 2, 1, 2, 1, 1, 1, 3, 3, 1, 2]);
+    assert.ok(result.stores[0].products.every(order => order.poNumber === '0159543664'));
+    assert.equal(app.getWeek('WK 43').totalPallets, 1);
+    assert.equal(app.getWeek('WK 45').totalPallets, 2);
+    assert.equal(JSON.stringify(displayed), before);
+  }
+});
+
+test('invalid and conflicting column I week markers cannot be erased into a successful batch', () => {
+  for (const marker of ['WK 54', 'WK440', 'WK']) {
+    const displayed = block();
+    displayed[0] = Array(9).fill('');
+    displayed[0][8] = marker;
+    const app = load({ tabs: [{ name: 'EAST COAST', displayed }] });
+    assert.throws(() => app.getWeek('WK 44'), /Week marker.*WK 1 through WK 53/);
+  }
+  const displayed = block();
+  displayed[0][8] = 'WK 45';
+  const app = load({ tabs: [{ name: 'EAST COAST', displayed }] });
+  assert.throws(() => app.getWeek('WK 44'), /Conflicting week markers/);
+});
+
+test('date loading still excludes column I markers and totals without requiring weeks', () => {
+  const displayed = block({ rows: [['Kung Pao', 143, 0, 0, 0, 0, 0, 0, 143]] });
+  displayed[0] = Array(9).fill('');
+  displayed[0][8] = 'WK 44';
+  const app = load({ tabs: [{ name: 'EAST COAST', displayed }] });
+  assert.equal(app.get('2026-11-04').totalPallets, 1);
+});
+
 test('exact Nazareth breakdown uses per-item PALLET# totals, 21 only for store summary, and leading-zero PO', () => {
   const { get } = load({ tabs: [{ name: 'Holiday', displayed: block({ rows: holidayRows }) }] });
   const result = get('2026-11-04');

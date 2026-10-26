@@ -90,13 +90,15 @@ function eastCoastFetchOrders_(selection) {
     } catch (error) {
       throw new Error('Cannot read East Coast orders tab "' + sheet.getName() + '". Check spreadsheet read access. ' + error.message);
     }
+    // Capture week boundaries before removing column I item totals and labels.
+    var weekMarkers = selection.week ? eastCoastWeekMarkers_(displayed, sheet.getName()) : null;
     if (sheet.getName() === 'EAST COAST') {
       var orders = eastCoastWithoutItemTotals_(typed, displayed, sheet.getName());
       typed = orders.typed;
       displayed = orders.displayed;
     }
     shipments = shipments.concat(selection.week ?
-      parseEastCoastWeekSheet_(typed, displayed, timezone, selection.week, catalog, sheet.getName()) :
+      parseEastCoastWeekSheet_(typed, displayed, timezone, selection.week, catalog, sheet.getName(), weekMarkers) :
       parseEastCoastSheet_(typed, displayed, timezone, selection.date, catalog, sheet.getName()));
   });
   return eastCoastAggregate_(selection.date, shipments, selection.week);
@@ -159,10 +161,10 @@ function eastCoastWeekMarkers_(displayed, sheetName) {
   return markers;
 }
 
-function parseEastCoastWeekSheet_(typed, displayed, timezone, week, catalog, sheetName) {
+function parseEastCoastWeekSheet_(typed, displayed, timezone, week, catalog, sheetName, weekMarkers) {
   week = eastCoastWeek_(week, 'Order week');
   sheetName = sheetName || 'Orders';
-  var markers = eastCoastWeekMarkers_(displayed, sheetName);
+  var markers = weekMarkers || eastCoastWeekMarkers_(displayed, sheetName);
   var shipments = [];
   markers.forEach(function (marker, index) {
     if (marker.week !== week) return;

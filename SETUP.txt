@@ -34,9 +34,13 @@ EAST_COAST_SHEET_NAMES
   No seleccionar pestañas de resúmenes sin bloques de pedidos.
 
 Diseño confirmado de la pestaña EAST COAST:
-  La columna I es TOTAL POR ÍTEM, no otra tienda. En ambos modos de hoja
-  se excluye I de las matrices de lectura, incluso con encabezado vacío
-  o combinado. No se modifica la hoja ni se imprime ese total.
+  La columna I contiene TOTAL POR ÍTEM y marcadores WK, no otra tienda.
+  En modo semana se detectan primero los marcadores en la lectura original,
+  incluidos WK 44 en I o WK en I con 44 en J; después se excluyen los
+  valores de I de las cantidades de pedidos. Se conservan los límites entre
+  semanas aunque sus marcadores estén en la misma columna que los totales.
+  En modo fecha también se excluye I de las cantidades, incluso con
+  encabezado vacío o combinado. No se modifica la hoja ni se imprime ese total.
   Esta regla sólo se aplica a la pestaña exacta EAST COAST; otras pestañas
   conservan la detección de encabezados y validación de destinos.
   Si I contiene PO/PICK UP DATE/ARRIVE, la carga falla por conflicto de
