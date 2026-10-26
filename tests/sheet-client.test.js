@@ -71,7 +71,7 @@ function setup() {
   });
   ['PlacardApp.html', 'SheetPlacardApp.html'].forEach(file => {
     const source = fs.readFileSync(path.join(__dirname, '..', file), 'utf8');
-    vm.runInContext(source.replace(/<\/?script>/g, ''), context);
+    vm.runInContext(source.replace(/<\/?script>/gi, ''), context);
   });
   function load(date = '2026-11-04') {
     el('arrivalDate').value = date;
@@ -147,7 +147,7 @@ test('sheet mode groups all stores, selects isolated batch, preserves PO and esc
     palletNumber: 1, totalPallets: 1, destination: '<script>', poNumber: '"&',
     product: { name: '<img onerror=x>', nameClass: '" onclick="x' }
   });
-  assert.doesNotMatch(card.innerHTML, /<script>|<img|class="[^"]*" onclick=/);
+  assert.doesNotMatch(card.innerHTML, /<script>|<img|class="[^"]*" onclick=/i);
   assert.match(card.innerHTML, /&lt;img/);
   assert.doesNotMatch(card.innerHTML, /undefined/);
 });
