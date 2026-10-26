@@ -170,15 +170,18 @@ Capacidades:
   Four cheese scalloped potatoes: 143.
   Loaded mashed potatoes: 143.
   Holiday Vanilla Bean Whipped Sw… (también Sw... y Sw): 143.
+  Alias confirmado por el error de la hoja:
+  Holiday Vanilla Bean Whipped Sweet Potatoes -> mismo producto, 143.
   Holiday Entree Turkey Pot Pie: 90.
 
 Los tamaños de los seis productos originales se conservan.
 Los tamaños nuevos no se conocen: se omiten, con aviso para verificarlos.
 No se inventan tamaños ni números de ítem.
-El nombre Holiday Vanilla Bean Whipped Sw… está truncado en la referencia:
-no se ha supuesto un nombre completo. Cuando se confirme, actualizar esa
-definición central y conservar los aliases anteriores, o añadir un alias
-verificado manteniendo el texto truncado en el placard.
+El nombre Holiday Vanilla Bean Whipped Sw… estaba truncado en la captura.
+El error de la hoja proporcionó Holiday Vanilla Bean Whipped Sweet Potatoes;
+se reconoce como alias del mismo producto, no como una definición duplicada.
+El placard conserva por compatibilidad el texto truncado y su aviso;
+no se ha supuesto un tamaño de empaque. Ambos nombres usan 143 cajas por paleta.
 Para incorporar otro producto, añadir una definición/alias verificado,
 su casesPerPallet específico y una prueba; nunca adivinar una capacidad.
 

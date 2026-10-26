@@ -84,6 +84,49 @@ const holidayRows = [
   ['Holiday Entree Turkey Pot Pie', 180]
 ];
 
+test('verified full sweet potatoes name matches the existing product in date and week batches', () => {
+  const rows = holidayRows.map(([name, cases]) => [
+    name === 'Holiday Vanilla Bean Whipped Sw…'
+      ? '  HOLIDAY Vanilla Bean Whipped   Sweet Potatoes  ' : name, cases
+  ]);
+  const app = load({ tabs: [{ name: 'EAST COAST', displayed: block({ rows }) }] });
+  for (const result of [app.get('2026-11-04'), app.getWeek('WK 44')]) {
+    assert.equal(result.totalPallets, 21);
+    const products = result.stores[0].products;
+    const sweetPotatoes = products[8];
+    assert.equal(sweetPotatoes.product.name, 'Holiday Vanilla Bean Whipped Sw…');
+    assert.equal(sweetPotatoes.product.casesPerPallet, 143);
+    assert.equal(sweetPotatoes.product.size, '');
+    assert.equal(sweetPotatoes.totalCases, 429);
+    assert.equal(sweetPotatoes.totalPallets, 3);
+    assert.equal(sweetPotatoes.poNumber, '0159543664');
+    assert.equal(products.length, 11);
+  }
+  const mixed = load({ tabs: [{ name: 'EAST COAST', displayed: block({
+    rows: [['Holiday Vanilla Bean Whipped Sw…', 143],
+      ['Holiday Vanilla Bean Whipped Sweet Potatoes', 286]]
+  }) }] });
+  assert.equal(mixed.getWeek('WK 44').stores[0].products.length, 1);
+  assert.equal(mixed.getWeek('WK 44').totalPallets, 3);
+});
+
+test('full vanilla product generates every store quantity with its own PO and pallet count', () => {
+  const stores = ['MINOOKA', 'DAYTONA', 'HARTFORD', 'CAROLINE', 'KENTUCKY', 'NAZARETH', 'NEW YORK'];
+  const quantities = [143, 286, 429, 572, 143, 429, 1];
+  const pos = stores.map((_, i) => '000' + i);
+  const displayed = block({ stores, pos,
+    rows: [['Holiday Vanilla Bean Whipped Sweet Potatoes', ...quantities, 2003]] });
+  displayed[1][8] = '';
+  const app = load({ tabs: [{ name: 'EAST COAST', displayed }] });
+  for (const result of [app.get('2026-11-04'), app.getWeek('WK 44')]) {
+    assert.deepEqual(result.stores.map(store => store.destination), stores);
+    assert.deepEqual(result.stores.map(store => store.products[0].totalCases), quantities);
+    assert.deepEqual(result.stores.map(store => store.products[0].poNumber), pos);
+    assert.deepEqual(result.stores.map(store => store.totalPallets), [1, 2, 3, 4, 1, 3, 1]);
+    assert.equal(result.totalPallets, 15);
+  }
+});
+
 test('EAST COAST excludes unlabeled column I item totals in date and week batches', () => {
   const stores = ['MINOOKA', 'DAYTONA', 'HARTFORD', 'CAROLINE', 'KENTUCKY', 'Nazareth', 'NEW YORK'];
   const rows = holidayRows.map(([name, cases]) => [name, 0, 143, 0, 0, 0, cases, 143, cases + 286]);

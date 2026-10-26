@@ -11,7 +11,7 @@ function getEastCoastProducts_(defaultsOnly) {
     { name: 'Holiday Apple Cranberry Stuffing', size: '', casesPerPallet: 143, nameClass: 'name--holiday', aliases: [], manual: false },
     { name: 'Four cheese scalloped potatoes', size: '', casesPerPallet: 143, nameClass: 'name--holiday', aliases: [], manual: false },
     { name: 'Loaded mashed potatoes', size: '', casesPerPallet: 143, nameClass: 'name--holiday', aliases: [], manual: false },
-    { name: 'Holiday Vanilla Bean Whipped Sw…', size: '', casesPerPallet: 143, nameClass: 'name--holiday', aliases: ['Holiday Vanilla Bean Whipped Sw...', 'Holiday Vanilla Bean Whipped Sw'], manual: false },
+    { name: 'Holiday Vanilla Bean Whipped Sw…', size: '', casesPerPallet: 143, nameClass: 'name--holiday', aliases: ['Holiday Vanilla Bean Whipped Sw...', 'Holiday Vanilla Bean Whipped Sw', 'Holiday Vanilla Bean Whipped Sweet Potatoes'], manual: false },
     { name: 'Holiday Entree Turkey Pot Pie', size: '', casesPerPallet: 90, nameClass: 'name--holiday', aliases: [], manual: false }
   ];
   var raw = defaultsOnly === true ? null : PropertiesService.getScriptProperties().getProperty('EAST_COAST_PRODUCTS');
