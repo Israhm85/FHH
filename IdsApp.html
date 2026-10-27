@@ -20,10 +20,7 @@
       id: 'idsProduct',
       label: 'Product / Producto',
       placeholder: 'Select product',
-      // Use a <select> so every catalog option is always listed. A <datalist>
-      // filters its suggestions by the current input value, which hid every
-      // option except the prefilled default.
-      inputType: 'select',
+      inputType: 'datalist',
       defaultValue: 'tomatillo',
       // Future enhancement: keep adding product options here or replace this
       // local array with a dynamic catalog source when the product list grows.
@@ -132,14 +129,9 @@
     label.setAttribute('for', field.id);
 
     var input;
-    if (field.inputType === 'select') {
-      input = document.createElement('select');
-      (field.options || []).forEach(function (optionConfig) {
-        var option = document.createElement('option');
-        option.value = optionConfig.value;
-        option.textContent = optionConfig.label || optionConfig.value;
-        input.appendChild(option);
-      });
+    if (field.inputType === 'datalist') {
+      input = document.createElement('input');
+      input.type = 'text';
     } else {
       input = document.createElement('input');
       input.type = field.inputType || 'text';
@@ -207,6 +199,25 @@
 
     wrapper.appendChild(label);
     wrapper.appendChild(input);
+
+    if (field.inputType === 'datalist') {
+      var dataListId = field.id + 'Options';
+      var dataList = document.createElement('datalist');
+      dataList.id = dataListId;
+
+      // Future enhancement: expand `options` with dynamic data sources when
+      // this field needs to load its choices from configurable catalogs.
+      field.options.forEach(function (optionConfig) {
+        var option = document.createElement('option');
+        option.value = optionConfig.value;
+        option.label = optionConfig.label || optionConfig.value;
+        option.textContent = optionConfig.label || optionConfig.value;
+        dataList.appendChild(option);
+      });
+
+      input.setAttribute('list', dataListId);
+      wrapper.appendChild(dataList);
+    }
 
     if (field.helpText) {
       var helpText = createTextNode('span', 'ids-help-text', field.helpText);
