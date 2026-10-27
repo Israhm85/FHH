@@ -49,6 +49,42 @@
 
       <!-- ── East Coast section ────────────────────────────────────── -->
       <section id="sectionEastCoast" class="section-panel section-panel--east" role="tabpanel" aria-labelledby="btnEastCoast" aria-hidden="false" tabindex="0">
+        <div class="form-actions east-coast-ui" aria-label="East Coast mode">
+          <button id="ecManualMode" type="button" aria-pressed="true">Manual</button>
+          <button id="ecSheetMode" type="button" aria-pressed="false">Desde hoja por fecha</button>
+          <button id="ecWeekMode" type="button" aria-pressed="false">Desde hoja por semana</button>
+        </div>
+        <section id="sheetControls" class="east-coast-ui" hidden>
+          <form id="sheetForm" class="form-grid">
+            <div class="field" id="arrivalField">
+              <label for="arrivalDate">ARRIVE (RDD) / Fecha de llegada</label>
+              <input id="arrivalDate" type="date" required aria-describedby="arrivalFormat" />
+              <span id="arrivalFormat">Formato mostrado abajo: MM/DD/YYYY (mes/día/año).</span>
+              <output id="arrivalDisplay" for="arrivalDate"></output>
+            </div>
+            <div class="field" id="weekField" hidden>
+              <label for="orderWeek">Semana de la hoja / WK</label>
+              <input id="orderWeek" type="number" min="1" max="53" step="1"
+                placeholder="44" disabled aria-describedby="weekFormat" />
+              <span id="weekFormat">Usa el bloque marcado WK en la hoja, no la semana calculada de una fecha. Incluye todas sus tiendas.</span>
+              <output id="weekDisplay" for="orderWeek"></output>
+            </div>
+            <div class="form-actions">
+              <button id="btnLoadOrders" type="submit">Cargar y generar</button>
+            </div>
+          </form>
+          <p id="sheetStatus" role="status" aria-live="polite"></p>
+          <div id="sheetSummary"></div>
+          <div class="field">
+            <label for="sheetStore">Lote a imprimir / Batch</label>
+            <select id="sheetStore" disabled>
+              <option value="">Todas las tiendas</option>
+            </select>
+          </div>
+          <div class="form-actions">
+            <button id="btnPrintSheet" type="button" disabled>Print batch</button>
+          </div>
+        </section>
         <form id="placardForm" class="form-grid" novalidate>
 
           <div class="field">
@@ -176,7 +212,9 @@
     </section>
   </main>
 
+  <script id="eastCoastCatalog" type="application/json"><?!=getEastCoastCatalogJson_();?></script>
   <?!=include('PlacardApp');?>
+  <?!=include('SheetPlacardApp');?>
   <?!=include('ChefHaksApp');?>
   <?!=include('IdsApp');?>
 

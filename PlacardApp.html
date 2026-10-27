@@ -11,14 +11,8 @@
  */
 
 // ── Product catalog ───────────────────────────────────────────────
-var PRODUCTS = [
-  { name: "SHELLED EDAMAME",           size: "9 oz",  casesPerPallet: 160, nameClass: "name--edamame" },
-  { name: "STUFFED PEPPERS WITH BEEF", size: "15 oz", casesPerPallet: 143, nameClass: "name--stuffed-peppers" },
-  { name: "KUNG PAO BRUSSEL SPROUTS",  size: "14 oz", casesPerPallet: 143, nameClass: "name--kung-pao" },
-  { name: "GARLIC ASIAGO DIP",         size: "10 oz", casesPerPallet: 143, nameClass: "name--garlic" },
-  { name: "CHICKEN STUFFED POBLANO",   size: "15 oz", casesPerPallet: 143, nameClass: "name--chicken" },
-  { name: "ROASTED GREEN VEGETABLES",  size: "12 oz", casesPerPallet: 143, nameClass: "name--roasted" }
-];
+var PRODUCTS = JSON.parse(document.getElementById("eastCoastCatalog").textContent)
+  .filter(function (product) { return product.manual; });
 
 // ── DOM references ────────────────────────────────────────────────
 var form          = document.getElementById("placardForm");
@@ -103,10 +97,10 @@ function buildPlacard(data) {
     '</div>' +
 
     // ── TRADER JOES + size, centered ──────────────────────────────
-    '<div class="placard-tj-sub">TRADER JOES ' + escapeHtml(data.product.size) + '</div>' +
+    '<div class="placard-tj-sub">TRADER JOES ' + escapeHtml(data.product.size || "") + '</div>' +
 
     // ── Large product name, centered ──────────────────────────────
-    '<div class="placard-product-name' + (data.product.nameClass ? ' ' + data.product.nameClass : '') + '">' + escapeHtml(data.product.name) + '</div>' +
+    '<div class="placard-product-name' + (data.product.nameClass ? ' ' + escapeHtml(data.product.nameClass) : '') + (data.product.placardName && data.product.placardName !== data.product.name ? ' name--short-label' : '') + '">' + escapeHtml(data.product.placardName || data.product.name) + '</div>' +
 
     // ── CODE — label only, filled manually with marker ───────────
     '<div class="placard-code">CODE:</div>' +
@@ -145,6 +139,7 @@ function escapeHtml(str) {
 // ── Form submit ───────────────────────────────────────────────────
 form.addEventListener("submit", function (event) {
   event.preventDefault();   // stop browser's native form submission
+  if (form.hidden) { return; }
 
   if (!validateForm()) {
     return;                  // stop if any field is invalid
@@ -190,6 +185,6 @@ form.addEventListener("submit", function (event) {
 
 // ── Print button ──────────────────────────────────────────────────
 btnPrint.addEventListener("click", function () {
-  window.print();
+  if (!btnPrint.disabled && !form.hidden) { window.print(); }
 });
 </script>

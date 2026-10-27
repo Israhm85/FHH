@@ -1,0 +1,224 @@
+<script>
+(function () {
+  var manualButton = document.getElementById("ecManualMode");
+  var sheetButton = document.getElementById("ecSheetMode");
+  var weekButton = document.getElementById("ecWeekMode");
+  var controls = document.getElementById("sheetControls");
+  var sheetForm = document.getElementById("sheetForm");
+  var dateInput = document.getElementById("arrivalDate");
+  var dateDisplay = document.getElementById("arrivalDisplay");
+  var arrivalField = document.getElementById("arrivalField");
+  var weekField = document.getElementById("weekField");
+  var weekInput = document.getElementById("orderWeek");
+  var weekDisplay = document.getElementById("weekDisplay");
+  var loadButton = document.getElementById("btnLoadOrders");
+  var printButton = document.getElementById("btnPrintSheet");
+  var status = document.getElementById("sheetStatus");
+  var summary = document.getElementById("sheetSummary");
+  var storeSelect = document.getElementById("sheetStore");
+  var mode = "manual";
+  var requestId = 0;
+  var batch = null;
+
+  function setLoading(loading) {
+    loadButton.disabled = loading;
+    manualButton.disabled = loading;
+    sheetButton.disabled = loading;
+    weekButton.disabled = loading;
+    sheetForm.setAttribute("aria-busy", loading ? "true" : "false");
+  }
+
+  function invalidate() {
+    requestId++;
+    batch = null;
+    printArea.textContent = "";
+    summary.textContent = "";
+    storeSelect.innerHTML = '<option value="">Todas las tiendas</option>';
+    storeSelect.disabled = true;
+    printButton.disabled = true;
+    btnPrint.disabled = true;
+    status.textContent = "";
+    status.classList.remove("gen-error");
+    setLoading(false);
+  }
+
+  function setMode(nextMode) {
+    invalidate();
+    mode = nextMode;
+    form.hidden = mode !== "manual";
+    controls.hidden = mode === "manual";
+    arrivalField.hidden = mode !== "sheet";
+    dateInput.disabled = mode !== "sheet";
+    dateInput.required = mode === "sheet";
+    weekField.hidden = mode !== "week";
+    weekInput.disabled = mode !== "week";
+    weekInput.required = mode === "week";
+    manualButton.setAttribute("aria-pressed", mode === "manual" ? "true" : "false");
+    sheetButton.setAttribute("aria-pressed", mode === "sheet" ? "true" : "false");
+    weekButton.setAttribute("aria-pressed", mode === "week" ? "true" : "false");
+    showReference();
+  }
+
+  function showDate() {
+    var parts = dateInput.value.split("-");
+    dateDisplay.textContent = parts.length === 3
+      ? parts[1] + "/" + parts[2] + "/" + parts[0] + " (MM/DD/YYYY)" : "";
+  }
+
+  function weekKey() {
+    var week = Number(weekInput.value);
+    return weekInput.value.trim() !== "" && Number.isInteger(week) && week >= 1 && week <= 53
+      ? "WK " + week : "";
+  }
+
+  function referenceKey() {
+    return mode === "week" ? weekKey() : dateInput.value;
+  }
+
+  function showReference() {
+    showDate();
+    weekDisplay.textContent = weekKey();
+  }
+
+  function batchMatches(result) {
+    return result && (mode === "week" ? result.week === weekKey() : result.date === dateInput.value);
+  }
+
+  function isCurrentBatch() {
+    return mode !== "manual" && batchMatches(batch) && !loadButton.disabled;
+  }
+
+  function renderSelection() {
+    printArea.textContent = "";
+    if (!isCurrentBatch()) { return; }
+    var selected = storeSelect.value;
+    var fragment = document.createDocumentFragment();
+    var count = 0;
+    batch.stores.forEach(function (store, index) {
+      if (selected !== "" && selected !== String(index)) { return; }
+      store.products.forEach(function (order) {
+        for (var pallet = 1; pallet <= order.totalPallets; pallet++) {
+          fragment.appendChild(buildPlacard({
+            palletNumber: pallet,
+            totalPallets: order.totalPallets,
+            poNumber: order.poNumber,
+            destination: store.destination,
+            product: order.product
+          }));
+          count++;
+        }
+      });
+    });
+    printArea.appendChild(fragment);
+    printButton.disabled = count === 0;
+    printButton.textContent = "Imprimir lote (" + count + " placards)";
+  }
+
+  function renderSummary() {
+    batch.stores.forEach(function (store, index) {
+      var option = document.createElement("option");
+      option.value = String(index);
+      option.textContent = store.destination + " — " + store.totalPallets + " placards";
+      storeSelect.appendChild(option);
+      var section = document.createElement("section");
+      var heading = document.createElement("h2");
+      heading.textContent = option.textContent;
+      section.appendChild(heading);
+      var list = document.createElement("ul");
+      store.products.forEach(function (order) {
+        var item = document.createElement("li");
+        item.textContent = order.product.name + " — PO " + order.poNumber + ": " +
+          order.totalCases + " CS / " + order.product.casesPerPallet + " por paleta → " +
+          order.totalPallets + " placards" + (order.arrivalDate ? " — ARRIVE (RDD): " + order.arrivalDate : "");
+        list.appendChild(item);
+      });
+      section.appendChild(list);
+      summary.appendChild(section);
+    });
+    storeSelect.disabled = batch.stores.length === 0;
+    renderSelection();
+  }
+
+  manualButton.addEventListener("click", function () { setMode("manual"); });
+  sheetButton.addEventListener("click", function () { setMode("sheet"); });
+  weekButton.addEventListener("click", function () { setMode("week"); });
+  dateInput.addEventListener("input", function () {
+    invalidate();
+    showDate();
+  });
+  dateInput.addEventListener("change", function () {
+    invalidate();
+    showDate();
+  });
+  weekInput.addEventListener("input", function () {
+    invalidate();
+    showReference();
+  });
+  weekInput.addEventListener("change", function () {
+    invalidate();
+    showReference();
+  });
+  storeSelect.addEventListener("change", renderSelection);
+  sheetForm.addEventListener("submit", function (event) {
+    event.preventDefault();
+    if (mode === "manual" || loadButton.disabled) { return; }
+    invalidate();
+    showReference();
+    if (mode === "week" ? !weekKey() || !weekInput.checkValidity()
+        : !/^\d{4}-\d{2}-\d{2}$/.test(dateInput.value) || !dateInput.checkValidity()) {
+      status.textContent = mode === "week" ? "Selecciona una semana válida (WK 1 a WK 53)."
+        : "Selecciona una fecha válida de llegada.";
+      return;
+    }
+    var key = referenceKey();
+    var requestMode = mode;
+    var reference = mode === "week" ? weekDisplay.textContent : dateDisplay.textContent;
+    var id = requestId;
+    setLoading(true);
+    status.textContent = "Cargando órdenes y generando placards…";
+    function stillCurrent() {
+      return id === requestId && key === referenceKey() && mode === requestMode;
+    }
+    function fail(error) {
+      if (!stillCurrent()) { return; }
+      invalidate();
+      status.classList.add("gen-error");
+      status.textContent = error && error.message ? error.message : "No se pudieron cargar las órdenes.";
+    }
+    try {
+      var runner = google.script.run.withSuccessHandler(function (result) {
+        if (!stillCurrent()) { return; }
+        if (!batchMatches(result) || !Array.isArray(result.stores)) {
+          fail({ message: "Respuesta de órdenes inválida. Vuelve a cargar." });
+          return;
+        }
+        setLoading(false);
+        batch = result;
+        try {
+          renderSummary();
+          status.textContent = result.stores.length
+            ? reference + " — " + result.totalPallets + " placards en " +
+              result.stores.length + " tiendas. " + (result.warnings || []).join(" ")
+            : "No hay órdenes con cantidades positivas para " +
+              (requestMode === "week" ? reference : "ARRIVE (RDD) " + reference) + ".";
+        } catch (error) {
+          fail(error);
+        }
+      }).withFailureHandler(fail);
+      if (requestMode === "week") {
+        runner.getEastCoastOrdersByWeek(key);
+      } else {
+        runner.getEastCoastOrders(key);
+      }
+    } catch (error) {
+      fail(error);
+    }
+  });
+  printButton.addEventListener("click", function () {
+    if (isCurrentBatch() && !printButton.disabled &&
+        document.body.getAttribute("data-client") === "east-coast") {
+      window.print();
+    }
+  });
+}());
+</script>

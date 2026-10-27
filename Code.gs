@@ -8,3 +8,6 @@ function include(filename) {
   return HtmlService.createHtmlOutputFromFile(filename).getContent();
 }
 
+function getEastCoastCatalogJson_() {
+  return JSON.stringify(getEastCoastProducts_(true)).replace(/</g, '\\u003c');
+}
