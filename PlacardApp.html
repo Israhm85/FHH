@@ -11,8 +11,8 @@
  */
 
 // ── Product catalog ───────────────────────────────────────────────
-var PRODUCTS = JSON.parse(document.getElementById("eastCoastCatalog").textContent)
-  .filter(function (product) { return product.manual; });
+// Manual mode lists every East Coast item so any placard can be printed.
+var PRODUCTS = JSON.parse(document.getElementById("eastCoastCatalog").textContent);
 
 // ── DOM references ────────────────────────────────────────────────
 var form          = document.getElementById("placardForm");
@@ -24,7 +24,7 @@ var btnPrint      = document.getElementById("btnPrint");
 PRODUCTS.forEach(function (product, index) {
   var option = document.createElement("option");
   option.value = index;          // store array index as value
-  option.textContent = product.name + " " + product.size;
+  option.textContent = (product.name + " " + (product.size || "")).trim();
   productSelect.appendChild(option);
 });
 

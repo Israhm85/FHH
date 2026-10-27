@@ -41,11 +41,11 @@ class Element {
   scrollIntoView() {}
 }
 
-function setup() {
+function setup(catalog) {
   const elements = {};
   const el = id => elements[id] ||= new Element();
   const product = { name: 'SHELLED EDAMAME', size: '9 oz', casesPerPallet: 160, manual: true };
-  el('eastCoastCatalog').textContent = JSON.stringify([product]);
+  el('eastCoastCatalog').textContent = JSON.stringify(catalog || [product]);
   el('btnPrint').disabled = true;
   const body = new Element();
   body.setAttribute('data-client', 'east-coast');
@@ -109,19 +109,56 @@ function setup() {
   return { el, body, pending, context, load, result, loadWeek, weekResult, prints: () => prints };
 }
 
-test('catalog injection cannot close its script tag and manual uses defaults only', () => {
-  let defaultsOnly = false;
+test('catalog injection cannot close its script tag and manual uses the full catalog', () => {
+  const calls = [];
   const context = vm.createContext({
     getEastCoastProducts_(defaults) {
-      defaultsOnly = defaults;
-      return [{ name: '</script><script>alert(1)</script>', manual: true }];
+      calls.push(defaults);
+      return [{ name: '</script><script>alert(1)</script>', manual: true }, { name: 'Configured extra', manual: false }];
     }
   });
   vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'Code.gs'), 'utf8'), context);
   const json = context.getEastCoastCatalogJson_();
-  assert.equal(defaultsOnly, true);
+  assert.deepEqual(calls, [undefined]);
   assert.doesNotMatch(json, /</);
   assert.equal(JSON.parse(json)[0].name, '</script><script>alert(1)</script>');
+  assert.equal(JSON.parse(json)[1].name, 'Configured extra');
+});
+
+test('invalid product configuration falls back to the default catalog for manual', () => {
+  const context = vm.createContext({
+    getEastCoastProducts_(defaults) {
+      if (defaults !== true) { throw new Error('bad EAST_COAST_PRODUCTS'); }
+      return [{ name: 'SHELLED EDAMAME', manual: true }];
+    }
+  });
+  vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'Code.gs'), 'utf8'), context);
+  assert.equal(JSON.parse(context.getEastCoastCatalogJson_())[0].name, 'SHELLED EDAMAME');
+});
+
+test('manual product select lists every East Coast item, not only the original six', () => {
+  const ordersContext = vm.createContext({});
+  vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'Orders.gs'), 'utf8'), ordersContext);
+  const catalog = ordersContext.getEastCoastProducts_(true);
+  assert.ok(catalog.some(product => !product.manual));
+  const app = setup(JSON.parse(JSON.stringify(catalog)));
+  const options = app.el('productSelect').children;
+  assert.equal(options.length, catalog.length);
+  catalog.forEach((product, i) => {
+    assert.equal(options[i].value, i);
+    assert.equal(options[i].textContent, (product.name + ' ' + product.size).trim());
+  });
+
+  const potPie = catalog.findIndex(product => product.placardName === 'pot pie');
+  app.el('poNumber').value = '0042';
+  app.el('destination').value = 'DAYTONA';
+  app.el('totalCases').value = '91';
+  app.el('productSelect').value = String(potPie);
+  app.el('placardForm').fire('submit');
+  const cards = app.el('printArea').children;
+  assert.equal(cards.length, 2);
+  assert.match(cards[0].innerHTML, /pot pie/);
+  assert.match(cards[1].innerHTML, /\(2\) OF \(2\)/);
 });
 
 test('manual generation and per-product numbering still work', () => {

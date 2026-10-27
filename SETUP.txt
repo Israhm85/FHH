@@ -1,7 +1,9 @@
 East Coast: placards desde Google Sheets por fecha o semana
 =========================================================
 
-El modo Manual permanece disponible con sus seis productos originales.
+El modo Manual permanece disponible y su selector Product muestra todos los
+items de East Coast (los seis originales, los de temporada y los añadidos en
+EAST_COAST_PRODUCTS).
 Chef Haks e IDs conservan sus formularios y comportamiento.
 Los modos de hoja son adicionales: Desde hoja por fecha o Desde hoja por semana ->
 Cargar y generar ->
@@ -62,9 +64,9 @@ EAST_COAST_PRODUCTS
   También puede completar size o añadir aliases a un producto existente usando
   su mismo name y casesPerPallet. No puede sobrescribir capacidades conocidas.
   nameClass opcional: una clase name--...; por defecto name--holiday.
-  Los productos nuevos sólo se añaden al modo automático.
-  Los errores de configuración se reportan al cargar órdenes.
-  El formulario manual carga los valores originales sin depender de esta propiedad.
+  Los productos nuevos también aparecen en el selector del modo Manual.
+  Los errores de configuración se reportan al cargar órdenes; si la propiedad
+  es inválida, el formulario manual sigue funcionando con el catálogo base.
 
 La cuenta que ejecuta la web app necesita acceso de lectura a la hoja y
 autorizar SpreadsheetApp. Según el despliegue, puede ser el propietario
