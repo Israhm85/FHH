@@ -564,6 +564,7 @@ body[data-client="reporteras"] {
 .placard-product-name.name--garlic          { font-size: 78px; }   /* GARLIC / ASIAGO DIP */
 .placard-product-name.name--chicken         { font-size: 66px; }   /* CHICKEN STUFFED / POBLANO */
 .placard-product-name.name--roasted         { font-size: 76px; }   /* ROASTED GREEN / VEGETABLES */
+.placard-product-name.name--short-label     { font-size: clamp(28px, 12vw, 82px); }
 
 /* CODE — centered */
 .placard-code {
@@ -583,22 +584,21 @@ body[data-client="reporteras"] {
 .placard-po {
   font-size: 52px;
   font-weight: 900;
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
   gap: 16px;
   align-items: baseline;
-  line-height: 1;
+  line-height: 1.1;
   margin-bottom: 6px;
 }
 
 .placard-po > span {
-  display: inline-block;
-  transform: scale(1.1);
-  transform-origin: bottom left;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .placard-po > span:last-child {
-  transform-origin: bottom right;
+  text-align: right;
 }
 
 /* Keep Refrigerated — small, centered */
@@ -664,6 +664,14 @@ body[data-client="reporteras"] {
 }
 
 /* ── Print media ─────────────────────────────────────────────────── */
+[hidden] {
+  display: none !important;
+}
+
+#sheetSummary > section {
+  margin-block: 18px;
+}
+
 @media print {
   @page {
     size: landscape;
@@ -678,6 +686,7 @@ body[data-client="reporteras"] {
   .page-decor,
   .app-header,
   .client-selector,
+  .east-coast-ui,
   .app-title,
   .section-intro,
   .form-grid {
@@ -700,6 +709,12 @@ body[data-client="reporteras"] {
     margin: 0;
     gap: 0;
     display: block;
+  }
+
+  body:not([data-client="east-coast"]) #sectionEastCoast,
+  body[data-client="east-coast"] #sectionReporteras,
+  body[data-client="east-coast"] #sectionIds {
+    display: none !important;
   }
 
   .placard {
@@ -760,6 +775,8 @@ body[data-client="reporteras"] {
   .placard-product-name.name--garlic          { font-size: 11vw; }    /* GARLIC / ASIAGO DIP */
   .placard-product-name.name--chicken         { font-size: 9vw; }     /* CHICKEN STUFFED / POBLANO */
   .placard-product-name.name--roasted         { font-size: 10.5vw; }  /* ROASTED GREEN / VEGETABLES */
+  .placard-product-name.name--holiday         { font-size: 6vw; }
+  .placard-product-name.name--short-label     { font-size: 9vw; line-height: 1; }
 
   .placard-code,
   .placard-cs {
@@ -768,7 +785,7 @@ body[data-client="reporteras"] {
   }
 
   .placard-po {
-    font-size: 80px;
+    font-size: 64px;
     gap: 16px;
     margin-bottom: 0;
   }
