@@ -48,8 +48,8 @@ function load(options = {}) {
     }
   });
   vm.runInContext(source, context, { filename: 'Orders.gs' });
-  return { context, calls, get: date => JSON.parse(JSON.stringify(context.getEastCoastOrders(date))),
-    getWeek: week => JSON.parse(JSON.stringify(context.getEastCoastOrdersByWeek(week))) };
+  return { context, calls, get: (date, section) => JSON.parse(JSON.stringify(context.getEastCoastOrders(date, section))),
+    getWeek: (week, section) => JSON.parse(JSON.stringify(context.getEastCoastOrdersByWeek(week, section))) };
 }
 
 function block(options = {}) {
@@ -83,6 +83,64 @@ const holidayRows = [
   ['Stuffed poblanos chicken', 0],
   ['Holiday Entree Turkey Pot Pie', 180]
 ];
+
+test('independent JIT selection isolates unfinished edamame from regular week and date orders', () => {
+  const regular = block();
+  const jit = [
+    ['JIT EDAMAME', 'NAZARETH', 'DAYTONA'],
+    ['PO#', '', ''],
+    ['PICK UP DATE', '', ''],
+    ['ARRIVE (RDD)', '', ''],
+    ['EDAMAME', 480, 640]
+  ];
+  const app = load({ tabs: [{ name: 'EAST COAST', displayed: [...regular, ...jit] }] });
+  assert.equal(app.getWeek('44', 'regular').totalPallets, 1);
+  assert.equal(app.get('2026-11-04', 'regular').totalPallets, 1);
+  assert.equal(app.getWeek('44', 'regular').section, 'regular');
+  assert.throws(() => app.getWeek('44', 'jit'), /Missing PO#.*NAZARETH/);
+  assert.throws(() => app.getWeek('44'), /Missing PO#/);
+  jit[1][1] = '000JIT1';
+  jit[1][2] = '000JIT2';
+  assert.equal(app.getWeek('44', 'jit').totalPallets, 7);
+  assert.throws(() => app.get('2026-11-04', 'jit'), /Missing ARRIVE.*date/);
+  jit[3][1] = '11/04/2026';
+  jit[3][2] = '11/04/2026';
+  const ready = load({ tabs: [{ name: 'EAST COAST', displayed: [...regular, ...jit] }] });
+  for (const result of [ready.getWeek('44', 'jit'), ready.get('2026-11-04', 'jit')]) {
+    assert.equal(result.section, 'jit');
+    assert.equal(result.totalPallets, 7);
+    assert.deepEqual(result.stores.map(store => store.products[0].poNumber), ['000JIT1', '000JIT2']);
+    assert.ok(result.stores.every(store => store.products[0].product.casesPerPallet === 160));
+  }
+  regular[5][1] = 'bad regular quantity';
+  assert.equal(ready.getWeek('44', 'jit').totalPallets, 7);
+  assert.equal(ready.get('2026-11-04', 'jit').totalPallets, 7);
+  assert.throws(() => ready.getWeek('44', 'regular'), /invalid case quantity/);
+});
+
+test('section selection rejects invalid inputs and returns empty results when section is absent', () => {
+  const app = load();
+  assert.equal(app.getWeek('44', 'jit').totalPallets, 0);
+  assert.equal(app.get('2026-11-04', 'jit').totalPallets, 0);
+  for (const section of ['', null, 'typo', {}, 1]) {
+    assert.throws(() => app.getWeek('44', section), /Order section/);
+    assert.throws(() => app.get('2026-11-04', section), /Order section/);
+  }
+  assert.deepEqual(app.getWeek('44', 'all'), app.getWeek('44'));
+});
+
+test('selected sections keep missing-PO checks and week boundaries isolated', () => {
+  const displayed = [
+    ['WK 44'], ['', 'NAZARETH'],
+    ['JIT EDAMAME', 'NAZARETH'],
+    ['EDAMAME', 160],
+    ...block()
+  ];
+  const app = load({ tabs: [{ name: 'EAST COAST', displayed }] });
+  assert.equal(app.getWeek('44', 'regular').totalPallets, 1);
+  assert.throws(() => app.getWeek('44', 'jit'), /Missing PO# order block/);
+  assert.equal(app.getWeek('45', 'jit').totalPallets, 0);
+});
 
 test('short placard labels preserve original names, capacities and Nazareth totals in both modes', () => {
   const app = load({ tabs: [{ name: 'EAST COAST', displayed: block({ rows: holidayRows }) }] });

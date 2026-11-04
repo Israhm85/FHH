@@ -47,6 +47,7 @@ function setup(catalog) {
   const product = { name: 'SHELLED EDAMAME', size: '9 oz', casesPerPallet: 160, manual: true };
   el('eastCoastCatalog').textContent = JSON.stringify(catalog || [product]);
   el('btnPrint').disabled = true;
+  el('orderSection').value = 'regular';
   const body = new Element();
   body.setAttribute('data-client', 'east-coast');
   const pending = [];
@@ -64,8 +65,8 @@ function setup(catalog) {
         return {
           withFailureHandler(failure) {
             return {
-              getEastCoastOrders(date) { pending.push({ success, failure, date }); },
-              getEastCoastOrdersByWeek(week) { pending.push({ success, failure, week }); }
+              getEastCoastOrders(date, section) { pending.push({ success, failure, date, section }); },
+              getEastCoastOrdersByWeek(week, section) { pending.push({ success, failure, week, section }); }
             };
           }
         };
@@ -84,7 +85,7 @@ function setup(catalog) {
   }
   function result(date = '2026-11-04') {
     return {
-      date, totalPallets: 3, warnings: [],
+      date, section: el('orderSection').value, totalPallets: 3, warnings: [],
       stores: ['NAZARETH', 'DAYTONA'].map((destination, i) => ({
         destination, totalPallets: i + 1,
         products: [{ product, poNumber: '0159543664', totalCases: 160 * (i + 1), totalPallets: i + 1 }]
@@ -309,12 +310,44 @@ test('pallet numbering restarts for each item, never uses the store/order total'
 test('no orders and invalid/mismatched responses leave print disabled', () => {
   const app = setup();
   app.el('ecSheetMode').fire('click');
-  app.load().success({ date: '2026-11-04', stores: [], totalPallets: 0 });
+  app.load().success({ date: '2026-11-04', section: 'regular', stores: [], totalPallets: 0 });
   assert.match(app.el('sheetStatus').textContent, /No hay órdenes/);
   assert.equal(app.el('btnPrintSheet').disabled, true);
   app.load().success(app.result('2026-04-11'));
   assert.match(app.el('sheetStatus').textContent, /inválida/);
   assert.equal(app.el('printArea').children.length, 0);
+});
+
+test('section changes isolate JIT requests and invalidate printed and in-flight regular batches', () => {
+  const app = setup();
+  app.el('ecWeekMode').fire('click');
+  const regular = app.loadWeek();
+  assert.equal(regular.section, 'regular');
+  const stale = app.weekResult();
+  app.el('orderSection').value = 'jit';
+  app.el('orderSection').fire('change');
+  regular.success(stale);
+  assert.equal(app.el('printArea').children.length, 0);
+  const jit = app.loadWeek();
+  assert.equal(jit.section, 'jit');
+  jit.success(app.weekResult());
+  assert.equal(app.el('printArea').children.length, 3);
+  app.el('orderSection').value = 'regular';
+  app.el('orderSection').fire('change');
+  assert.equal(app.el('printArea').children.length, 0);
+  assert.equal(app.el('btnPrintSheet').disabled, true);
+  const wrongSection = app.loadWeek();
+  const wrong = app.weekResult();
+  wrong.section = 'jit';
+  wrongSection.success(wrong);
+  assert.equal(app.el('btnPrintSheet').disabled, true);
+  app.el('ecSheetMode').fire('click');
+  app.el('orderSection').value = 'jit';
+  app.el('orderSection').fire('change');
+  const date = app.load();
+  assert.equal(date.section, 'jit');
+  date.success(app.result());
+  assert.equal(app.el('printArea').children.length, 3);
 });
 
 test('week mode requests worksheet WK and prints all stores regardless of arrival dates', () => {
@@ -424,7 +457,7 @@ test('invalid, missing, mismatched and empty weeks leave printing disabled', () 
     assert.match(app.el('sheetStatus').textContent, /semana válida/);
     assert.equal(app.el('btnPrintSheet').disabled, true);
   });
-  app.loadWeek('53').success({ week: 'WK 53', stores: [], totalPallets: 0 });
+  app.loadWeek('53').success({ week: 'WK 53', section: 'regular', stores: [], totalPallets: 0 });
   assert.match(app.el('sheetStatus').textContent, /No hay órdenes.*WK 53/);
   app.loadWeek().success(app.weekResult('WK 45'));
   assert.match(app.el('sheetStatus').textContent, /inválida/);

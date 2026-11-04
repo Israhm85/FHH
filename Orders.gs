@@ -42,13 +42,32 @@ function getEastCoastProducts_(defaultsOnly) {
   return products;
 }
 
-function getEastCoastOrders(date) {
+function getEastCoastOrders(date, section) {
   eastCoastIsoDate_(date, 'Arrival date');
-  return eastCoastFetchOrders_({ date: date });
+  return eastCoastFetchOrders_({ date: date, section: eastCoastSection_(section) });
 }
 
-function getEastCoastOrdersByWeek(week) {
-  return eastCoastFetchOrders_({ week: eastCoastWeek_(week, 'Order week') });
+function getEastCoastOrdersByWeek(week, section) {
+  return eastCoastFetchOrders_({ week: eastCoastWeek_(week, 'Order week'), section: eastCoastSection_(section) });
+}
+
+function eastCoastSection_(section) {
+  if (section === undefined) return 'all';
+  if (section !== 'all' && section !== 'regular' && section !== 'jit') {
+    throw new Error('Order section must be regular, jit or all.');
+  }
+  return section;
+}
+
+function eastCoastIsJitHeader_(row, labelColumn) {
+  for (var column = 0; column <= labelColumn; column++) {
+    if (eastCoastText_(row[column]) === 'jit edamame') return true;
+  }
+  return false;
+}
+
+function eastCoastSectionMatches_(section, jit) {
+  return !section || section === 'all' || (section === 'jit') === jit;
 }
 
 function eastCoastFetchOrders_(selection) {
@@ -103,10 +122,12 @@ function eastCoastFetchOrders_(selection) {
       displayed = orders.displayed;
     }
     shipments = shipments.concat(selection.week ?
-      parseEastCoastWeekSheet_(typed, displayed, timezone, selection.week, catalog, sheet.getName(), weekMarkers) :
-      parseEastCoastSheet_(typed, displayed, timezone, selection.date, catalog, sheet.getName()));
+      parseEastCoastWeekSheet_(typed, displayed, timezone, selection.week, catalog, sheet.getName(), weekMarkers, selection.section) :
+      parseEastCoastSheet_(typed, displayed, timezone, selection.date, catalog, sheet.getName(), false, 0, selection.section));
   });
-  return eastCoastAggregate_(selection.date, shipments, selection.week);
+  var result = eastCoastAggregate_(selection.date, shipments, selection.week);
+  if (selection.section !== 'all') result.section = selection.section;
+  return result;
 }
 
 function eastCoastWithoutItemTotals_(typed, displayed, sheetName) {
@@ -166,7 +187,7 @@ function eastCoastWeekMarkers_(displayed, sheetName) {
   return markers;
 }
 
-function parseEastCoastWeekSheet_(typed, displayed, timezone, week, catalog, sheetName, weekMarkers) {
+function parseEastCoastWeekSheet_(typed, displayed, timezone, week, catalog, sheetName, weekMarkers, section) {
   week = eastCoastWeek_(week, 'Order week');
   sheetName = sheetName || 'Orders';
   var markers = weekMarkers || eastCoastWeekMarkers_(displayed, sheetName);
@@ -181,18 +202,19 @@ function parseEastCoastWeekSheet_(typed, displayed, timezone, week, catalog, she
     values[0] = (values[0] || []).slice();
     marker.columns.forEach(function (column) { rows[0][column] = ''; values[0][column] = ''; });
     if (!rows.some(function (row) { var value = eastCoastRowMarker_(row); return value && value.kind === 'po'; })) {
-      eastCoastCheckMissingWeekPo_(values, rows, catalog, sheetName, start);
+      eastCoastCheckMissingWeekPo_(values, rows, catalog, sheetName, start, section);
       return;
     }
     // Slice at literal markers so neither headers nor products can cross week boundaries.
-    shipments = shipments.concat(parseEastCoastSheet_(values, rows, timezone, '', catalog, sheetName, true, start));
+    shipments = shipments.concat(parseEastCoastSheet_(values, rows, timezone, '', catalog, sheetName, true, start, section));
   });
   return shipments;
 }
 
-function eastCoastCheckMissingWeekPo_(typed, displayed, catalog, sheetName, rowOffset) {
+function eastCoastCheckMissingWeekPo_(typed, displayed, catalog, sheetName, rowOffset, section) {
   var products = eastCoastProductIndex_(catalog);
   var header = [];
+  var jit = false;
   displayed.forEach(function (row, rowIndex) {
     if (eastCoastRowMarker_(row)) return;
     var label = eastCoastProductLabel_(row, header.length ? header[0].column : row.length, products);
@@ -202,8 +224,10 @@ function eastCoastCheckMissingWeekPo_(typed, displayed, catalog, sheetName, rowO
       return header.some(function (existing) { return existing.column === store.column && eastCoastText_(existing.destination) === eastCoastText_(store.destination); });
     }))) {
       header = candidate;
+      jit = eastCoastIsJitHeader_(row, header[0].column - 1);
       return;
     }
+    if (!eastCoastSectionMatches_(section, jit)) return;
     var productColumn = -1;
     row.forEach(function (cell, column) { if (products[eastCoastText_(cell)]) productColumn = column; });
     for (var column = 0; column < row.length; column++) {
@@ -334,7 +358,7 @@ function eastCoastQuantity_(typed, displayed, context) {
   return value;
 }
 
-function parseEastCoastSheet_(typed, displayed, timezone, date, catalog, sheetName, weekMode, rowOffset) {
+function parseEastCoastSheet_(typed, displayed, timezone, date, catalog, sheetName, weekMode, rowOffset, section) {
   if (!weekMode) eastCoastIsoDate_(date, 'Arrival date');
   rowOffset = rowOffset || 0;
   sheetName = sheetName || 'Orders';
@@ -349,7 +373,7 @@ function parseEastCoastSheet_(typed, displayed, timezone, date, catalog, sheetNa
   });
   if (!blocks.length) throw new Error('East Coast orders tab "' + sheetName + '" has no recognizable PO# order blocks.');
   if (weekMode) {
-    eastCoastCheckMissingWeekPo_(typed.slice(0, blocks[0].row), displayed.slice(0, blocks[0].row), catalog, sheetName, rowOffset);
+    eastCoastCheckMissingWeekPo_(typed.slice(0, blocks[0].row), displayed.slice(0, blocks[0].row), catalog, sheetName, rowOffset, section);
   }
   var shipments = [];
   blocks.forEach(function (block, blockIndex) {
@@ -372,6 +396,7 @@ function parseEastCoastSheet_(typed, displayed, timezone, date, catalog, sheetNa
         }
       }
     }
+    if (!eastCoastSectionMatches_(section, eastCoastIsJitHeader_(displayed[headerRow], block.labelColumn))) return;
     var arrivalRow = -1;
     for (var metadataRow = block.row + 1; metadataRow < end; metadataRow++) {
       var marker = eastCoastRowMarker_(displayed[metadataRow]);

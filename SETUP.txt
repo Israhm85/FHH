@@ -110,6 +110,19 @@ Un mismo ítem/PO con distintas llegadas no debe combinar paletas parciales.
 API del servidor: getEastCoastOrdersByWeek("WK 44") devuelve la referencia
 week junto con tiendas/productos y totales; getEastCoastOrders(fecha ISO)
 permanece disponible para el modo por fecha. No se envían objetos Date.
+Ambas cargas ofrecen "Sección de órdenes": por defecto sólo órdenes
+principales, sin el bloque cuyo encabezado local dice "JIT EDAMAME".
+La opción "Sólo bloque JIT EDAMAME" carga ese bloque por separado.
+La selección se aplica antes de validar sus PO, fechas y cantidades:
+un bloque JIT pendiente no bloquea la generación de órdenes principales.
+No se inventan PO ni se heredan del bloque principal. Al cargar JIT,
+un PO faltante con cantidades positivas sigue siendo un error; en modo
+fecha también se requiere ARRIVE (RDD). En modo semana ARRIVE sigue
+siendo opcional. Cambiar sección limpia el lote anterior y deshabilita
+la impresión hasta una nueva carga.
+Las API aceptan un segundo parámetro "regular" o "jit" y devuelven
+section para identificar el lote. Omitirlo (o usar "all") conserva
+el comportamiento anterior que valida e incluye ambas secciones.
 
 Marcadores de semana soportados: una celda "WK 44" o "Week 44"
 (mayúsculas/espacios tolerantes), o celdas adyacentes "WK" y 44.

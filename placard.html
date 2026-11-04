@@ -56,6 +56,14 @@
         </div>
         <section id="sheetControls" class="east-coast-ui" hidden>
           <form id="sheetForm" class="form-grid">
+            <div class="field">
+              <label for="orderSection">Sección de órdenes</label>
+              <select id="orderSection">
+                <option value="regular">Órdenes principales (sin bloque JIT EDAMAME)</option>
+                <option value="jit">Sólo bloque JIT EDAMAME</option>
+              </select>
+              <span>JIT EDAMAME se genera por separado y requiere su propio PO.</span>
+            </div>
             <div class="field" id="arrivalField">
               <label for="arrivalDate">ARRIVE (RDD) / Fecha de llegada</label>
               <input id="arrivalDate" type="date" required aria-describedby="arrivalFormat" />
