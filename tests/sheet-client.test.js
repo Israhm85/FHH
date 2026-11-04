@@ -150,7 +150,7 @@ test('manual product select lists every East Coast item, not only the original s
     assert.equal(options[i].textContent, (product.name + ' ' + product.size).trim());
   });
 
-  const potPie = catalog.findIndex(product => product.placardName === 'pot pie');
+  const potPie = catalog.findIndex(product => product.placardName === 'turkey pot pie');
   app.el('poNumber').value = '0042';
   app.el('destination').value = 'DAYTONA';
   app.el('totalCases').value = '91';
@@ -158,7 +158,7 @@ test('manual product select lists every East Coast item, not only the original s
   app.el('placardForm').fire('submit');
   const cards = app.el('printArea').children;
   assert.equal(cards.length, 2);
-  assert.match(cards[0].innerHTML, /pot pie/);
+  assert.match(cards[0].innerHTML, /turkey pot pie/);
   assert.match(cards[1].innerHTML, /\(2\) OF \(2\)/);
 });
 
@@ -208,7 +208,7 @@ test('apple cranberry stuffing uses the catalog print name in manual and weekly 
 test('placard builder prints short labels, escapes them and falls back to the original name', () => {
   const app = setup();
   const labels = ['corn pudding', 'roasted vegetables', 'apple cranberry stuffing',
-    'scalloped potatoes', 'vainilla sweet potatoes', 'pot pie', '<img onerror=x>'];
+    'scalloped potatoes', 'vainilla sweet potatoes', 'turkey pot pie', '<img onerror=x>'];
   labels.forEach(label => {
     const card = app.context.buildPlacard({
       palletNumber: 1, totalPallets: 3, poNumber: '0159543664', destination: 'NAZARETH',
@@ -225,6 +225,42 @@ test('placard builder prints short labels, escapes them and falls back to the or
     product: { name: 'SHELLED EDAMAME', size: '9 oz' }
   });
   assert.match(fallback.innerHTML, /SHELLED EDAMAME/);
+});
+
+test('loaded mashed potatoes uses two explicit enlarged lines in manual and sheet placards', () => {
+  const ordersContext = vm.createContext({});
+  vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'Orders.gs'), 'utf8'), ordersContext);
+  const catalog = JSON.parse(JSON.stringify(ordersContext.getEastCoastProducts_(true)));
+  const index = catalog.findIndex(product => product.name === 'Loaded mashed potatoes');
+  const app = setup(catalog);
+  assert.equal(catalog[index].casesPerPallet, 143);
+  app.el('poNumber').value = '0159669540';
+  app.el('destination').value = 'HARTFORD';
+  app.el('totalCases').value = '286';
+  app.el('productSelect').value = String(index);
+  app.el('placardForm').fire('submit');
+  const manual = app.el('printArea').children.map(card => card.innerHTML);
+  assert.equal(manual.length, 2);
+  manual.forEach(html => {
+    assert.match(html, /name--loaded-mashed/);
+    assert.match(html, /<span>Loaded mashed<\/span><span>potatoes<\/span>/);
+    assert.match(html, /PO#0159669540/);
+    assert.match(html, /HARTFORD/);
+  });
+  app.el('ecWeekMode').fire('click');
+  const result = app.weekResult();
+  result.stores = [{ destination: 'HARTFORD', totalPallets: 2, products: [{
+    product: catalog[index], poNumber: '0159669540', totalCases: 286, totalPallets: 2
+  }] }];
+  result.totalPallets = 2;
+  app.loadWeek().success(result);
+  assert.deepEqual(app.el('printArea').children.map(card => card.innerHTML), manual);
+  const escaped = app.context.buildPlacard({
+    palletNumber: 1, totalPallets: 1, poNumber: '0001', destination: 'DAYTONA',
+    product: { name: '<img onerror=x>', nameClass: 'name--loaded-mashed' }
+  });
+  assert.doesNotMatch(escaped.innerHTML, /<img/);
+  assert.match(escaped.innerHTML, /&lt;img/);
 });
 
 test('sheet mode groups all stores, selects isolated batch, preserves PO and escapes strings', () => {

@@ -180,10 +180,13 @@ Nombres impresos (placardName en el catálogo central):
   Holiday Apple Cranberry Stuffing -> apple cranberry stuffing
   Four cheese scalloped potatoes -> scalloped potatoes
   Holiday Vanilla Bean Whipped Sweet Potatoes -> vainilla sweet potatoes
-  Holiday Entree Turkey Pot Pie -> pot pie
+  Holiday Entree Turkey Pot Pie -> turkey pot pie
 Sólo cambia el nombre dentro del placard. Los nombres de hoja, aliases,
 resúmenes y claves de agrupación se conservan, igual que las capacidades.
 Los productos sin placardName siguen imprimiendo su nombre original.
+Loaded mashed potatoes conserva su nombre y se imprime en dos líneas:
+"LOADED MASHED" / "POTATOES", con tipografía ampliada en pantalla e impresión.
+El diseño se comparte entre el modo manual y las cargas desde hoja.
 
 Fuente única: getEastCoastProducts_() en Orders.gs, compartida con la UI.
 Matching por aliases explícitos, ignorando mayúsculas/espacios repetidos.

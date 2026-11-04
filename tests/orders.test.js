@@ -148,7 +148,7 @@ test('short placard labels preserve original names, capacities and Nazareth tota
     const products = result.stores[0].products;
     const labels = [[0, 'corn pudding'], [1, 'roasted vegetables'],
       [2, 'apple cranberry stuffing'], [3, 'scalloped potatoes'],
-      [8, 'vainilla sweet potatoes'], [10, 'pot pie']];
+      [8, 'vainilla sweet potatoes'], [10, 'turkey pot pie']];
     labels.forEach(([index, label]) => {
       assert.equal(products[index].product.placardName, label);
       assert.equal(products[index].product.casesPerPallet, index === 10 ? 90 : 143);
@@ -454,7 +454,8 @@ test('authoritative catalog keeps exactly six original manual products and verif
   assert.equal(catalog.find(product => product.name === 'SHELLED EDAMAME').casesPerPallet, 160);
   assert.ok(catalog.every(product => Array.isArray(product.aliases)));
   assert.ok(catalog.filter(product => !product.manual).every(product => product.size === ''));
-  assert.ok(catalog.filter(product => !product.manual).every(product => product.nameClass === 'name--holiday'));
+  assert.ok(catalog.filter(product => !product.manual).every(product =>
+    product.nameClass === (product.name === 'Loaded mashed potatoes' ? 'name--loaded-mashed' : 'name--holiday')));
 });
 
 test('defaults-only catalog ignores malformed overrides so unrelated manual apps still render', () => {
