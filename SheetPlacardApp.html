@@ -16,6 +16,7 @@
   var status = document.getElementById("sheetStatus");
   var summary = document.getElementById("sheetSummary");
   var storeSelect = document.getElementById("sheetStore");
+  var sectionSelect = document.getElementById("orderSection");
   var mode = "manual";
   var requestId = 0;
   var batch = null;
@@ -81,7 +82,8 @@
   }
 
   function batchMatches(result) {
-    return result && (mode === "week" ? result.week === weekKey() : result.date === dateInput.value);
+    return result && result.section === sectionSelect.value &&
+      (mode === "week" ? result.week === weekKey() : result.date === dateInput.value);
   }
 
   function isCurrentBatch() {
@@ -159,6 +161,7 @@
     showReference();
   });
   storeSelect.addEventListener("change", renderSelection);
+  sectionSelect.addEventListener("change", invalidate);
   sheetForm.addEventListener("submit", function (event) {
     event.preventDefault();
     if (mode === "manual" || loadButton.disabled) { return; }
@@ -172,12 +175,14 @@
     }
     var key = referenceKey();
     var requestMode = mode;
+    var requestSection = sectionSelect.value;
     var reference = mode === "week" ? weekDisplay.textContent : dateDisplay.textContent;
     var id = requestId;
     setLoading(true);
     status.textContent = "Cargando órdenes y generando placards…";
     function stillCurrent() {
-      return id === requestId && key === referenceKey() && mode === requestMode;
+      return id === requestId && key === referenceKey() && mode === requestMode &&
+        sectionSelect.value === requestSection;
     }
     function fail(error) {
       if (!stillCurrent()) { return; }
@@ -206,9 +211,9 @@
         }
       }).withFailureHandler(fail);
       if (requestMode === "week") {
-        runner.getEastCoastOrdersByWeek(key);
+        runner.getEastCoastOrdersByWeek(key, requestSection);
       } else {
-        runner.getEastCoastOrders(key);
+        runner.getEastCoastOrders(key, requestSection);
       }
     } catch (error) {
       fail(error);

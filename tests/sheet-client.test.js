@@ -47,6 +47,7 @@ function setup(catalog) {
   const product = { name: 'SHELLED EDAMAME', size: '9 oz', casesPerPallet: 160, manual: true };
   el('eastCoastCatalog').textContent = JSON.stringify(catalog || [product]);
   el('btnPrint').disabled = true;
+  el('orderSection').value = 'regular';
   const body = new Element();
   body.setAttribute('data-client', 'east-coast');
   const pending = [];
@@ -64,8 +65,8 @@ function setup(catalog) {
         return {
           withFailureHandler(failure) {
             return {
-              getEastCoastOrders(date) { pending.push({ success, failure, date }); },
-              getEastCoastOrdersByWeek(week) { pending.push({ success, failure, week }); }
+              getEastCoastOrders(date, section) { pending.push({ success, failure, date, section }); },
+              getEastCoastOrdersByWeek(week, section) { pending.push({ success, failure, week, section }); }
             };
           }
         };
@@ -84,7 +85,7 @@ function setup(catalog) {
   }
   function result(date = '2026-11-04') {
     return {
-      date, totalPallets: 3, warnings: [],
+      date, section: el('orderSection').value, totalPallets: 3, warnings: [],
       stores: ['NAZARETH', 'DAYTONA'].map((destination, i) => ({
         destination, totalPallets: i + 1,
         products: [{ product, poNumber: '0159543664', totalCases: 160 * (i + 1), totalPallets: i + 1 }]
@@ -149,7 +150,7 @@ test('manual product select lists every East Coast item, not only the original s
     assert.equal(options[i].textContent, (product.name + ' ' + product.size).trim());
   });
 
-  const potPie = catalog.findIndex(product => product.placardName === 'pot pie');
+  const potPie = catalog.findIndex(product => product.placardName === 'turkey pot pie');
   app.el('poNumber').value = '0042';
   app.el('destination').value = 'DAYTONA';
   app.el('totalCases').value = '91';
@@ -157,7 +158,7 @@ test('manual product select lists every East Coast item, not only the original s
   app.el('placardForm').fire('submit');
   const cards = app.el('printArea').children;
   assert.equal(cards.length, 2);
-  assert.match(cards[0].innerHTML, /pot pie/);
+  assert.match(cards[0].innerHTML, /turkey pot pie/);
   assert.match(cards[1].innerHTML, /\(2\) OF \(2\)/);
 });
 
@@ -176,10 +177,38 @@ test('manual generation and per-product numbering still work', () => {
   assert.equal(app.prints(), 1);
 });
 
+test('apple cornbread stuffing uses the catalog print name in manual and weekly placards', () => {
+  const ordersContext = vm.createContext({});
+  vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'Orders.gs'), 'utf8'), ordersContext);
+  const catalog = JSON.parse(JSON.stringify(ordersContext.getEastCoastProducts_(true)));
+  const index = catalog.findIndex(product => product.name === 'Holiday Apple Cornbread Stuffing');
+  const app = setup(catalog);
+  app.el('poNumber').value = '0159669543';
+  app.el('destination').value = 'NAZARETH';
+  app.el('totalCases').value = '286';
+  app.el('productSelect').value = String(index);
+  app.el('placardForm').fire('submit');
+  const manual = app.el('printArea').children.map(card => card.innerHTML);
+  assert.equal(manual.length, 2);
+  manual.forEach(html => {
+    assert.match(html, /APPLE CORNBREAD STUFFING/);
+    assert.doesNotMatch(html, /Holiday Apple Cornbread Stuffing|cranberry/i);
+  });
+  app.el('ecWeekMode').fire('click');
+  const result = app.weekResult('WK 45');
+  result.stores = [{ destination: 'NAZARETH', totalPallets: 2, products: [{
+    product: catalog[index], poNumber: '0159669543', totalCases: 286,
+    totalPallets: 2, arrivalDate: '2026-11-11'
+  }] }];
+  result.totalPallets = 2;
+  app.loadWeek('45').success(result);
+  assert.deepEqual(app.el('printArea').children.map(card => card.innerHTML), manual);
+});
+
 test('placard builder prints short labels, escapes them and falls back to the original name', () => {
   const app = setup();
-  const labels = ['corn pudding', 'roasted vegetables', 'cranberry stuffing',
-    'scalloped potatoes', 'vainilla sweet potatoes', 'pot pie', '<img onerror=x>'];
+  const labels = ['corn pudding', 'roasted vegetables', 'APPLE CORNBREAD STUFFING',
+    'scalloped potatoes', 'vainilla sweet potatoes', 'turkey pot pie', '<img onerror=x>'];
   labels.forEach(label => {
     const card = app.context.buildPlacard({
       palletNumber: 1, totalPallets: 3, poNumber: '0159543664', destination: 'NAZARETH',
@@ -196,6 +225,42 @@ test('placard builder prints short labels, escapes them and falls back to the or
     product: { name: 'SHELLED EDAMAME', size: '9 oz' }
   });
   assert.match(fallback.innerHTML, /SHELLED EDAMAME/);
+});
+
+test('loaded mashed potatoes uses two explicit enlarged lines in manual and sheet placards', () => {
+  const ordersContext = vm.createContext({});
+  vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'Orders.gs'), 'utf8'), ordersContext);
+  const catalog = JSON.parse(JSON.stringify(ordersContext.getEastCoastProducts_(true)));
+  const index = catalog.findIndex(product => product.name === 'Loaded mashed potatoes');
+  const app = setup(catalog);
+  assert.equal(catalog[index].casesPerPallet, 143);
+  app.el('poNumber').value = '0159669540';
+  app.el('destination').value = 'HARTFORD';
+  app.el('totalCases').value = '286';
+  app.el('productSelect').value = String(index);
+  app.el('placardForm').fire('submit');
+  const manual = app.el('printArea').children.map(card => card.innerHTML);
+  assert.equal(manual.length, 2);
+  manual.forEach(html => {
+    assert.match(html, /name--loaded-mashed/);
+    assert.match(html, /<span>Loaded mashed<\/span><span>potatoes<\/span>/);
+    assert.match(html, /PO#0159669540/);
+    assert.match(html, /HARTFORD/);
+  });
+  app.el('ecWeekMode').fire('click');
+  const result = app.weekResult();
+  result.stores = [{ destination: 'HARTFORD', totalPallets: 2, products: [{
+    product: catalog[index], poNumber: '0159669540', totalCases: 286, totalPallets: 2
+  }] }];
+  result.totalPallets = 2;
+  app.loadWeek().success(result);
+  assert.deepEqual(app.el('printArea').children.map(card => card.innerHTML), manual);
+  const escaped = app.context.buildPlacard({
+    palletNumber: 1, totalPallets: 1, poNumber: '0001', destination: 'DAYTONA',
+    product: { name: '<img onerror=x>', nameClass: 'name--loaded-mashed' }
+  });
+  assert.doesNotMatch(escaped.innerHTML, /<img/);
+  assert.match(escaped.innerHTML, /&lt;img/);
 });
 
 test('sheet mode groups all stores, selects isolated batch, preserves PO and escapes strings', () => {
@@ -281,12 +346,44 @@ test('pallet numbering restarts for each item, never uses the store/order total'
 test('no orders and invalid/mismatched responses leave print disabled', () => {
   const app = setup();
   app.el('ecSheetMode').fire('click');
-  app.load().success({ date: '2026-11-04', stores: [], totalPallets: 0 });
+  app.load().success({ date: '2026-11-04', section: 'regular', stores: [], totalPallets: 0 });
   assert.match(app.el('sheetStatus').textContent, /No hay órdenes/);
   assert.equal(app.el('btnPrintSheet').disabled, true);
   app.load().success(app.result('2026-04-11'));
   assert.match(app.el('sheetStatus').textContent, /inválida/);
   assert.equal(app.el('printArea').children.length, 0);
+});
+
+test('section changes isolate JIT requests and invalidate printed and in-flight regular batches', () => {
+  const app = setup();
+  app.el('ecWeekMode').fire('click');
+  const regular = app.loadWeek();
+  assert.equal(regular.section, 'regular');
+  const stale = app.weekResult();
+  app.el('orderSection').value = 'jit';
+  app.el('orderSection').fire('change');
+  regular.success(stale);
+  assert.equal(app.el('printArea').children.length, 0);
+  const jit = app.loadWeek();
+  assert.equal(jit.section, 'jit');
+  jit.success(app.weekResult());
+  assert.equal(app.el('printArea').children.length, 3);
+  app.el('orderSection').value = 'regular';
+  app.el('orderSection').fire('change');
+  assert.equal(app.el('printArea').children.length, 0);
+  assert.equal(app.el('btnPrintSheet').disabled, true);
+  const wrongSection = app.loadWeek();
+  const wrong = app.weekResult();
+  wrong.section = 'jit';
+  wrongSection.success(wrong);
+  assert.equal(app.el('btnPrintSheet').disabled, true);
+  app.el('ecSheetMode').fire('click');
+  app.el('orderSection').value = 'jit';
+  app.el('orderSection').fire('change');
+  const date = app.load();
+  assert.equal(date.section, 'jit');
+  date.success(app.result());
+  assert.equal(app.el('printArea').children.length, 3);
 });
 
 test('week mode requests worksheet WK and prints all stores regardless of arrival dates', () => {
@@ -396,7 +493,7 @@ test('invalid, missing, mismatched and empty weeks leave printing disabled', () 
     assert.match(app.el('sheetStatus').textContent, /semana válida/);
     assert.equal(app.el('btnPrintSheet').disabled, true);
   });
-  app.loadWeek('53').success({ week: 'WK 53', stores: [], totalPallets: 0 });
+  app.loadWeek('53').success({ week: 'WK 53', section: 'regular', stores: [], totalPallets: 0 });
   assert.match(app.el('sheetStatus').textContent, /No hay órdenes.*WK 53/);
   app.loadWeek().success(app.weekResult('WK 45'));
   assert.match(app.el('sheetStatus').textContent, /inválida/);
