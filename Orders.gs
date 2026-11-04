@@ -8,7 +8,7 @@ function getEastCoastProducts_(defaultsOnly) {
     { name: 'ROASTED GREEN VEGETABLES', size: '12 oz', casesPerPallet: 143, nameClass: 'name--roasted', aliases: [], manual: true },
     { name: 'Holiday Creamed Corn Pudding', placardName: 'corn pudding', size: '', casesPerPallet: 143, nameClass: 'name--holiday', aliases: [], manual: false },
     { name: 'Roasted vegetables w/ garlic', placardName: 'roasted vegetables', size: '', casesPerPallet: 143, nameClass: 'name--holiday', aliases: ['Roasted vegetables with garlic'], manual: false },
-    { name: 'Holiday Apple Cranberry Stuffing', placardName: 'cranberry stuffing', size: '', casesPerPallet: 143, nameClass: 'name--holiday', aliases: [], manual: false },
+    { name: 'Holiday Apple Cranberry Stuffing', placardName: 'apple cranberry stuffing', size: '', casesPerPallet: 143, nameClass: 'name--holiday', aliases: [], manual: false },
     { name: 'Four cheese scalloped potatoes', placardName: 'scalloped potatoes', size: '', casesPerPallet: 143, nameClass: 'name--holiday', aliases: [], manual: false },
     { name: 'Loaded mashed potatoes', size: '', casesPerPallet: 143, nameClass: 'name--holiday', aliases: [], manual: false },
     { name: 'Holiday Vanilla Bean Whipped Sw…', placardName: 'vainilla sweet potatoes', size: '', casesPerPallet: 143, nameClass: 'name--holiday', aliases: ['Holiday Vanilla Bean Whipped Sw...', 'Holiday Vanilla Bean Whipped Sw', 'Holiday Vanilla Bean Whipped Sweet Potatoes'], manual: false },
@@ -276,7 +276,7 @@ function eastCoastCellDate_(typed, displayed, timezone, context) {
 function eastCoastMarker_(value) {
   var text = eastCoastText_(value);
   if (/^po\s*(?:#|number|no\.?)\s*:?\s*$/.test(text)) return 'po';
-  if (/^(?:pick\s*up|pickup)\s*date\s*:?\s*$/.test(text)) return 'pickup';
+  if (/^(?:pick\s*up|pickup)\s*(?:date|time(?:\s+app(?:t)?)?)\s*:?\s*$/.test(text)) return 'pickup';
   if (/^(?:arrive(?:\s*\(rdd\))?|arrival(?:\s*date)?|rdd)\s*:?\s*$/.test(text)) return 'arrival';
   if (/^(?:total(?:\s+(?:cases|pallets))?|pallets|cases|v[\s-]*boards?|week(?:\s.*)?|wk(?:\s.*)?)\s*:?\s*$/.test(text)) return 'summary';
   return '';

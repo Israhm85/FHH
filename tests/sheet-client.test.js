@@ -176,9 +176,37 @@ test('manual generation and per-product numbering still work', () => {
   assert.equal(app.prints(), 1);
 });
 
+test('apple cranberry stuffing uses the catalog print name in manual and weekly placards', () => {
+  const ordersContext = vm.createContext({});
+  vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'Orders.gs'), 'utf8'), ordersContext);
+  const catalog = JSON.parse(JSON.stringify(ordersContext.getEastCoastProducts_(true)));
+  const index = catalog.findIndex(product => product.name === 'Holiday Apple Cranberry Stuffing');
+  const app = setup(catalog);
+  app.el('poNumber').value = '0159669543';
+  app.el('destination').value = 'NAZARETH';
+  app.el('totalCases').value = '286';
+  app.el('productSelect').value = String(index);
+  app.el('placardForm').fire('submit');
+  const manual = app.el('printArea').children.map(card => card.innerHTML);
+  assert.equal(manual.length, 2);
+  manual.forEach(html => {
+    assert.match(html, /apple cranberry stuffing/);
+    assert.doesNotMatch(html, /Holiday Apple Cranberry Stuffing/);
+  });
+  app.el('ecWeekMode').fire('click');
+  const result = app.weekResult('WK 45');
+  result.stores = [{ destination: 'NAZARETH', totalPallets: 2, products: [{
+    product: catalog[index], poNumber: '0159669543', totalCases: 286,
+    totalPallets: 2, arrivalDate: '2026-11-11'
+  }] }];
+  result.totalPallets = 2;
+  app.loadWeek('45').success(result);
+  assert.deepEqual(app.el('printArea').children.map(card => card.innerHTML), manual);
+});
+
 test('placard builder prints short labels, escapes them and falls back to the original name', () => {
   const app = setup();
-  const labels = ['corn pudding', 'roasted vegetables', 'cranberry stuffing',
+  const labels = ['corn pudding', 'roasted vegetables', 'apple cranberry stuffing',
     'scalloped potatoes', 'vainilla sweet potatoes', 'pot pie', '<img onerror=x>'];
   labels.forEach(label => {
     const card = app.context.buildPlacard({
