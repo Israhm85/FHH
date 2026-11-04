@@ -8,7 +8,7 @@ function getEastCoastProducts_(defaultsOnly) {
     { name: 'ROASTED GREEN VEGETABLES', size: '12 oz', casesPerPallet: 143, nameClass: 'name--roasted', aliases: [], manual: true },
     { name: 'Holiday Creamed Corn Pudding', placardName: 'corn pudding', size: '', casesPerPallet: 143, nameClass: 'name--holiday', aliases: [], manual: false },
     { name: 'Roasted vegetables w/ garlic', placardName: 'roasted vegetables', size: '', casesPerPallet: 143, nameClass: 'name--holiday', aliases: ['Roasted vegetables with garlic'], manual: false },
-    { name: 'Holiday Apple Cranberry Stuffing', placardName: 'apple cranberry stuffing', size: '', casesPerPallet: 143, nameClass: 'name--holiday', aliases: [], manual: false },
+    { name: 'Holiday Apple Cornbread Stuffing', placardName: 'APPLE CORNBREAD STUFFING', size: '', casesPerPallet: 143, nameClass: 'name--holiday', aliases: ['Holiday Apple Cranberry Stuffing'], manual: false },
     { name: 'Four cheese scalloped potatoes', placardName: 'scalloped potatoes', size: '', casesPerPallet: 143, nameClass: 'name--holiday', aliases: [], manual: false },
     { name: 'Loaded mashed potatoes', size: '', casesPerPallet: 143, nameClass: 'name--loaded-mashed', aliases: [], manual: false },
     { name: 'Holiday Vanilla Bean Whipped Sw…', placardName: 'vainilla sweet potatoes', size: '', casesPerPallet: 143, nameClass: 'name--holiday', aliases: ['Holiday Vanilla Bean Whipped Sw...', 'Holiday Vanilla Bean Whipped Sw', 'Holiday Vanilla Bean Whipped Sweet Potatoes'], manual: false },

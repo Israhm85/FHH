@@ -177,11 +177,11 @@ test('manual generation and per-product numbering still work', () => {
   assert.equal(app.prints(), 1);
 });
 
-test('apple cranberry stuffing uses the catalog print name in manual and weekly placards', () => {
+test('apple cornbread stuffing uses the catalog print name in manual and weekly placards', () => {
   const ordersContext = vm.createContext({});
   vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'Orders.gs'), 'utf8'), ordersContext);
   const catalog = JSON.parse(JSON.stringify(ordersContext.getEastCoastProducts_(true)));
-  const index = catalog.findIndex(product => product.name === 'Holiday Apple Cranberry Stuffing');
+  const index = catalog.findIndex(product => product.name === 'Holiday Apple Cornbread Stuffing');
   const app = setup(catalog);
   app.el('poNumber').value = '0159669543';
   app.el('destination').value = 'NAZARETH';
@@ -191,8 +191,8 @@ test('apple cranberry stuffing uses the catalog print name in manual and weekly 
   const manual = app.el('printArea').children.map(card => card.innerHTML);
   assert.equal(manual.length, 2);
   manual.forEach(html => {
-    assert.match(html, /apple cranberry stuffing/);
-    assert.doesNotMatch(html, /Holiday Apple Cranberry Stuffing/);
+    assert.match(html, /APPLE CORNBREAD STUFFING/);
+    assert.doesNotMatch(html, /Holiday Apple Cornbread Stuffing|cranberry/i);
   });
   app.el('ecWeekMode').fire('click');
   const result = app.weekResult('WK 45');
@@ -207,7 +207,7 @@ test('apple cranberry stuffing uses the catalog print name in manual and weekly 
 
 test('placard builder prints short labels, escapes them and falls back to the original name', () => {
   const app = setup();
-  const labels = ['corn pudding', 'roasted vegetables', 'apple cranberry stuffing',
+  const labels = ['corn pudding', 'roasted vegetables', 'APPLE CORNBREAD STUFFING',
     'scalloped potatoes', 'vainilla sweet potatoes', 'turkey pot pie', '<img onerror=x>'];
   labels.forEach(label => {
     const card = app.context.buildPlacard({

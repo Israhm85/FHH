@@ -72,7 +72,7 @@ function block(options = {}) {
 const holidayRows = [
   ['Holiday Creamed Corn Pudding', 572],
   ['Roasted vegetables w/ garlic', 286],
-  ['Holiday Apple Cranberry Stuffing', 143],
+  ['Holiday Apple Cornbread Stuffing', 143],
   ['Four cheese scalloped potatoes', 286],
   ['Kung Pao', 143],
   ['Garlic Asiago Dip', 143],
@@ -147,7 +147,7 @@ test('short placard labels preserve original names, capacities and Nazareth tota
   for (const result of [app.get('2026-11-04'), app.getWeek('WK 44')]) {
     const products = result.stores[0].products;
     const labels = [[0, 'corn pudding'], [1, 'roasted vegetables'],
-      [2, 'apple cranberry stuffing'], [3, 'scalloped potatoes'],
+      [2, 'APPLE CORNBREAD STUFFING'], [3, 'scalloped potatoes'],
       [8, 'vainilla sweet potatoes'], [10, 'turkey pot pie']];
     labels.forEach(([index, label]) => {
       assert.equal(products[index].product.placardName, label);
@@ -168,7 +168,7 @@ test('WK 45 screenshot orders are unchanged with or without optional pickup appo
   const rows = [
     ['Holiday Creamed Corn Pudding', 0, 143, 143, 143, 143, 143, 143, 858],
     ['Roasted vegetables w/ garlic', 0, 143, 143, 143, 143, 286, 143, 1001],
-    ['Holiday Apple Cranberry Stuffing', 286, 286, 143, 143, 286, 286, 143, 1573],
+    ['Holiday Apple Cornbread Stuffing', 286, 286, 143, 143, 286, 286, 143, 1573],
     ['Four cheese scalloped potatoes', 143, 286, 143, 286, 286, 143, 143, 1430],
     ['Kung Pao', 0, 0, 143, 143, 286, 143, 143, 858],
     ['Garlic Asiago Dip', 143, 143, 0, 143, 143, 0, 0, 572],
@@ -186,8 +186,8 @@ test('WK 45 screenshot orders are unchanged with or without optional pickup appo
   assert.equal(expected.totalPallets, 84);
   assert.deepEqual(expected.stores.map(store => store.totalPallets), [9, 15, 11, 13, 15, 13, 8]);
   expected.stores.forEach((store, index) => {
-    const stuffing = store.products.find(order => order.product.name === 'Holiday Apple Cranberry Stuffing');
-    assert.equal(stuffing.product.placardName, 'apple cranberry stuffing');
+    const stuffing = store.products.find(order => order.product.name === 'Holiday Apple Cornbread Stuffing');
+    assert.equal(stuffing.product.placardName, 'APPLE CORNBREAD STUFFING');
     assert.equal(stuffing.totalCases, rows[2][index + 1]);
     assert.equal(stuffing.poNumber, pos[index]);
   });
@@ -235,6 +235,23 @@ test('pickup appointment metadata never hides missing PO, destination or invalid
   orphan[6][2] = 143;
   assert.throws(() => app.getWeek('44'), /Missing destination for nonzero cases/);
   assert.throws(() => app.get('2026-11-04'), /Missing destination for nonzero cases/);
+});
+
+test('cornbread stuffing matches the new name and legacy alias without splitting product totals', () => {
+  const app = load({ tabs: [{ name: 'EAST COAST', displayed: block({ rows: [
+    ['  HOLIDAY Apple Cornbread   Stuffing ', 143],
+    ['Holiday Apple Cranberry Stuffing', 143]
+  ] }) }] });
+  for (const result of [app.get('2026-11-04'), app.getWeek('44')]) {
+    const orders = result.stores[0].products;
+    assert.equal(orders.length, 1);
+    assert.equal(orders[0].product.name, 'Holiday Apple Cornbread Stuffing');
+    assert.equal(orders[0].product.placardName, 'APPLE CORNBREAD STUFFING');
+    assert.equal(orders[0].product.casesPerPallet, 143);
+    assert.equal(orders[0].totalCases, 286);
+    assert.equal(orders[0].totalPallets, 2);
+    assert.equal(orders[0].poNumber, '0159543664');
+  }
 });
 
 test('verified full sweet potatoes name matches the existing product in date and week batches', () => {

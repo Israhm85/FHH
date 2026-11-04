@@ -177,7 +177,7 @@ Catálogo y limitaciones
 Nombres impresos (placardName en el catálogo central):
   Holiday Creamed Corn Pudding -> corn pudding
   Roasted vegetables w/ garlic -> roasted vegetables
-  Holiday Apple Cranberry Stuffing -> apple cranberry stuffing
+  Holiday Apple Cornbread Stuffing -> APPLE CORNBREAD STUFFING
   Four cheese scalloped potatoes -> scalloped potatoes
   Holiday Vanilla Bean Whipped Sweet Potatoes -> vainilla sweet potatoes
   Holiday Entree Turkey Pot Pie -> turkey pot pie
@@ -199,7 +199,9 @@ Capacidades:
   ROASTED GREEN VEGETABLES: 143.
   Holiday Creamed Corn Pudding: 143.
   Roasted vegetables w/ garlic / Roasted vegetables with garlic: 143.
-  Holiday Apple Cranberry Stuffing: 143.
+  Holiday Apple Cornbread Stuffing: 143.
+  Holiday Apple Cranberry Stuffing se conserva como alias para hojas anteriores;
+  se agrupa bajo Holiday Apple Cornbread Stuffing e imprime APPLE CORNBREAD STUFFING.
   Four cheese scalloped potatoes: 143.
   Loaded mashed potatoes: 143.
   Holiday Vanilla Bean Whipped Sw… (también Sw... y Sw): 143.
