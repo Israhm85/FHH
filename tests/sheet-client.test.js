@@ -41,7 +41,7 @@ class Element {
   scrollIntoView() {}
 }
 
-function setup(catalog) {
+function setup(catalog, onPrint) {
   const elements = {};
   const el = id => elements[id] ||= new Element();
   const product = { name: 'SHELLED EDAMAME', size: '9 oz', casesPerPallet: 160, manual: true };
@@ -59,7 +59,7 @@ function setup(catalog) {
       createDocumentFragment: () => Object.assign(new Element(), { fragment: true }),
       body
     },
-    window: { print() { prints++; } },
+    window: { print() { prints++; if (onPrint) onPrint(el('printArea').children); } },
     google: { script: { run: {
       withSuccessHandler(success) {
         return {
@@ -175,6 +175,86 @@ test('manual generation and per-product numbering still work', () => {
   assert.match(cards[0].innerHTML, /PO#0007/);
   app.el('btnPrint').fire('click');
   assert.equal(app.prints(), 1);
+});
+
+for (const mode of ['sheet', 'week']) {
+  test(`${mode} prints disjoint paper groups with correct counts, store selection and item numbering`, () => {
+    const ordersContext = vm.createContext({});
+    vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'Orders.gs'), 'utf8'), ordersContext);
+    const catalog = JSON.parse(JSON.stringify(ordersContext.getEastCoastProducts_(true)));
+    const green = catalog.find(product => product.name === 'Roasted vegetables w/ garlic');
+    const white = catalog.find(product => product.name === 'ROASTED GREEN VEGETABLES');
+    const jobs = [];
+    const app = setup(catalog, cards => jobs.push(cards.map(card => card.innerHTML)));
+    app.el(mode === 'week' ? 'ecWeekMode' : 'ecSheetMode').fire('click');
+    const result = mode === 'week' ? app.weekResult() : app.result();
+    result.stores[0].products = [
+      { product: green, poNumber: '0001', totalPallets: 2, totalCases: 286 },
+      { product: white, poNumber: '0002', totalPallets: 1, totalCases: 143 }
+    ];
+    result.stores[0].totalPallets = 3;
+    result.totalPallets = 5;
+    (mode === 'week' ? app.loadWeek() : app.load()).success(result);
+    const all = app.el('printArea').children.map(card => card.innerHTML);
+    assert.equal(all.length, 5);
+    assert.match(app.el('btnPrintWhite').textContent, /3 hojas/);
+    assert.match(app.el('btnPrintGreen').textContent, /2 hojas/);
+    app.el('btnPrintWhite').fire('click');
+    app.el('btnPrintGreen').fire('click');
+    assert.equal(jobs[0].length, 3);
+    assert.equal(jobs[1].length, 2);
+    jobs[0].forEach(html => assert.doesNotMatch(html, />roasted vegetables</));
+    jobs[1].forEach(html => {
+      assert.match(html, />roasted vegetables</);
+      assert.match(html, /PO#0001/);
+      assert.match(html, /NAZARETH/);
+    });
+    assert.match(jobs[1][0], /\(1\) OF \(2\)/);
+    assert.match(jobs[1][1], /\(2\) OF \(2\)/);
+    assert.deepEqual(app.el('printArea').children.map(card => card.innerHTML), all);
+    app.el('btnPrintSheet').fire('click');
+    assert.deepEqual(jobs[2], all);
+
+    app.el('sheetStore').value = '1';
+    app.el('sheetStore').fire('change');
+    assert.match(app.el('btnPrintWhite').textContent, /2 hojas/);
+    assert.match(app.el('btnPrintGreen').textContent, /0 hojas/);
+    assert.equal(app.el('btnPrintGreen').disabled, true);
+    app.el('btnPrintGreen').fire('click');
+    assert.equal(jobs.length, 3);
+    app.el('btnPrintWhite').fire('click');
+    assert.equal(jobs[3].length, 2);
+    jobs[3].forEach(html => assert.match(html, /DAYTONA/));
+
+    app.el('sheetStore').value = '0';
+    app.el('sheetStore').fire('change');
+    result.stores[0].products = [result.stores[0].products[0]];
+    app.el('sheetStore').fire('change');
+    assert.equal(app.el('btnPrintWhite').disabled, true);
+    assert.equal(app.el('btnPrintGreen').disabled, false);
+    assert.match(app.el('btnPrintGreen').textContent, /2 hojas/);
+    app.el('btnPrintWhite').fire('click');
+    assert.equal(jobs.length, 4);
+    app.body.setAttribute('data-client', 'ids');
+    app.el('btnPrintGreen').fire('click');
+    assert.equal(jobs.length, 4);
+    app.body.setAttribute('data-client', 'east-coast');
+    app.el(mode === 'week' ? 'orderWeek' : 'arrivalDate').fire('input');
+    assert.equal(app.el('btnPrintGreen').disabled, true);
+    assert.equal(app.el('btnPrintWhite').disabled, true);
+    app.el('btnPrintGreen').fire('click');
+    assert.equal(jobs.length, 4);
+    assert.equal(app.el('printArea').children.length, 0);
+  });
+}
+
+test('paper printing restores the full preview when printing fails', () => {
+  const app = setup(undefined, () => { throw new Error('print unavailable'); });
+  app.el('ecSheetMode').fire('click');
+  app.load().success(app.result());
+  const before = app.el('printArea').children.map(card => card.innerHTML);
+  assert.throws(() => app.el('btnPrintWhite').fire('click'), /print unavailable/);
+  assert.deepEqual(app.el('printArea').children.map(card => card.innerHTML), before);
 });
 
 test('apple cornbread stuffing uses the catalog print name in manual and weekly placards', () => {

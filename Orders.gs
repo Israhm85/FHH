@@ -7,7 +7,7 @@ function getEastCoastProducts_(defaultsOnly) {
     { name: 'CHICKEN STUFFED POBLANO', size: '15 oz', casesPerPallet: 143, nameClass: 'name--chicken', aliases: ['Stuffed poblanos chicken', 'Chicken stuffed poblanos', 'Stuffed poblano chicken'], manual: true },
     { name: 'ROASTED GREEN VEGETABLES', size: '12 oz', casesPerPallet: 143, nameClass: 'name--roasted', aliases: [], manual: true },
     { name: 'Holiday Creamed Corn Pudding', placardName: 'corn pudding', size: '', casesPerPallet: 143, nameClass: 'name--holiday', aliases: [], manual: false },
-    { name: 'Roasted vegetables w/ garlic', placardName: 'roasted vegetables', size: '', casesPerPallet: 143, nameClass: 'name--holiday', aliases: ['Roasted vegetables with garlic'], manual: false },
+    { name: 'Roasted vegetables w/ garlic', placardName: 'roasted vegetables', paperColor: 'green', size: '', casesPerPallet: 143, nameClass: 'name--holiday', aliases: ['Roasted vegetables with garlic'], manual: false },
     { name: 'Holiday Apple Cornbread Stuffing', placardName: 'APPLE CORNBREAD STUFFING', size: '', casesPerPallet: 143, nameClass: 'name--holiday', aliases: ['Holiday Apple Cranberry Stuffing'], manual: false },
     { name: 'Four cheese scalloped potatoes', placardName: 'scalloped potatoes', size: '', casesPerPallet: 143, nameClass: 'name--holiday', aliases: [], manual: false },
     { name: 'Loaded mashed potatoes', size: '', casesPerPallet: 143, nameClass: 'name--loaded-mashed', aliases: [], manual: false },
@@ -460,7 +460,7 @@ function parseEastCoastSheet_(typed, displayed, timezone, date, catalog, sheetNa
         var product = products[eastCoastText_(label)];
         if (!product) throw new Error('Unknown product "' + (label || '(blank product name)') + '" with nonzero cases in ' + storeContext + ', row ' + (rowOffset + productRow + 1) + '. Add a verified definition to EAST_COAST_PRODUCTS.');
         if (!eastCoastCapacity_(product.casesPerPallet)) throw new Error('Missing or invalid pallet capacity for ' + product.name + ' in ' + storeContext + '.');
-        entries.push({ product: { name: product.name, placardName: product.placardName || product.name, size: product.size || '', casesPerPallet: product.casesPerPallet, nameClass: product.nameClass },
+        entries.push({ product: { name: product.name, placardName: product.placardName || product.name, paperColor: product.paperColor || 'white', size: product.size || '', casesPerPallet: product.casesPerPallet, nameClass: product.nameClass },
           poNumber: po, totalCases: quantity, totalPallets: 0 });
       }
       if (entries.length) shipments.push({ destination: store.destination, poNumber: po, date: arrival, products: entries, sheet: sheetName });

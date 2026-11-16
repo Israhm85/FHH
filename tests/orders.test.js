@@ -84,6 +84,23 @@ const holidayRows = [
   ['Holiday Entree Turkey Pot Pie', 180]
 ];
 
+test('date and week API preserve green paper for garlic roasted vegetables and aliases only', () => {
+  const app = load({ tabs: [{ name: 'EAST COAST', displayed: block({ rows: [
+    ['Roasted vegetables with garlic', 286],
+    ['ROASTED GREEN VEGETABLES', 143],
+    ['Kung Pao', 143]
+  ] }) }] });
+  for (const result of [app.get('2026-11-04'), app.getWeek('44')]) {
+    assert.deepEqual(result.stores[0].products.map(order => [
+      order.product.name, order.product.paperColor, order.totalPallets
+    ]), [
+      ['Roasted vegetables w/ garlic', 'green', 2],
+      ['ROASTED GREEN VEGETABLES', 'white', 1],
+      ['KUNG PAO BRUSSEL SPROUTS', 'white', 1]
+    ]);
+  }
+});
+
 test('independent JIT selection isolates unfinished edamame from regular week and date orders', () => {
   const regular = block();
   const jit = [

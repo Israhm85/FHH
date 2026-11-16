@@ -13,6 +13,8 @@
   var weekDisplay = document.getElementById("weekDisplay");
   var loadButton = document.getElementById("btnLoadOrders");
   var printButton = document.getElementById("btnPrintSheet");
+  var whiteButton = document.getElementById("btnPrintWhite");
+  var greenButton = document.getElementById("btnPrintGreen");
   var status = document.getElementById("sheetStatus");
   var summary = document.getElementById("sheetSummary");
   var storeSelect = document.getElementById("sheetStore");
@@ -37,6 +39,10 @@
     storeSelect.innerHTML = '<option value="">Todas las tiendas</option>';
     storeSelect.disabled = true;
     printButton.disabled = true;
+    whiteButton.disabled = true;
+    greenButton.disabled = true;
+    whiteButton.textContent = "1. Imprimir blancas (0 hojas)";
+    greenButton.textContent = "2. Imprimir verdes (0 hojas)";
     btnPrint.disabled = true;
     status.textContent = "";
     status.classList.remove("gen-error");
@@ -90,15 +96,18 @@
     return mode !== "manual" && batchMatches(batch) && !loadButton.disabled;
   }
 
-  function renderSelection() {
+  function renderSelection(paperColor) {
     printArea.textContent = "";
     if (!isCurrentBatch()) { return; }
     var selected = storeSelect.value;
     var fragment = document.createDocumentFragment();
-    var count = 0;
+    var counts = { white: 0, green: 0 };
     batch.stores.forEach(function (store, index) {
       if (selected !== "" && selected !== String(index)) { return; }
       store.products.forEach(function (order) {
+        var paper = order.product.paperColor === "green" ? "green" : "white";
+        counts[paper] += order.totalPallets;
+        if (paperColor && paper !== paperColor) { return; }
         for (var pallet = 1; pallet <= order.totalPallets; pallet++) {
           fragment.appendChild(buildPlacard({
             palletNumber: pallet,
@@ -107,13 +116,16 @@
             destination: store.destination,
             product: order.product
           }));
-          count++;
         }
       });
     });
     printArea.appendChild(fragment);
-    printButton.disabled = count === 0;
-    printButton.textContent = "Imprimir lote (" + count + " placards)";
+    printButton.disabled = counts.white + counts.green === 0;
+    printButton.textContent = "Imprimir lote (" + (counts.white + counts.green) + " placards)";
+    whiteButton.disabled = counts.white === 0;
+    greenButton.disabled = counts.green === 0;
+    whiteButton.textContent = "1. Imprimir blancas (" + counts.white + " hojas)";
+    greenButton.textContent = "2. Imprimir verdes (" + counts.green + " hojas)";
   }
 
   function renderSummary() {
@@ -160,7 +172,7 @@
     invalidate();
     showReference();
   });
-  storeSelect.addEventListener("change", renderSelection);
+  storeSelect.addEventListener("change", function () { renderSelection(); });
   sectionSelect.addEventListener("change", invalidate);
   sheetForm.addEventListener("submit", function (event) {
     event.preventDefault();
@@ -225,5 +237,17 @@
       window.print();
     }
   });
+  function printPaper(paperColor, button) {
+    if (!isCurrentBatch() || button.disabled ||
+        document.body.getAttribute("data-client") !== "east-coast") { return; }
+    renderSelection(paperColor);
+    try {
+      window.print();
+    } finally {
+      renderSelection();
+    }
+  }
+  whiteButton.addEventListener("click", function () { printPaper("white", whiteButton); });
+  greenButton.addEventListener("click", function () { printPaper("green", greenButton); });
 }());
 </script>
