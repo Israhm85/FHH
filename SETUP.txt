@@ -10,6 +10,22 @@ Cargar y generar ->
 seleccionar Todas las tiendas o una tienda -> Imprimir lote.
 No abre el diálogo de impresión automáticamente.
 
+Impresión por color de papel (fecha y semana):
+  1. Cargar el lote y seleccionar Todas las tiendas o una tienda.
+  2. Con papel blanco, pulsar "1. Imprimir blancas".
+  3. Esperar a que termine físicamente la impresora, cargar papel verde
+     y pulsar "2. Imprimir verdes".
+Cada botón muestra su cantidad de hojas y abre un trabajo independiente,
+sin seleccionar intervalos. Si un grupo está vacío, se deshabilita su botón.
+Sólo Roasted vegetables w/ garlic (placard: roasted vegetables) usa verde;
+ROASTED GREEN VEGETABLES es otro producto y permanece en blanco.
+El catálogo central identifica el producto verde mediante paperColor.
+La vista completa se restaura al cerrar la impresión, incluso al cancelar.
+"Imprimir lote" conserva la impresión conjunta anterior (ambos colores).
+Manual sigue imprimiendo el producto elegido; cargar el papel correspondiente.
+No se añaden páginas separadoras ni fondos verdes, ni se controla la bandeja
+de la impresora. PO, destino y numeración por ítem no cambian.
+
 IMPORTANTE: la numeración PALLET# se reinicia POR ÍTEM (producto y PO):
 corn pudding: (1) OF (4) ... (4) OF (4);
 roasted vegetables: (1) OF (2), (2) OF (2).
