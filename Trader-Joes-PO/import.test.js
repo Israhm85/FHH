@@ -14,6 +14,7 @@ function body(count = 1, po = '0160295112') {
 
 function load() {
   const context = vm.createContext({ Date, Number, JSON, Error,
+    SpreadsheetApp: { BorderStyle: { SOLID: 'SOLID' } },
     Utilities: {
       formatDate(date, timezone) {
         return new Intl.DateTimeFormat('en-CA', { timeZone: timezone, year: 'numeric', month: '2-digit', day: '2-digit' }).format(date);
@@ -27,7 +28,7 @@ function load() {
 function setup(context, messages, existing = [
   ['', '', '', '', 'Regular', '', '', '', ''],
   ['', '', '', '', 'Regular', '', '', '', '']
-], bandings = []) {
+]) {
   const header = ['PROD_DATE', 'ARRIVE_DATE', 'LOCATION', 'PO_NUMBER', 'ORDER_TYPE', 'PRODUCT', 'QTY', 'UOM', 'NOTES'];
   const cells = [header, ...existing];
   const writes = [];
@@ -36,7 +37,6 @@ function setup(context, messages, existing = [
   const sheet = {
     getLastRow: () => cells.length,
     getMaxRows: () => maxRows,
-    getBandings: () => bandings,
     getRowHeight: row => row === 2 ? 26 : 27,
     setRowHeight: (row, value) => formatting.push({ kind: 'height', row, value }),
     insertRowsAfter: (_, n) => { maxRows += n; },
@@ -50,10 +50,10 @@ function setup(context, messages, existing = [
         setNumberFormats: value => { formatting.push({ kind: 'numberFormats', row, value }); },
         copyTo: (target, options) => { formatting.push({ kind: 'copy', source: row, row: target.row, options }); },
         setBackgrounds: value => { formatting.push({ kind: 'backgrounds', row, value }); },
-        setBackground: value => {
-          formatting.push({ kind: 'background', row, value });
-          return { setFontWeight: weight => formatting.push({ kind: 'weight', row, weight }) };
-        },
+        setHorizontalAlignments: value => { formatting.push({ kind: 'alignments', row, value }); },
+        setVerticalAlignment: value => { formatting.push({ kind: 'vertical', row, value }); },
+        setBorder: (...args) => { formatting.push({ kind: 'border', row, args }); },
+        setFontWeight: weight => { formatting.push({ kind: 'weight', row, weight }); },
         setNumberFormat: () => {},
         setValues: rows => { writes.push(...rows); cells.push(...rows); }
       };
@@ -126,12 +126,19 @@ test('formats new regular and demo rows using alternating templates without alte
   assert.equal(writes.length, 9);
   assert.deepEqual(formatting.filter(f => f.kind === 'copy').map(f => [f.source, f.row]),
     [[2, 4], [3, 5], [2, 6], [3, 7], [2, 8], [3, 9], [2, 10], [3, 11], [2, 12]]);
-  assert.deepEqual(formatting.filter(f => f.kind === 'background').map(f => [f.row, f.value]), [[12, '#fff2cc']]);
+  const colors = formatting.find(f => f.kind === 'backgrounds').value;
+  assert.deepEqual(Array.from(colors, row => row[0]), [
+    '#f8fafc', '#ffffff', '#f8fafc', '#ffffff', '#f8fafc', '#ffffff', '#f8fafc', '#ffffff', '#fef3c9'
+  ]);
+  assert.deepEqual(Array.from(formatting.find(f => f.kind === 'alignments').value[0]),
+    ['center', 'center', 'center', 'center', 'center', 'left', 'right', 'left', 'left']);
+  assert.equal(formatting.find(f => f.kind === 'border').args[6], '#cbd5e0');
+  assert.equal(formatting.find(f => f.kind === 'vertical').value, 'middle');
   assert.deepEqual(formatting.filter(f => f.kind === 'weight').map(f => [f.row, f.weight]), [[12, 'bold']]);
   assert.deepEqual(formatting.filter(f => f.kind === 'height').slice(0, 2).map(f => [f.row, f.value]), [[4, 26], [5, 27]]);
 });
 
-test('existing rows retain values and number formats and use banding colors', () => {
+test('existing rows retain values and number formats while restoring alternating colors', () => {
   const c = load();
   const original = [
     ['', '', '', '', 'Regular', '', '', '', ''],
@@ -139,14 +146,12 @@ test('existing rows retain values and number formats and use banding colors', ()
     ['date', 'date', 'PALMDALE', '000123', 'Demo', 'Corn', 1, 'CASES', 'nota'],
     ['date', 'date', 'LACEY', '000124', 'Regular', 'Corn', 9, 'CASES', '']
   ];
-  const band = { getRange: () => ({ getRow: () => 1, getLastRow: () => 16, getColumn: () => 1, getLastColumn: () => 9 }),
-    getFirstRowColor: () => '#ffffff', getSecondRowColor: () => '#f4f6f9', getHeaderRowColor: () => '#1a1a1a' };
-  const { sheet, cells, formatting } = setup(c, [], original, [band]);
+  const { sheet, cells, formatting } = setup(c, [], original);
   const before = JSON.stringify(cells);
   assert.equal(c.tjFormatRows_(sheet, 4, ['Demo', 'Regular'], true), true);
   assert.equal(JSON.stringify(cells), before);
-  assert.deepEqual(Array.from(formatting.find(f => f.kind === 'backgrounds').value, r => r[0]), ['#ffffff', '#f4f6f9']);
-  assert.equal(formatting.find(f => f.kind === 'background').row, 4);
+  assert.deepEqual(Array.from(formatting.find(f => f.kind === 'backgrounds').value, r => r[0]), ['#fef3c9', '#ffffff']);
+  assert.equal(formatting.find(f => f.kind === 'weight').row, 4);
   assert.equal(formatting.find(f => f.kind === 'numberFormats').value[0][3], 'original');
 });
 

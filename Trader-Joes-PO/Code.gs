@@ -56,22 +56,6 @@ function tjFormatRows_(sheet, first, types, preserveNumberFormats) {
   })) return false;
   var target = sheet.getRange(first, 1, count, TJ_HEADERS.length);
   var numberFormats = preserveNumberFormats ? target.getNumberFormats() : null;
-  var banding = sheet.getBandings().filter(function(band) {
-    var range = band.getRange();
-    return range.getRow() <= 2 && range.getLastRow() >= 3 &&
-      range.getColumn() <= 1 && range.getLastColumn() >= TJ_HEADERS.length &&
-      band.getFirstRowColor() && band.getSecondRowColor();
-  })[0];
-  var colors = null;
-  if (banding) {
-    var start = banding.getRange().getRow() + (banding.getHeaderRowColor() ? 1 : 0);
-    var firstColor = banding.getFirstRowColor();
-    var secondColor = banding.getSecondRowColor();
-    colors = types.map(function(_, i) {
-      var color = ((first + i - start) % 2 === 0) ? firstColor : secondColor;
-      return Array(TJ_HEADERS.length).fill(color);
-    });
-  }
   var heights = [sheet.getRowHeight(2), sheet.getRowHeight(3)];
   types.forEach(function(_, i) {
     var row = first + i;
@@ -82,10 +66,18 @@ function tjFormatRows_(sheet, first, types, preserveNumberFormats) {
     }
     sheet.setRowHeight(row, heights[template - 2]);
   });
-  if (colors) target.setBackgrounds(colors);
+  var alignments = ['center', 'center', 'center', 'center', 'center', 'left', 'right', 'left', 'left'];
+  target.setBackgrounds(types.map(function(type, i) {
+    var demo = String(type).trim().toLowerCase() === 'demo';
+    var color = demo ? '#fef3c9' : ((first + i) % 2 === 0 ? '#f8fafc' : '#ffffff');
+    return Array(TJ_HEADERS.length).fill(color);
+  }));
+  target.setHorizontalAlignments(types.map(function() { return alignments.slice(); }));
+  target.setVerticalAlignment('middle');
+  target.setBorder(true, true, true, true, true, true, '#cbd5e0', SpreadsheetApp.BorderStyle.SOLID);
   types.forEach(function(type, i) {
     if (String(type).trim().toLowerCase() === 'demo') {
-      sheet.getRange(first + i, 1, 1, TJ_HEADERS.length).setBackground('#fff2cc').setFontWeight('bold');
+      sheet.getRange(first + i, 1, 1, TJ_HEADERS.length).setFontWeight('bold');
     }
   });
   if (numberFormats) target.setNumberFormats(numberFormats);
