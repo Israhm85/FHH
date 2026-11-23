@@ -86,9 +86,9 @@ function tjFormatRows_(sheet, first, types, preserveNumberFormats) {
 
 function importarPedidosTraderJoes() {
   var ui = SpreadsheetApp.getUi();
-  var start = ui.prompt('Importar PO', 'Fecha inicial del correo (AAAA-MM-DD):', ui.ButtonSet.OK_CANCEL);
+  var start = ui.prompt('Importar PO', 'Fecha inicial ARRIVE (AAAA-MM-DD). Se revisan correos de los últimos 10 días:', ui.ButtonSet.OK_CANCEL);
   if (start.getSelectedButton() !== ui.Button.OK) return;
-  var end = ui.prompt('Importar PO', 'Fecha final del correo (AAAA-MM-DD), inclusive:', ui.ButtonSet.OK_CANCEL);
+  var end = ui.prompt('Importar PO', 'Fecha final ARRIVE (AAAA-MM-DD), inclusive:', ui.ButtonSet.OK_CANCEL);
   if (end.getSelectedButton() !== ui.Button.OK) return;
   var lock = LockService.getDocumentLock();
   if (!lock.tryLock(30000)) throw new Error('Otra importación está en curso. Inténtalo nuevamente.');
@@ -100,7 +100,7 @@ function importarPedidosTraderJoes() {
   }
 }
 
-function tjImport_(ss, start, end) {
+function tjImport_(ss, start, end, now) {
   tjParseIso_(start);
   tjParseIso_(end);
   if (start > end) throw new Error('La fecha inicial debe ser anterior o igual a la final.');
@@ -109,8 +109,10 @@ function tjImport_(ss, start, end) {
   if (timezone !== 'America/Los_Angeles') {
     throw new Error('Configura la zona horaria de la hoja como America/Los_Angeles antes de importar.');
   }
-  var query = 'label:' + TJ_LABEL + ' after:' + tjShiftDate_(start, -1).replace(/-/g, '/') +
-    ' before:' + tjShiftDate_(end, 2).replace(/-/g, '/');
+  var today = Utilities.formatDate(now || new Date(), timezone, 'yyyy-MM-dd');
+  var receivedFrom = tjShiftDate_(today, -9);
+  var query = 'label:' + TJ_LABEL + ' after:' + tjShiftDate_(receivedFrom, -1).replace(/-/g, '/') +
+    ' before:' + tjShiftDate_(today, 2).replace(/-/g, '/');
   var orders = {};
   var offset = 0;
   var threads;
@@ -119,19 +121,22 @@ function tjImport_(ss, start, end) {
     threads.forEach(function(thread) {
       thread.getMessages().forEach(function(message) {
         var date = Utilities.formatDate(message.getDate(), timezone, 'yyyy-MM-dd');
-        if (date < start || date > end) return;
+        if (date < receivedFrom || date > today) return;
         var body = message.getPlainBody();
         if (!/PURCHASE AGREEMENT/i.test(body)) return;
         var order;
         try {
+          var arrive = tjArrivalFromBody_(body);
+          if (arrive < start || arrive > end) return;
           order = tjParseOrder_(body);
         } catch (e) {
           throw new Error('No se pudo leer el correo ' + message.getId() + ': ' + e.message);
         }
-        if (orders[order.po] && tjOrderSignature_(orders[order.po]) !== tjOrderSignature_(order)) {
+        var key = tjPoKey_(order.po);
+        if (orders[key] && tjOrderSignature_(orders[key]) !== tjOrderSignature_(order)) {
           throw new Error('El PO ' + order.po + ' aparece con datos distintos en los correos. Revisa antes de importar.');
         }
-        orders[order.po] = order;
+        if (!orders[key]) orders[key] = order;
       });
     });
     offset += threads.length;
@@ -146,21 +151,22 @@ function tjImport_(ss, start, end) {
     values.forEach(function(row, i) {
       var po = String(displayed[i][3]).trim();
       if (!po) return;
-      if (!existing[po]) existing[po] = [];
-      existing[po].push(tjExistingSignature_(row, displayed[i], timezone));
+      var key = tjPoKey_(po);
+      if (!existing[key]) existing[key] = [];
+      existing[key].push(tjExistingSignature_(row, displayed[i], timezone));
     });
   }
   var rows = [];
   var skipped = [];
   var changed = [];
   var formatWarning = '';
-  Object.keys(orders).sort().forEach(function(po) {
-    var order = orders[po];
-    if (existing[po]) {
-      var oldSignature = existing[po].slice().sort().join('\n');
+  Object.keys(orders).sort().forEach(function(key) {
+    var order = orders[key];
+    if (existing[key]) {
+      var oldSignature = existing[key].slice().sort().join('\n');
       var newSignature = order.items.map(function(item) { return tjItemSignature_(order, item); }).sort().join('\n');
-      if (oldSignature !== newSignature) changed.push(po);
-      else skipped.push(po);
+      if (oldSignature !== newSignature) changed.push(order.po);
+      else skipped.push(order.po);
       return;
     }
     order.items.forEach(function(item) {
@@ -179,8 +185,14 @@ function tjImport_(ss, start, end) {
     sheet.getRange(first, 1, rows.length, 2).setNumberFormat('yyyy-mm-dd');
     sheet.getRange(first, 1, rows.length, TJ_HEADERS.length).setValues(rows);
   }
-  return 'Filas nuevas: ' + rows.length + '. PO existentes sin cambios: ' + skipped.length +
+  return 'Correos revisados del ' + receivedFrom + ' al ' + today + '. ARRIVE del ' + start + ' al ' + end +
+    '. Filas nuevas: ' + rows.length + '. PO existentes sin cambios: ' + skipped.length +
     '. PO existentes con diferencias (no modificados): ' + (changed.join(', ') || 'ninguno') + '.' + formatWarning;
+}
+
+function tjPoKey_(po) {
+  var value = String(po).trim();
+  return /^\d+$/.test(value) ? value.replace(/^0+(?=\d)/, '') : value;
 }
 
 function tjParseOrder_(body) {
@@ -197,13 +209,7 @@ function tjParseOrder_(body) {
   var matches = locationText.match(/\b(?:PALMDALE|FONTANA|STOCKTON|SACRAMENTO|LACEY|ARIZONA|TEXAS|COLORADO)\b/g) || [];
   matches = matches.filter(function(value, index) { return matches.indexOf(value) === index; });
   if (matches.length !== 1) throw new Error('Ubicación desconocida o ambigua: ' + locationText);
-  var rawDate = field('ARRIVE');
-  var dateMatch = rawDate.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2}|\d{4})$/);
-  if (!dateMatch) throw new Error('Fecha ARRIVE inválida: ' + rawDate);
-  var year = Number(dateMatch[3]);
-  if (dateMatch[3].length === 2) year += 2000;
-  var arrive = year + '-' + ('0' + dateMatch[1]).slice(-2) + '-' + ('0' + dateMatch[2]).slice(-2);
-  tjParseIso_(arrive);
+  var arrive = tjArrivalFromBody_(body);
 
   var sections = body.split(/^[ \t]*PRODUCT NAME[ \t]*:[ \t]*/im);
   if (sections.length < 2) throw new Error('No se encontraron productos.');
@@ -228,6 +234,21 @@ function tjParseOrder_(body) {
       qty: quantity, uom: qty[1].toUpperCase() === 'CASE' ? 'CASES' : 'UNITS' };
   });
   return { po: po, location: matches[0], arrive: arrive, type: items.length < 8 ? 'Demo' : 'Regular', items: items };
+}
+
+function tjArrivalFromBody_(body) {
+  var poMatches = body.match(/^[ \t]*P\.O\.[ \t]*:/gim) || [];
+  if (poMatches.length !== 1) throw new Error('Se esperaba exactamente un P.O. por correo.');
+  var matches = body.match(/^[ \t]*ARRIVE[ \t]*:[ \t]*([^\r\n]*)/gim) || [];
+  if (matches.length !== 1) throw new Error('Se esperaba exactamente una fecha ARRIVE por correo.');
+  var rawDate = matches[0].replace(/^[ \t]*ARRIVE[ \t]*:[ \t]*/i, '').trim();
+  var dateMatch = rawDate.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2}|\d{4})$/);
+  if (!dateMatch) throw new Error('Fecha ARRIVE inválida: ' + rawDate);
+  var year = Number(dateMatch[3]);
+  if (dateMatch[3].length === 2) year += 2000;
+  var arrive = year + '-' + ('0' + dateMatch[1]).slice(-2) + '-' + ('0' + dateMatch[2]).slice(-2);
+  tjParseIso_(arrive);
+  return arrive;
 }
 
 function tjParseIso_(value) {
