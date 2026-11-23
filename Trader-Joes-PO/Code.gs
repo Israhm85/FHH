@@ -9,7 +9,87 @@ var TJ_PRODUCTS = {
 function onOpen() {
   SpreadsheetApp.getUi().createMenu('Trader Joe’s')
     .addItem('Importar PO de Gmail', 'importarPedidosTraderJoes')
+    .addItem('Dar formato a filas existentes', 'formatearPedidosTraderJoes')
     .addToUi();
+}
+
+function formatearPedidosTraderJoes() {
+  var ui = SpreadsheetApp.getUi();
+  var answer = ui.prompt('Formato de pedidos', 'Número de la primera fila que deseas formatear (por ejemplo, 17):', ui.ButtonSet.OK_CANCEL);
+  if (answer.getSelectedButton() !== ui.Button.OK) return;
+  var input = answer.getResponseText().trim();
+  var first = Number(input);
+  if (!/^\d+$/.test(input) || !Number.isSafeInteger(first) || first < 4) {
+    throw new Error('Introduce un número de fila entero desde la fila 4. Las filas 2 y 3 son las plantillas.');
+  }
+  var lock = LockService.getDocumentLock();
+  if (!lock.tryLock(30000)) throw new Error('Otra operación está en curso. Inténtalo nuevamente.');
+  try {
+    var sheet = tjDatos_(SpreadsheetApp.getActiveSpreadsheet());
+    var count = sheet.getLastRow() - first + 1;
+    if (count < 1) throw new Error('La fila indicada está después de la última fila con datos.');
+    var types = sheet.getRange(first, 5, count, 1).getDisplayValues().map(function(row) { return row[0]; });
+    if (!tjFormatRows_(sheet, first, types, true)) {
+      throw new Error('Las filas 2 y 3 deben ser pedidos Regular con el formato que quieres copiar.');
+    }
+    ui.alert('Formato aplicado', 'Se formatearon ' + count + ' filas desde la fila ' + first + '.', ui.ButtonSet.OK);
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function tjDatos_(ss) {
+  var sheet = ss.getSheetByName('Datos');
+  if (!sheet) throw new Error('No existe la pestaña Datos.');
+  var headers = sheet.getRange(1, 1, 1, TJ_HEADERS.length).getDisplayValues()[0];
+  if (headers.some(function(value, i) { return value.trim() !== TJ_HEADERS[i]; })) {
+    throw new Error('Las primeras nueve columnas de Datos no coinciden con los encabezados esperados.');
+  }
+  return sheet;
+}
+
+function tjFormatRows_(sheet, first, types, preserveNumberFormats) {
+  var count = types.length;
+  if (!count) return true;
+  if (first < 4 || sheet.getRange(2, 5, 2, 1).getDisplayValues().some(function(row) {
+    return String(row[0]).trim().toLowerCase() !== 'regular';
+  })) return false;
+  var target = sheet.getRange(first, 1, count, TJ_HEADERS.length);
+  var numberFormats = preserveNumberFormats ? target.getNumberFormats() : null;
+  var banding = sheet.getBandings().filter(function(band) {
+    var range = band.getRange();
+    return range.getRow() <= 2 && range.getLastRow() >= 3 &&
+      range.getColumn() <= 1 && range.getLastColumn() >= TJ_HEADERS.length &&
+      band.getFirstRowColor() && band.getSecondRowColor();
+  })[0];
+  var colors = null;
+  if (banding) {
+    var start = banding.getRange().getRow() + (banding.getHeaderRowColor() ? 1 : 0);
+    var firstColor = banding.getFirstRowColor();
+    var secondColor = banding.getSecondRowColor();
+    colors = types.map(function(_, i) {
+      var color = ((first + i - start) % 2 === 0) ? firstColor : secondColor;
+      return Array(TJ_HEADERS.length).fill(color);
+    });
+  }
+  var heights = [sheet.getRowHeight(2), sheet.getRowHeight(3)];
+  types.forEach(function(_, i) {
+    var row = first + i;
+    var template = row % 2 === 0 ? 2 : 3;
+    if (row !== template) {
+      sheet.getRange(template, 1, 1, TJ_HEADERS.length).copyTo(
+        sheet.getRange(row, 1, 1, TJ_HEADERS.length), { formatOnly: true });
+    }
+    sheet.setRowHeight(row, heights[template - 2]);
+  });
+  if (colors) target.setBackgrounds(colors);
+  types.forEach(function(type, i) {
+    if (String(type).trim().toLowerCase() === 'demo') {
+      sheet.getRange(first + i, 1, 1, TJ_HEADERS.length).setBackground('#fff2cc').setFontWeight('bold');
+    }
+  });
+  if (numberFormats) target.setNumberFormats(numberFormats);
+  return true;
 }
 
 function importarPedidosTraderJoes() {
@@ -32,12 +112,7 @@ function tjImport_(ss, start, end) {
   tjParseIso_(start);
   tjParseIso_(end);
   if (start > end) throw new Error('La fecha inicial debe ser anterior o igual a la final.');
-  var sheet = ss.getSheetByName('Datos');
-  if (!sheet) throw new Error('No existe la pestaña Datos.');
-  var headers = sheet.getRange(1, 1, 1, TJ_HEADERS.length).getDisplayValues()[0];
-  if (headers.some(function(value, i) { return value.trim() !== TJ_HEADERS[i]; })) {
-    throw new Error('Las primeras nueve columnas de Datos no coinciden con los encabezados esperados.');
-  }
+  var sheet = tjDatos_(ss);
   var timezone = ss.getSpreadsheetTimeZone();
   if (timezone !== 'America/Los_Angeles') {
     throw new Error('Configura la zona horaria de la hoja como America/Los_Angeles antes de importar.');
@@ -86,6 +161,7 @@ function tjImport_(ss, start, end) {
   var rows = [];
   var skipped = [];
   var changed = [];
+  var formatWarning = '';
   Object.keys(orders).sort().forEach(function(po) {
     var order = orders[po];
     if (existing[po]) {
@@ -104,12 +180,15 @@ function tjImport_(ss, start, end) {
     var first = lastRow + 1;
     var requiredRows = first + rows.length - 1 - sheet.getMaxRows();
     if (requiredRows > 0) sheet.insertRowsAfter(sheet.getMaxRows(), requiredRows);
+    if (!tjFormatRows_(sheet, first, rows.map(function(row) { return row[4]; }), false)) {
+      formatWarning = ' No se aplicó el formato: las filas 2 y 3 deben ser pedidos Regular con el formato deseado.';
+    }
     sheet.getRange(first, 4, rows.length, 1).setNumberFormat('@');
     sheet.getRange(first, 1, rows.length, 2).setNumberFormat('yyyy-mm-dd');
     sheet.getRange(first, 1, rows.length, TJ_HEADERS.length).setValues(rows);
   }
   return 'Filas nuevas: ' + rows.length + '. PO existentes sin cambios: ' + skipped.length +
-    '. PO existentes con diferencias (no modificados): ' + (changed.join(', ') || 'ninguno') + '.';
+    '. PO existentes con diferencias (no modificados): ' + (changed.join(', ') || 'ninguno') + '.' + formatWarning;
 }
 
 function tjParseOrder_(body) {

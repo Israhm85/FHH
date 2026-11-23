@@ -13,6 +13,12 @@ Apps Script requiere permiso completo de Gmail para `GmailApp`; este proyecto so
 
 La primera fila de `Datos` debe contener, en este orden: `PROD_DATE`, `ARRIVE_DATE`, `LOCATION`, `PO_NUMBER`, `ORDER_TYPE`, `PRODUCT`, `QTY`, `UOM`, `NOTES`. Se agregan filas al final; no se modifican las demás pestañas ni los formatos de las filas existentes.
 
+## Formato de las filas
+
+Las nuevas filas copian el formato y la altura de las filas 2 y 3 de `Datos`, alternándolas. Esas dos filas deben ser pedidos `Regular` y tener el formato deseado; si no lo son, la importación avisa que no pudo aplicar el formato. Las filas `Demo` se resaltan en amarillo y negrita.
+
+Para dar formato a filas ya importadas, actualiza `Code.gs` en Apps Script, guarda y recarga la hoja. En **Trader Joe’s > Dar formato a filas existentes**, indica la primera fila que quieres modificar (por ejemplo, `17`). Se aplica hasta la última fila con datos, sin cambiar valores, fórmulas, validaciones ni formatos numéricos. Se reemplaza el formato visual de esas filas en las columnas A:I y su altura; haz una copia de seguridad si tienen formato personalizado. Si cambias manualmente el tipo de pedido, vuelve a aplicar el formato para actualizar el resaltado.
+
 ## Reglas y revisión
 
 - Un PO con menos de 8 productos es `Demo`; con 8 o más es `Regular`. Se cuenta cada SKU del correo, no las cajas. Un SKU repetido bloquea la importación para evitar una clasificación incorrecta.
