@@ -19,7 +19,7 @@ La primera fila de `Datos` debe contener, en este orden: `PROD_DATE`, `ARRIVE_DA
 
 Las nuevas filas copian la tipografía y altura de las filas 2 y 3 de `Datos`. Además, se aplican los colores alternos blanco y gris claro, bordes y alineaciones de la plantilla; las filas `Demo` se resaltan en amarillo y negrita. Las filas 2 y 3 deben ser pedidos `Regular` con la tipografía y altura deseadas; si no lo son, la importación avisa que no pudo aplicar el formato.
 
-Para dar formato a filas ya importadas, actualiza `Code.gs` en Apps Script, guarda y recarga la hoja. En **Trader Joe’s > Dar formato a filas existentes**, indica la primera fila que quieres modificar (por ejemplo, `17`). Se aplica hasta la última fila con datos, sin cambiar valores, fórmulas, validaciones ni formatos numéricos. Se reemplaza el formato visual de esas filas en las columnas A:I y su altura; haz una copia de seguridad si tienen formato personalizado. Si cambias manualmente el tipo de pedido, vuelve a aplicar el formato para actualizar el resaltado.
+Al abrir la hoja, el proyecto aplica automáticamente el formato a las filas existentes desde la fila 4 hasta la última fila con datos, sin cambiar valores, fórmulas, validaciones ni formatos numéricos. Las filas 2 y 3 se reservan como plantillas. El menú **Trader Joe’s > Dar formato a filas existentes** vuelve a aplicar el formato a todas esas filas cuando sea necesario, por ejemplo, después de cambiar manualmente un tipo de pedido. Se reemplaza el formato visual en las columnas A:I y su altura; haz una copia de seguridad si tienen formato personalizado. Si las plantillas no son pedidos `Regular`, la carga muestra un aviso y no cambia el formato.
 
 ## Reglas y revisión
 

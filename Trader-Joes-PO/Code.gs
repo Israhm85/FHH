@@ -11,31 +11,45 @@ function onOpen() {
     .addItem('Importar PO de Gmail', 'importarPedidosTraderJoes')
     .addItem('Dar formato a filas existentes', 'formatearPedidosTraderJoes')
     .addToUi();
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var lock = LockService.getDocumentLock();
+  if (!lock.tryLock(30000)) {
+    ss.toast('No se aplicó el formato porque otra operación está en curso.', 'Trader Joe’s', 5);
+    return;
+  }
+  try {
+    if (tjFormatExistingRows_(ss) === false) {
+      ss.toast('No se aplicó el formato: las filas 2 y 3 deben ser pedidos Regular con el formato deseado.',
+        'Trader Joe’s', 8);
+    }
+  } finally {
+    lock.releaseLock();
+  }
 }
 
 function formatearPedidosTraderJoes() {
   var ui = SpreadsheetApp.getUi();
-  var answer = ui.prompt('Formato de pedidos', 'Número de la primera fila que deseas formatear (por ejemplo, 17):', ui.ButtonSet.OK_CANCEL);
-  if (answer.getSelectedButton() !== ui.Button.OK) return;
-  var input = answer.getResponseText().trim();
-  var first = Number(input);
-  if (!/^\d+$/.test(input) || !Number.isSafeInteger(first) || first < 4) {
-    throw new Error('Introduce un número de fila entero desde la fila 4. Las filas 2 y 3 son las plantillas.');
-  }
   var lock = LockService.getDocumentLock();
   if (!lock.tryLock(30000)) throw new Error('Otra operación está en curso. Inténtalo nuevamente.');
   try {
-    var sheet = tjDatos_(SpreadsheetApp.getActiveSpreadsheet());
-    var count = sheet.getLastRow() - first + 1;
-    if (count < 1) throw new Error('La fila indicada está después de la última fila con datos.');
-    var types = sheet.getRange(first, 5, count, 1).getDisplayValues().map(function(row) { return row[0]; });
-    if (!tjFormatRows_(sheet, first, types, true)) {
+    var count = tjFormatExistingRows_(SpreadsheetApp.getActiveSpreadsheet());
+    if (count === false) {
       throw new Error('Las filas 2 y 3 deben ser pedidos Regular con el formato que quieres copiar.');
     }
-    ui.alert('Formato aplicado', 'Se formatearon ' + count + ' filas desde la fila ' + first + '.', ui.ButtonSet.OK);
+    ui.alert('Formato aplicado', count
+      ? 'Se formatearon ' + count + ' filas desde la fila 4.'
+      : 'No hay filas de pedidos para formatear.', ui.ButtonSet.OK);
   } finally {
     lock.releaseLock();
   }
+}
+
+function tjFormatExistingRows_(ss) {
+  var sheet = tjDatos_(ss);
+  var count = sheet.getLastRow() - 3;
+  if (count < 1) return 0;
+  var types = sheet.getRange(4, 5, count, 1).getDisplayValues().map(function(row) { return row[0]; });
+  return tjFormatRows_(sheet, 4, types, true) ? count : false;
 }
 
 function tjDatos_(ss) {

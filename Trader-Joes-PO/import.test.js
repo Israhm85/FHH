@@ -16,6 +16,7 @@ function body(count = 1, po = '0160295112') {
 function load() {
   const context = vm.createContext({ Date, Number, JSON, Error,
     SpreadsheetApp: { BorderStyle: { SOLID: 'SOLID' } },
+    LockService: { getDocumentLock: () => ({ tryLock: () => true, releaseLock: () => {} }) },
     Utilities: {
       formatDate(date, timezone) {
         return new Intl.DateTimeFormat('en-CA', { timeZone: timezone, year: 'numeric', month: '2-digit', day: '2-digit' }).format(date);
@@ -62,6 +63,13 @@ function setup(context, messages, existing = [
     }
   };
   const ss = { getSheetByName: name => name === 'Datos' ? sheet : null, getSpreadsheetTimeZone: () => 'America/Los_Angeles' };
+  context.SpreadsheetApp.getActiveSpreadsheet = () => ss;
+  context.SpreadsheetApp.getUi = () => ({
+    createMenu: () => ({ addItem() { return this; }, addToUi() {} }),
+    alert() {},
+    prompt() { assert.fail('No debe solicitar un número de fila'); }
+  });
+  ss.toast = () => {};
   context.GmailApp = { search: (query, offset, count) => {
     queries.push(query);
     return messages.slice(offset, offset + count).map((message, i) => ({
@@ -162,6 +170,21 @@ test('existing rows retain values and number formats while restoring alternating
   assert.deepEqual(Array.from(formatting.find(f => f.kind === 'backgrounds').value, r => r[0]), ['#fef3c9', '#ffffff']);
   assert.equal(formatting.find(f => f.kind === 'weight').row, 4);
   assert.equal(formatting.find(f => f.kind === 'numberFormats').value[0][3], 'original');
+});
+
+test('formats existing orders automatically when the spreadsheet opens', () => {
+  const c = load();
+  const original = [
+    ['', '', '', '', 'Regular', '', '', '', ''],
+    ['', '', '', '', 'Regular', '', '', '', ''],
+    ['date', 'date', 'PALMDALE', '000123', 'Demo', 'Corn', 1, 'CASES', 'nota'],
+    ['date', 'date', 'LACEY', '000124', 'Regular', 'Corn', 9, 'CASES', '']
+  ];
+  const { formatting } = setup(c, [], original);
+  c.onOpen();
+  assert.deepEqual(formatting.filter(f => f.kind === 'copy').map(f => f.row), [4, 5]);
+  assert.deepEqual(Array.from(formatting.find(f => f.kind === 'backgrounds').value, row => row[0]),
+    ['#fef3c9', '#ffffff']);
 });
 
 test('missing regular templates never copies demo formatting to other orders', () => {
