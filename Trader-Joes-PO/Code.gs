@@ -46,10 +46,23 @@ function formatearPedidosTraderJoes() {
 
 function tjFormatExistingRows_(ss) {
   var sheet = tjDatos_(ss);
-  var count = sheet.getLastRow() - 3;
+  var templateTypes = sheet.getRange(2, 5, 2, 1).getDisplayValues().map(function(row) {
+    return String(row[0]).trim().toLowerCase();
+  });
+  var hasOrdersAtRowTwo = tjHasOrdersAtRowTwo_(sheet);
+  var regularTemplates = templateTypes.length === 2 &&
+    templateTypes.every(function(type) { return type === 'regular'; });
+  if (!hasOrdersAtRowTwo && !regularTemplates) return 0;
+  var first = hasOrdersAtRowTwo ? 2 : 4;
+  var count = sheet.getLastRow() - first + 1;
   if (count < 1) return 0;
-  var types = sheet.getRange(4, 5, count, 1).getDisplayValues().map(function(row) { return row[0]; });
-  return tjFormatRows_(sheet, 4, types, true) ? count : false;
+  var types = sheet.getRange(first, 5, count, 1).getDisplayValues().map(function(row) { return row[0]; });
+  return tjFormatRows_(sheet, first, types, true) ? count : false;
+}
+
+function tjHasOrdersAtRowTwo_(sheet) {
+  var values = sheet.getRange(2, 4, 1, 1).getDisplayValues();
+  return values.length > 0 && values[0].length > 0 && String(values[0][0]).trim() !== '';
 }
 
 function tjDatos_(ss) {
@@ -65,9 +78,12 @@ function tjDatos_(ss) {
 function tjFormatRows_(sheet, first, types, preserveNumberFormats) {
   var count = types.length;
   if (!count) return true;
-  if (first < 4 || sheet.getRange(2, 5, 2, 1).getDisplayValues().some(function(row) {
-    return String(row[0]).trim().toLowerCase() !== 'regular';
-  })) return false;
+  var templateTypes = sheet.getRange(2, 5, 2, 1).getDisplayValues();
+  var regularTemplates = templateTypes.length === 2 && templateTypes.every(function(row) {
+    return String(row[0]).trim().toLowerCase() === 'regular';
+  });
+  var hasOrdersAtRowTwo = tjHasOrdersAtRowTwo_(sheet);
+  if (!regularTemplates && !hasOrdersAtRowTwo) return false;
   var target = sheet.getRange(first, 1, count, TJ_HEADERS.length);
   var numberFormats = preserveNumberFormats ? target.getNumberFormats() : null;
   var heights = [sheet.getRowHeight(2), sheet.getRowHeight(3)];
@@ -90,9 +106,8 @@ function tjFormatRows_(sheet, first, types, preserveNumberFormats) {
   target.setVerticalAlignment('middle');
   target.setBorder(true, true, true, true, true, true, '#cbd5e0', SpreadsheetApp.BorderStyle.SOLID);
   types.forEach(function(type, i) {
-    if (String(type).trim().toLowerCase() === 'demo') {
-      sheet.getRange(first + i, 1, 1, TJ_HEADERS.length).setFontWeight('bold');
-    }
+    sheet.getRange(first + i, 1, 1, TJ_HEADERS.length).setFontWeight(
+      String(type).trim().toLowerCase() === 'demo' ? 'bold' : 'normal');
   });
   if (numberFormats) target.setNumberFormats(numberFormats);
   return true;

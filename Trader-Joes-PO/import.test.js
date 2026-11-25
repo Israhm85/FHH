@@ -151,7 +151,9 @@ test('formats new regular and demo rows using alternating templates without alte
     ['center', 'center', 'center', 'center', 'center', 'left', 'right', 'left', 'left']);
   assert.equal(formatting.find(f => f.kind === 'border').args[6], '#cbd5e0');
   assert.equal(formatting.find(f => f.kind === 'vertical').value, 'middle');
-  assert.deepEqual(formatting.filter(f => f.kind === 'weight').map(f => [f.row, f.weight]), [[12, 'bold']]);
+  assert.deepEqual(formatting.filter(f => f.kind === 'weight').map(f => [f.row, f.weight]),
+    [[4, 'normal'], [5, 'normal'], [6, 'normal'], [7, 'normal'], [8, 'normal'], [9, 'normal'],
+      [10, 'normal'], [11, 'normal'], [12, 'bold']]);
   assert.deepEqual(formatting.filter(f => f.kind === 'height').slice(0, 2).map(f => [f.row, f.value]), [[4, 26], [5, 27]]);
 });
 
@@ -185,6 +187,23 @@ test('formats existing orders automatically when the spreadsheet opens', () => {
   assert.deepEqual(formatting.filter(f => f.kind === 'copy').map(f => f.row), [4, 5]);
   assert.deepEqual(Array.from(formatting.find(f => f.kind === 'backgrounds').value, row => row[0]),
     ['#fef3c9', '#ffffff']);
+});
+
+test('formats rows 2 and 3 as orders when they are not Regular templates', () => {
+  const c = load();
+  const original = [
+    ['date', 'date', 'PALMDALE', '000121', 'Demo', 'Corn', 1, 'CASES', ''],
+    ['date', 'date', 'LACEY', '000122', 'Demo', 'Corn', 1, 'CASES', ''],
+    ['date', 'date', 'PALMDALE', '000123', 'Demo', 'Corn', 1, 'CASES', 'nota'],
+    ['date', 'date', 'LACEY', '000124', 'Regular', 'Corn', 9, 'CASES', '']
+  ];
+  const { formatting } = setup(c, [], original);
+  c.onOpen();
+  assert.deepEqual(formatting.filter(f => f.kind === 'copy').map(f => f.row), [4, 5]);
+  assert.deepEqual(Array.from(formatting.find(f => f.kind === 'backgrounds').value, row => row[0]),
+    ['#fef3c9', '#fef3c9', '#fef3c9', '#ffffff']);
+  assert.deepEqual(formatting.filter(f => f.kind === 'weight').map(f => [f.row, f.weight]),
+    [[2, 'bold'], [3, 'bold'], [4, 'bold'], [5, 'normal']]);
 });
 
 test('missing regular templates never copies demo formatting to other orders', () => {
