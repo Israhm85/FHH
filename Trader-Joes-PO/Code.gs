@@ -11,31 +11,58 @@ function onOpen() {
     .addItem('Importar PO de Gmail', 'importarPedidosTraderJoes')
     .addItem('Dar formato a filas existentes', 'formatearPedidosTraderJoes')
     .addToUi();
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var lock = LockService.getDocumentLock();
+  if (!lock.tryLock(30000)) {
+    ss.toast('No se aplicó el formato porque otra operación está en curso.', 'Trader Joe’s', 5);
+    return;
+  }
+  try {
+    if (tjFormatExistingRows_(ss) === false) {
+      ss.toast('No se aplicó el formato: las filas 2 y 3 deben ser pedidos Regular con el formato deseado.',
+        'Trader Joe’s', 8);
+    }
+  } finally {
+    lock.releaseLock();
+  }
 }
 
 function formatearPedidosTraderJoes() {
   var ui = SpreadsheetApp.getUi();
-  var answer = ui.prompt('Formato de pedidos', 'Número de la primera fila que deseas formatear (por ejemplo, 17):', ui.ButtonSet.OK_CANCEL);
-  if (answer.getSelectedButton() !== ui.Button.OK) return;
-  var input = answer.getResponseText().trim();
-  var first = Number(input);
-  if (!/^\d+$/.test(input) || !Number.isSafeInteger(first) || first < 4) {
-    throw new Error('Introduce un número de fila entero desde la fila 4. Las filas 2 y 3 son las plantillas.');
-  }
   var lock = LockService.getDocumentLock();
   if (!lock.tryLock(30000)) throw new Error('Otra operación está en curso. Inténtalo nuevamente.');
   try {
-    var sheet = tjDatos_(SpreadsheetApp.getActiveSpreadsheet());
-    var count = sheet.getLastRow() - first + 1;
-    if (count < 1) throw new Error('La fila indicada está después de la última fila con datos.');
-    var types = sheet.getRange(first, 5, count, 1).getDisplayValues().map(function(row) { return row[0]; });
-    if (!tjFormatRows_(sheet, first, types, true)) {
+    var count = tjFormatExistingRows_(SpreadsheetApp.getActiveSpreadsheet());
+    if (count === false) {
       throw new Error('Las filas 2 y 3 deben ser pedidos Regular con el formato que quieres copiar.');
     }
-    ui.alert('Formato aplicado', 'Se formatearon ' + count + ' filas desde la fila ' + first + '.', ui.ButtonSet.OK);
+    ui.alert('Formato aplicado', count
+      ? 'Se formatearon ' + count + ' filas desde la fila 4.'
+      : 'No hay filas de pedidos para formatear.', ui.ButtonSet.OK);
   } finally {
     lock.releaseLock();
   }
+}
+
+function tjFormatExistingRows_(ss) {
+  var sheet = tjDatos_(ss);
+  var templateTypes = sheet.getRange(2, 5, 2, 1).getDisplayValues().map(function(row) {
+    return String(row[0]).trim().toLowerCase();
+  });
+  var hasOrdersAtRowTwo = tjHasOrdersAtRowTwo_(sheet);
+  var regularTemplates = templateTypes.length === 2 &&
+    templateTypes.every(function(type) { return type === 'regular'; });
+  if (!hasOrdersAtRowTwo && !regularTemplates) return 0;
+  var first = hasOrdersAtRowTwo ? 2 : 4;
+  var count = sheet.getLastRow() - first + 1;
+  if (count < 1) return 0;
+  var types = sheet.getRange(first, 5, count, 1).getDisplayValues().map(function(row) { return row[0]; });
+  return tjFormatRows_(sheet, first, types, true) ? count : false;
+}
+
+function tjHasOrdersAtRowTwo_(sheet) {
+  var values = sheet.getRange(2, 4, 1, 1).getDisplayValues();
+  return values.length > 0 && values[0].length > 0 && String(values[0][0]).trim() !== '';
 }
 
 function tjDatos_(ss) {
@@ -51,9 +78,12 @@ function tjDatos_(ss) {
 function tjFormatRows_(sheet, first, types, preserveNumberFormats) {
   var count = types.length;
   if (!count) return true;
-  if (first < 4 || sheet.getRange(2, 5, 2, 1).getDisplayValues().some(function(row) {
-    return String(row[0]).trim().toLowerCase() !== 'regular';
-  })) return false;
+  var templateTypes = sheet.getRange(2, 5, 2, 1).getDisplayValues();
+  var regularTemplates = templateTypes.length === 2 && templateTypes.every(function(row) {
+    return String(row[0]).trim().toLowerCase() === 'regular';
+  });
+  var hasOrdersAtRowTwo = tjHasOrdersAtRowTwo_(sheet);
+  if (!regularTemplates && !hasOrdersAtRowTwo) return false;
   var target = sheet.getRange(first, 1, count, TJ_HEADERS.length);
   var numberFormats = preserveNumberFormats ? target.getNumberFormats() : null;
   var heights = [sheet.getRowHeight(2), sheet.getRowHeight(3)];
@@ -76,9 +106,8 @@ function tjFormatRows_(sheet, first, types, preserveNumberFormats) {
   target.setVerticalAlignment('middle');
   target.setBorder(true, true, true, true, true, true, '#cbd5e0', SpreadsheetApp.BorderStyle.SOLID);
   types.forEach(function(type, i) {
-    if (String(type).trim().toLowerCase() === 'demo') {
-      sheet.getRange(first + i, 1, 1, TJ_HEADERS.length).setFontWeight('bold');
-    }
+    sheet.getRange(first + i, 1, 1, TJ_HEADERS.length).setFontWeight(
+      String(type).trim().toLowerCase() === 'demo' ? 'bold' : 'normal');
   });
   if (numberFormats) target.setNumberFormats(numberFormats);
   return true;
